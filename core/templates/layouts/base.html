@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Sistema CACEI{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="layout">
+
+<header class="header">
+    <div class="header__left">
+        <h1 class="header__title">Sistema de seguimiento de atributos de egreso</h1>
+    </div>
+    <div class="header__right">
+        {% if user.is_authenticated %}
+            <span class="header__user">
+                {{ user.get_full_name|default:user.username }}
+            </span>
+        {% endif %}
+    </div>
+</header>
+
+{% if user.is_authenticated %}
+<nav class="nav">
+    <a href="{% url 'core:dashboard' %}" class="nav__link">Inicio</a>
+    <a href="{% url 'core:lista_atributos' %}" class="nav__link">Atributos de egreso</a>
+    <a href="{% url 'core:lista_materias' %}" class="nav__link">Materias</a>
+    <a href="{% url 'core:logout' %}" class="nav__link nav__link--right">Cerrar sesión</a>
+</nav>
+{% endif %}
+
+<main class="main">
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="messages__item">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <section class="card">
+        {% block content %}{% endblock %}
+    </section>
+</main>
+
+</body>
+</html>

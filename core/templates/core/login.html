@@ -1,0 +1,31 @@
+{% extends 'layouts/base_auth.html' %}
+{% load static %}
+
+{% block title %}Iniciar sesión - Se'si Eskani{% endblock %}
+
+{% block content %}
+<section class="login-card">
+    <div class="login-card__header">
+        <img src="{% static 'img/logo_eskani.png' %}" alt="Se'si Eskani" class="login-card__icon">
+        <h1 class="login-card__title">Se'si Eskani</h1>
+    </div>
+
+    <form method="post" class="login-form">
+        {% csrf_token %}
+
+        <div class="login-form__group">
+            <label for="{{ form.username.id_for_label }}" class="login-form__label">Usuario</label>
+            {{ form.username }}
+        </div>
+
+        <div class="login-form__group">
+            <label for="{{ form.password.id_for_label }}" class="login-form__label">Contraseña</label>
+            {{ form.password }}
+        </div>
+
+        <div class="login-form__actions">
+            <button type="submit" class="login-form__button">Aceptar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

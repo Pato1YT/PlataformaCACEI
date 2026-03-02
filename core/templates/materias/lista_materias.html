@@ -1,0 +1,45 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Materias{% endblock %}
+
+{% block content %}
+<h2>Materias</h2>
+
+<a href="{% url 'core:crear_materia' %}">+ Nueva materia</a>
+
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+    <tr>
+        <th>Clave</th>
+        <th>Nombre</th>
+        <th>Nivel</th>
+        <th>Grupo</th>
+        <th>Periodo</th>
+        <th>Atributo de egreso</th>
+        <th>Docente</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for materia in materias %}
+        <tr>
+            <td>{{ materia.clave }}</td>
+            <td>{{ materia.nombre }}</td>
+            <td>{{ materia.nivel }}</td>
+            <td>{{ materia.grupo }}</td>
+            <td>{{ materia.periodo }}</td>
+            <td>{{ materia.atributo_egreso.codigo }} - {{ materia.atributo_egreso.nombre }}</td>
+            <td>{{ materia.docente.get_full_name|default:materia.docente.username }}</td>
+            <td>
+                <a href="{% url 'core:editar_materia' materia.pk %}">Editar</a> |
+                <a href="{% url 'core:eliminar_materia' materia.pk %}">Eliminar</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="8">No hay materias registradas.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

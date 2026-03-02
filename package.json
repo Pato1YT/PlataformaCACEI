@@ -1,0 +1,16 @@
+{
+  "name": "cacei",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+     "sass": "sass core/static/scss:core/static/css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "sass": "^1.97.3"
+  }
+}

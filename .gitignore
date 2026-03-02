@@ -1,0 +1,40 @@
+# ======================
+# Entorno virtual
+# ======================
+venv/
+.env
+
+# ======================
+# Python
+# ======================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ======================
+# Django
+# ======================
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+
+# ======================
+# Migraciones compiladas
+# ======================
+*.log
+
+# ======================
+# IDEs / Editores
+# ======================
+.vscode/
+.idea/
+
+# ======================
+# Sistema
+# ======================
+.DS_Store
+Thumbs.db
+
+node_modules

@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Se'si Eskani{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="app-body">
+
+<!-- HEADER SUPERIOR -->
+<header class="app-header">
+    <div class="app-header__left">
+        <button id="menuToggle" class="app-header__menu-btn">
+            &#9776;
+        </button>
+        <span class="app-header__brand">Se'si Eskani</span>
+    </div>
+
+    <div class="app-header__center">
+        <span class="app-header__title">Bienvenido</span>
+    </div>
+
+    <div class="app-header__right">
+        <div class="app-header__user-wrapper">
+            <div class="app-header__avatar">
+                {{ user.get_full_name|first|default:user.username|first }}
+            </div>
+            <div class="app-header__user-text">
+                <span class="app-header__user-name">
+                    {{ user.get_full_name|default:user.username }}
+                </span>
+                <span class="app-header__user-role">Usuario</span>
+                {# luego podemos cambiar "Usuario" por el rol real #}
+            </div>
+        </div>
+        <span class="app-header__dots">● ● ●</span>
+    </div>
+</header>
+
+<!-- SIDEBAR + BACKDROP -->
+<div id="sideMenu" class="side-menu">
+    <div class="side-menu__header">
+        <span class="side-menu__title">Se'si Eskani</span>
+        <button id="menuClose" class="side-menu__close">&larr;</button>
+    </div>
+
+    <nav class="side-menu__nav">
+        <p class="side-menu__section-title">MENÚ PRINCIPAL</p>
+        <ul>
+            <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+            <li><a href="#">AGO25ENE26</a></li>
+        </ul>
+
+        <p class="side-menu__section-title">OTROS</p>
+        <ul>
+            <li><a href="#">Instrucciones</a></li>
+            <li><a href="#">Aviso de privacidad</a></li>
+        </ul>
+
+        <p class="side-menu__section-title">ADMINISTRACIÓN</p>
+        <ul>
+            {% if user.rol == 'ADMINISTRADOR' %}
+            <li><a href="{% url 'core:lista_usuarios' %}">Usuarios</a></li>
+            <li><a href="{% url 'core:lista_materias' %}">Materias</a></li>
+            <li><a href="{% url 'core:lista_atributos' %}">Configurar atributos N</a></li>
+            {% else %}
+            <li><a href="{% url 'core:lista_materias' %}">Materias</a></li>
+            {% endif %}
+        </ul>
+
+        <hr class="side-menu__divider">
+
+        <a href="{% url 'core:logout' %}" class="side-menu__logout">
+            <span class="side-menu__logout-icon">⎋</span>
+            Cerrar sesión
+        </a>
+    </nav>
+</div>
+
+<div id="sideMenuBackdrop" class="side-menu-backdrop"></div>
+
+<!-- CONTENIDO PRINCIPAL -->
+<main class="app-main">
+    <section class="app-container">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="messages__item">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const body = document.body;
+    const menuToggle = document.getElementById('menuToggle');
+    const menuClose = document.getElementById('menuClose');
+    const sideMenu = document.getElementById('sideMenu');
+    const backdrop = document.getElementById('sideMenuBackdrop');
+
+    function openMenu() {
+        body.classList.add('menu-open');
+    }
+
+    function closeMenu() {
+        body.classList.remove('menu-open');
+    }
+
+    if (menuToggle) menuToggle.addEventListener('click', openMenu);
+    if (menuClose) menuClose.addEventListener('click', closeMenu);
+    if (backdrop) backdrop.addEventListener('click', closeMenu);
+});
+</script>
+
+</body>
+</html>

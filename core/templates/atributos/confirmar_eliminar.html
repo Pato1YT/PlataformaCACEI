@@ -1,0 +1,15 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Eliminar atributo{% endblock %}
+
+{% block content %}
+<h2>Eliminar atributo</h2>
+
+<p>¿Seguro que deseas eliminar el atributo <strong>{{ atributo.codigo }} - {{ atributo.nombre }}</strong>?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Sí, eliminar</button>
+    <a href="{% url 'core:lista_atributos' %}">Cancelar</a>
+</form>
+{% endblock %}

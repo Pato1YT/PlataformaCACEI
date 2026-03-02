@@ -1,0 +1,20 @@
+@use '../variables' as v;
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  background-color: v.$color-primary;
+  color: #fff;
+
+  &__title {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  &__user {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+}

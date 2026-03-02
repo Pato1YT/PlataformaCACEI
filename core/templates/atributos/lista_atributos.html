@@ -1,0 +1,37 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Atributos de egreso{% endblock %}
+
+{% block content %}
+<h2>Atributos de egreso</h2>
+
+<a href="{% url 'core:crear_atributo' %}" class="button-link">+ Nuevo atributo</a>
+
+<table>
+    <thead>
+    <tr>
+        <th>Código</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for atributo in atributos %}
+        <tr>
+            <td>{{ atributo.codigo }}</td>
+            <td>{{ atributo.nombre }}</td>
+            <td>{{ atributo.descripcion }}</td>
+            <td>
+                <a href="{% url 'core:editar_atributo' atributo.pk %}">Editar</a> |
+                <a href="{% url 'core:eliminar_atributo' atributo.pk %}">Eliminar</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="4">No hay atributos registrados.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

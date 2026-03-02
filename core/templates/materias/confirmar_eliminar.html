@@ -1,0 +1,16 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Eliminar materia{% endblock %}
+
+{% block content %}
+<h2>Eliminar materia</h2>
+
+<p>¿Seguro que deseas eliminar la materia
+   <strong>{{ materia.clave }} - {{ materia.nombre }}</strong>?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Sí, eliminar</button>
+    <a href="{% url 'core:lista_materias' %}">Cancelar</a>
+</form>
+{% endblock %}

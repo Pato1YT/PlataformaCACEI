@@ -1,0 +1,161 @@
+@use '../variables' as v;
+
+body.auth-body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: v.$font-main;
+  background-color: v.$color-primary;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor de logos laterales */
+.auth-logos {
+  position: fixed;
+  top: 40px;
+  left: 40px;
+  right: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none; // para no estorbar
+}
+
+.auth-logo {
+  max-height: 90px;
+  width: auto;
+}
+
+.auth-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* Tarjeta de login */
+.login-card {
+  width: 100%;
+  max-width: 900px;
+  background-color: v.$color-card-bg;
+  border-radius: v.$radius-card;
+  box-shadow: v.$shadow-card;
+  padding: 48px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-card__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.login-card__icon {
+  max-width: 90px;
+  margin-bottom: 16px;
+}
+
+.login-card__title {
+  font-size: 28px;
+  color: v.$color-primary;
+  font-weight: 700;
+}
+
+/* Formulario */
+.login-form {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-form__label {
+  font-size: 14px;
+  color: v.$color-primary;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  padding: 10px 12px;
+  border-radius: v.$radius-input;
+  border: 2px solid v.$color-border;
+  font-size: 14px;
+  outline: none;
+}
+
+.login-form input[type="text"]:focus,
+.login-form input[type="password"]:focus {
+  box-shadow: 0 0 0 2px rgba(0, 69, 107, 0.25);
+}
+
+/* Botón */
+.login-form__actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.login-form__button {
+  min-width: 160px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background-color: v.$color-button;
+  color: v.$color-button-text;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.login-form__button:hover {
+  background-color: darken(v.$color-button, 5%);
+  transform: translateY(-1px);
+}
+
+.login-form__button:active {
+  transform: translateY(0);
+}
+
+/* Responsivo */
+@media (max-width: 1024px) {
+  .auth-logos {
+    top: 20px;
+    left: 20px;
+    right: 20px;
+  }
+
+  .auth-logo {
+    max-height: 70px;
+  }
+
+  .login-card {
+    padding: 32px 40px;
+    max-width: 95%;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-logos {
+    display: none; // si lo quieres, o los ponemos arriba del card
+  }
+
+  .login-card {
+    padding: 24px 24px;
+  }
+
+  .login-card__title {
+    font-size: 22px;
+  }
+}

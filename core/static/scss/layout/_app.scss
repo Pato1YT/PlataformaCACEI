@@ -1,0 +1,249 @@
+@use '../variables' as v;
+
+body.app-body {
+  margin: 0;
+  font-family: v.$font-main;
+  background-color: v.$color-bg-app;
+}
+
+/* HEADER SUPERIOR */
+
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: v.$color-primary;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  z-index: 1000;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.app-header__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-header__menu-btn {
+  border: none;
+  background: none;
+  color: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-header__menu-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.app-header__brand {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.app-header__center {
+  flex: 1;
+  text-align: center;
+}
+
+.app-header__title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* USER INFO A LA DERECHA */
+
+.app-header__right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.app-header__user-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.app-header__user-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.app-header__user-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.app-header__user-role {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.app-header__dots {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* MAIN */
+
+.app-main {
+  padding-top: 80px; /* header + margen */
+  padding-bottom: 32px;
+}
+
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* SIDEBAR */
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 270px;
+  background-color: v.$color-sidebar-bg;
+  color: v.$color-sidebar-text;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease-out;
+  z-index: 1100;
+  padding: 20px 22px;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.4);
+}
+
+body.menu-open .side-menu {
+  transform: translateX(0);
+}
+
+.side-menu__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.side-menu__title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.side-menu__close {
+  border: none;
+  background: none;
+  color: v.$color-sidebar-text;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.side-menu__nav ul {
+  list-style: none;
+  margin: 0 0 16px 0;
+  padding: 0;
+}
+
+.side-menu__nav li {
+  margin-bottom: 6px;
+}
+
+.side-menu__nav a {
+  color: v.$color-sidebar-text;
+  text-decoration: none;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px;
+  border-radius: 6px;
+}
+
+.side-menu__nav a:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.side-menu__section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  opacity: 0.75;
+  margin: 16px 0 6px;
+}
+
+.side-menu__divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 18px 0 12px;
+}
+
+.side-menu__logout {
+  color: #ffddc1;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+/* BACKDROP */
+
+.side-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+  z-index: 1050;
+}
+
+body.menu-open .side-menu-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 12px;
+  }
+
+  .app-header__brand {
+    display: none; /* para no saturar en móvil */
+  }
+
+  .app-header__user-text {
+    display: none; /* si quieres solo el avatar en móvil */
+  }
+
+  .side-menu {
+    width: 80%;
+    max-width: 280px;
+  }
+}
+
