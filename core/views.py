@@ -8,13 +8,16 @@ from django.core.exceptions import PermissionDenied
 from .models import AtributoEgreso, Materia, Usuario
 from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm
 
+
+
+
 @login_required
 def dashboard(request):
     """
     Vista principal del sistema.
     Aquí luego pondremos estadísticas, resúmenes, etc.
     """
-    return render(request, 'core/dashboard.html')
+    return render(request, 'core/dashboard.html', {'materias': materias})
 
 
 @login_required
@@ -136,13 +139,8 @@ def eliminar_materia(request, pk):
     
 @login_required
 def dashboard(request):
-    # Por ahora, todas las materias. Luego podemos filtrar por docente o semestre.
-    materias = Materia.objects.select_related('atributo_egreso', 'docente').order_by('nivel', 'clave')
-
-    context = {
-        'materias': materias,
-    }
-    return render(request, 'core/dashboard.html', context)
+    materias = Materia.objects.all().order_by('semestre', 'clave')
+    return render(request, 'core/dashboard.html', {'materias': materias})
 
 def solo_admin(view_func):
     @wraps(view_func)
