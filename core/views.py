@@ -82,10 +82,8 @@ def eliminar_atributo(request, pk):
 
 @login_required
 def lista_materias(request):
-    materias = Materia.objects.select_related('atributo_egreso', 'docente').order_by('nivel', 'clave')
-    return render(request, 'materias/lista_materias.html', {
-        'materias': materias,
-    })
+    materias = Materia.objects.all().order_by('semestre', 'clave')
+    return render(request, 'materias/lista_materias.html', {'materias': materias})
 
 
 @login_required
