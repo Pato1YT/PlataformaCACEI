@@ -275,7 +275,7 @@ body.auth-body {
 }
 
 .auth-logo {
-  max-height: 90px;
+  max-height: 160px;
   width: auto;
 }
 
@@ -290,11 +290,11 @@ body.auth-body {
 /* Tarjeta de login */
 .login-card {
   width: 100%;
-  max-width: 900px;
+  max-width: 600px;
   background-color: #ffffff;
   border-radius: 24px;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  padding: 48px 80px;
+  padding: 32px 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -389,7 +389,7 @@ body.auth-body {
     right: 20px;
   }
   .auth-logo {
-    max-height: 70px;
+    max-height: 1000px;
   }
   .login-card {
     padding: 32px 40px;
@@ -399,6 +399,8 @@ body.auth-body {
 @media (max-width: 768px) {
   .auth-logos {
     display: none;
+    max-height: 220px;
+    width: auto;
   }
   .login-card {
     padding: 24px 24px;
