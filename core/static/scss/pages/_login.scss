@@ -18,11 +18,12 @@ body.auth-body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  pointer-events: none; // para no estorbar
-}
+  pointer-events: none;
+  z-index: 1; // logos atrás
+} 
 
 .auth-logo {
-  max-height: 90px;
+  max-height: 160px;
   width: auto;
 }
 
@@ -31,20 +32,22 @@ body.auth-body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 120px 16px 24px;;
 }
 
 /* Tarjeta de login */
 .login-card {
   width: 100%;
-  max-width: 900px;
+  max-width: 600px;   // antes 900px
   background-color: v.$color-card-bg;
   border-radius: v.$radius-card;
   box-shadow: v.$shadow-card;
-  padding: 48px 80px;
+  padding: 32px 40px; // antes 48px 80px
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+   z-index: 10; // carta encima
 }
 
 .login-card__header {
@@ -137,7 +140,7 @@ body.auth-body {
   }
 
   .auth-logo {
-    max-height: 70px;
+    max-height: 1000px;
   }
 
   .login-card {
@@ -149,7 +152,11 @@ body.auth-body {
 @media (max-width: 768px) {
   .auth-logos {
     display: none; // si lo quieres, o los ponemos arriba del card
+     max-height: 220px;
+  width: auto;
   }
+
+  
 
   .login-card {
     padding: 24px 24px;
