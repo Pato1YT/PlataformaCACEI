@@ -18,7 +18,8 @@ body.auth-body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  pointer-events: none; // para no estorbar
+  pointer-events: none;
+  z-index: 1; // logos atrás
 } 
 
 .auth-logo {
@@ -31,7 +32,7 @@ body.auth-body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 120px 16px 24px;;
 }
 
 /* Tarjeta de login */
@@ -45,6 +46,8 @@ body.auth-body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+   z-index: 10; // carta encima
 }
 
 .login-card__header {

@@ -77,7 +77,7 @@ body.app-body {
   font-size: 15px;
 }
 
-/* USER INFO A LA DERECHA */
+/* USER INFO */
 .app-header__right {
   display: flex;
   align-items: center;
@@ -126,7 +126,7 @@ body.app-body {
 
 /* MAIN */
 .app-main {
-  padding-top: 80px; /* header + margen */
+  padding-top: 80px;
   padding-bottom: 32px;
 }
 
@@ -156,6 +156,7 @@ body.menu-open .side-menu {
   transform: translateX(0);
 }
 
+/* TÍTULO DEL MENÚ */
 .side-menu__header {
   display: flex;
   justify-content: space-between;
@@ -166,6 +167,8 @@ body.menu-open .side-menu {
 .side-menu__title {
   font-size: 18px;
   font-weight: 600;
+  color: #d1d9e6; /* Tono más claro para resaltar */
+  letter-spacing: 0.02em;
 }
 
 .side-menu__close {
@@ -176,6 +179,7 @@ body.menu-open .side-menu {
   cursor: pointer;
 }
 
+/* NAV */
 .side-menu__nav ul {
   list-style: none;
   margin: 0 0 16px 0;
@@ -192,13 +196,24 @@ body.menu-open .side-menu {
   font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 6px;
+  gap: 8px;
+  padding: 8px 10px;
   border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.side-menu__nav a i {
+  color: #ffffff; /* Iconos en blanco */
+  font-size: 14px;
 }
 
 .side-menu__nav a:hover {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: #ffffff;
+  color: #003652; /* Letras en azul de la barra */
+}
+
+.side-menu__nav a:hover i {
+  color: #003652;
 }
 
 .side-menu__section-title {
@@ -243,10 +258,10 @@ body.menu-open .side-menu-backdrop {
     padding: 0 12px;
   }
   .app-header__brand {
-    display: none; /* para no saturar en móvil */
+    display: none;
   }
   .app-header__user-text {
-    display: none; /* si quieres solo el avatar en móvil */
+    display: none;
   }
   .side-menu {
     width: 80%;
@@ -272,6 +287,7 @@ body.auth-body {
   justify-content: space-between;
   align-items: center;
   pointer-events: none;
+  z-index: 1;
 }
 
 .auth-logo {
@@ -284,7 +300,7 @@ body.auth-body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 120px 16px 24px;
 }
 
 /* Tarjeta de login */
@@ -298,6 +314,8 @@ body.auth-body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 10;
 }
 
 .login-card__header {
@@ -553,17 +571,19 @@ body.auth-body {
   font-weight: 600;
 }
 
+/* BOTÓN VER DETALLES AJUSTADO */
 .course-card__button {
-  margin-top: 8px;
-  width: 100%;
+  display: inline-block;
+  width: auto;
+  padding: 8px 16px;
   border: none;
   border-radius: 999px;
   background-color: #00a3ff;
   color: #ffffff;
-  padding: 8px 0;
   font-size: 14px;
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.1s ease;
+  text-align: center;
 }
 
 .course-card__button:hover {
@@ -571,9 +591,13 @@ body.auth-body {
   transform: translateY(-1px);
 }
 
+/* RESPONSIVO */
 @media (max-width: 768px) {
   .dashboard {
     padding: 18px 14px 20px;
+  }
+  .course-card__button {
+    width: 100%;
   }
 }
 
