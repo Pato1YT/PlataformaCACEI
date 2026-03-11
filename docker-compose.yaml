@@ -4,6 +4,7 @@ services:
   web:
     build: .
     container_name: cacei_web
+    restart: unless-stopped
     command: gunicorn --bind 0.0.0.0:8000 CACEI.wsgi:application
     volumes:
       - .:/app
@@ -17,6 +18,7 @@ services:
   nginx:
     image: nginx:latest
     container_name: cacei_nginx
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
@@ -29,7 +31,7 @@ services:
   db:
     image: postgres:15
     container_name: cacei_db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
