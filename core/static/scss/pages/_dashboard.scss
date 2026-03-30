@@ -158,8 +158,12 @@
   color: #ffffff;
   padding: 8px 0;
   font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.1s ease;
+  display: inline-block;
+  text-align: center;
 }
 
 .course-card__button:hover {

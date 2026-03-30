@@ -4,28 +4,51 @@
 {% block title %}Iniciar sesión - Se'si Eskani{% endblock %}
 
 {% block content %}
-<section class="login-card">
-    <div class="login-card__header">
-        <img src="{% static 'img/logo_eskani.png' %}" alt="Se'si Eskani" class="login-card__icon">
-        <h1 class="login-card__title">Se'si Eskani</h1>
+<div class="auth-main-wrapper">
+    <section class="login-card">
+        <div class="login-card__header">
+            <img src="{% static 'img/logo_eskani.png' %}" alt="Se'si Eskani" class="login-card__icon">
+            <h1 class="login-card__title">Se'si Eskani</h1>
+        </div>
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+
+            <div class="login-form__group">
+                <label for="{{ form.username.id_for_label }}" class="login-form__label">Usuario</label>
+                {{ form.username }}
+            </div>
+
+            <div class="login-form__group">
+                <label for="{{ form.password.id_for_label }}" class="login-form__label">Contraseña</label>
+                {{ form.password }}
+            </div>
+
+            <div class="login-form__actions">
+                <button type="submit" class="login-form__button">Aceptar</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Todos los logos abajo -->
+    <div class="auth-bottom-logos">
+        <img src="{% static 'img/logo_tecnm.png' %}" alt="TecNM" class="auth-bottom-logo" style="max-height: 90px;">
+        <img src="{% static 'img/logo_itsh.png' %}" alt="ITSH" class="auth-bottom-logo">
+        <img src="{% static 'img/logocacei.png' %}" alt="CACEI" class="auth-bottom-logo">
+        <img src="{% static 'img/logoingindustrial.png' %}" alt="Ingeniería Industrial" class="auth-bottom-logo">
     </div>
+</div>
 
-    <form method="post" class="login-form">
-        {% csrf_token %}
-
-        <div class="login-form__group">
-            <label for="{{ form.username.id_for_label }}" class="login-form__label">Usuario</label>
-            {{ form.username }}
-        </div>
-
-        <div class="login-form__group">
-            <label for="{{ form.password.id_for_label }}" class="login-form__label">Contraseña</label>
-            {{ form.password }}
-        </div>
-
-        <div class="login-form__actions">
-            <button type="submit" class="login-form__button">Aceptar</button>
-        </div>
-    </form>
-</section>
+{% if form.errors %}
+<div class="modal-overlay" id="errorModal">
+    <div class="modal-card">
+        <div class="modal-card__icon">✕</div>
+        <h2 class="modal-card__title">Datos incorrectos</h2>
+        <p class="modal-card__text">El usuario o contraseña son incorrectos. Por favor intenta de nuevo.</p>
+        <button class="modal-card__btn" onclick="document.getElementById('errorModal').style.display='none'">
+            Aceptar
+        </button>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
