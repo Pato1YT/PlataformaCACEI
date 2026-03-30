@@ -197,3 +197,38 @@ def crear_usuario_docente(request):
         'form': form,
         'titulo': 'Crear docente',
     }) 
+
+
+
+
+
+
+
+@solo_admin
+def editar_usuario_docente(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    form = CrearDocenteForm(request.POST or None, instance=usuario)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Docente actualizado correctamente.')
+        return redirect('core:lista_usuarios')
+
+    return render(request, 'usuarios/form_docente.html', {
+        'form': form,
+        'titulo': 'Editar docente',
+    })
+
+
+@solo_admin
+def eliminar_usuario_docente(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    if request.method == 'POST':
+        usuario.delete()
+        messages.success(request, 'Docente eliminado correctamente.')
+        return redirect('core:lista_usuarios')
+
+    return render(request, 'usuarios/confirmar_eliminar.html', {
+        'usuario': usuario,
+    })

@@ -489,6 +489,140 @@ body.auth-body {
     font-size: 22px;
   }
 }
+/*________________________________________________________________*/
+/* LOGOS INFERIORES */
+.auth-main-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.auth-bottom-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.auth-bottom-logo {
+  max-height: 70px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.85;
+}
+
+/* MODAL DE ERROR */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-card {
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 36px 40px;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-card__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #fee2e2;
+  color: #dc2626;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.modal-card__text {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.modal-card__btn {
+  margin-top: 8px;
+  padding: 10px 32px;
+  border-radius: 999px;
+  border: none;
+  background-color: #00456b;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+.modal-card__btn:hover {
+  background-color: rgb(0, 52.5560747664, 81.5);
+  transform: translateY(-1px);
+}
+
+/* RESPONSIVIDAD LOGOS LATERALES */
+.auth-logos {
+  position: fixed;
+  top: 32px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.auth-logo {
+  max-height: 80px;
+  width: auto;
+  transition: max-height 0.2s ease;
+}
+
+@media (max-width: 1200px) {
+  .auth-logo {
+    max-height: 65px;
+  }
+}
+@media (max-width: 900px) {
+  .auth-logo {
+    max-height: 50px;
+  }
+  .auth-logos {
+    top: 16px;
+    left: 16px;
+    right: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .auth-logos {
+    display: none;
+  }
+  .auth-bottom-logo {
+    max-height: 50px;
+  }
+}
 .dashboard {
   background-color: #ffffff;
   border-radius: 24px;

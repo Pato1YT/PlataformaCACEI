@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}Se'si Eskani{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="app-body">
@@ -12,7 +13,7 @@
 <header class="app-header">
     <div class="app-header__left">
         <button id="menuToggle" class="app-header__menu-btn">
-            &#9776;
+            <i class="fa-solid fa-bars"></i>
         </button>
         <span class="app-header__brand">Se'si Eskani</span>
     </div>
@@ -33,44 +34,42 @@
                 <span class="app-header__user-role">{{ user.get_rol_display }}</span>
             </div>
         </div>
-        <span class="app-header__dots">● ● ●</span>
     </div>
 </header>
 
 <div id="sideMenu" class="side-menu">
     <div class="side-menu__header">
         <span class="side-menu__title">Se'si Eskani</span>
-        <button id="menuClose" class="side-menu__close">&larr;</button>
+        <button id="menuClose" class="side-menu__close"><i class="fa-solid fa-arrow-left"></i></button>
     </div>
 
     <nav class="side-menu__nav">
         <p class="side-menu__section-title">MENÚ PRINCIPAL</p>
         <ul>
-            <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
+            <li><a href="{% url 'core:dashboard' %}"><i class="fa-solid fa-house"></i> Inicio</a></li>
         </ul>
 
         <p class="side-menu__section-title">OTROS</p>
         <ul>
-            <li><a href="#">Instrucciones</a></li>
-            <li><a href="#">Aviso de privacidad</a></li>
+            <li><a href="#"><i class="fa-solid fa-circle-info"></i> Instrucciones</a></li>
+            <li><a href="#"><i class="fa-solid fa-shield-halved"></i> Aviso de privacidad</a></li>
         </ul>
 
         <p class="side-menu__section-title">ADMINISTRACIÓN</p>
         <ul>
             {% if user.rol == 'ADMINISTRADOR' %}
-            <li><a href="{% url 'core:lista_usuarios' %}">Docentes</a></li>
-            <li><a href="{% url 'core:lista_materias' %}">Materias</a></li>
-            <li><a href="{% url 'core:lista_atributos' %}">Atributos de Egreso</a></li>
+            <li><a href="{% url 'core:lista_usuarios' %}"><i class="fa-solid fa-chalkboard-user"></i> Docentes</a></li>
+            <li><a href="{% url 'core:lista_materias' %}"><i class="fa-solid fa-book"></i> Materias</a></li>
+            <li><a href="{% url 'core:lista_atributos' %}"><i class="fa-solid fa-list-check"></i> Atributos de Egreso</a></li>
             {% else %}
-            <li><a href="{% url 'core:lista_materias' %}">Materias</a></li>
+            <li><a href="{% url 'core:lista_materias' %}"><i class="fa-solid fa-book"></i> Materias</a></li>
             {% endif %}
         </ul>
 
         <hr class="side-menu__divider">
 
         <a href="{% url 'core:logout' %}" class="side-menu__logout">
-            <span class="side-menu__logout-icon">⎋</span>
-            Cerrar sesión
+            <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
         </a>
     </nav>
 </div>
