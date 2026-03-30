@@ -1,36 +1,49 @@
-{% extends 'layouts/base.html' %}
+{% extends 'layouts/base_app.html' %}
 
-{% block title %}Materias{% endblock %}
+{% block title %}Materias - Se'si Eskani{% endblock %}
 
 {% block content %}
-<h2>Materias</h2>
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Materias</h2>
+            <p class="dashboard__subtitle">Gestión de la retícula académica.</p>
+        </div>
+        <a href="{% url 'core:crear_materia' %}" class="course-card__button" style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block;">
+            + Nueva materia
+        </a>
+    </div>
 
-<a href="{% url 'core:crear_materia' %}">+ Nueva materia</a>
-
-<table border="1" cellpadding="5" cellspacing="0">
-    <thead>
-    <tr>
-        <th>Clave</th>
-        <th>Nombre</th>
-        <th>Semestre</th>
-        <th>Especialidad</th>
-    </tr>
-    </thead>
-    <tbody>
-        {% for materia in materias %}
-        <tr>
-            <td>{{ materia.clave }}</td>
-            <td>{{ materia.nombre }}</td>
-            <td>{{ materia.semestre }}</td>
-            <td>
-                {% if materia.es_especialidad %}
-                    Sí
-                {% else %}
-                    No
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Clave</th>
+                    <th>Nombre</th>
+                    <th>Semestre</th>
+                    <th>Especialidad</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for materia in materias %}
+                <tr>
+                    <td><span class="course-card__code">{{ materia.clave }}</span></td>
+                    <td>{{ materia.nombre }}</td>
+                    <td>{{ materia.semestre }}</td>
+                    <td>{% if materia.es_especialidad %}Sí{% else %}No{% endif %}</td>
+                    <td class="data-table__actions">
+                        <a href="{% url 'core:editar_materia' materia.pk %}" class="data-table__btn data-table__btn--edit">Editar</a>
+                        <a href="{% url 'core:eliminar_materia' materia.pk %}" class="data-table__btn data-table__btn--delete">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="data-table__empty">No hay materias registradas todavía.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
