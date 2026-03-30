@@ -31,4 +31,8 @@ urlpatterns = [
     path('materias/nueva/', views.crear_materia, name='crear_materia'),
     path('materias/<int:pk>/editar/', views.editar_materia, name='editar_materia'),
     path('materias/<int:pk>/eliminar/', views.eliminar_materia, name='eliminar_materia'),
+
+    #docentes
+    path('usuarios/<int:pk>/editar/', views.editar_usuario_docente, name='editar_usuario_docente'),
+    path('usuarios/<int:pk>/eliminar/', views.eliminar_usuario_docente, name='eliminar_usuario_docente'),
 ]
