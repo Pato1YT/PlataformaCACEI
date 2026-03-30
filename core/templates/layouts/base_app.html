@@ -9,7 +9,6 @@
 </head>
 <body class="app-body">
 
-<!-- HEADER SUPERIOR -->
 <header class="app-header">
     <div class="app-header__left">
         <button id="menuToggle" class="app-header__menu-btn">
@@ -31,15 +30,13 @@
                 <span class="app-header__user-name">
                     {{ user.get_full_name|default:user.username }}
                 </span>
-                <span class="app-header__user-role">Usuario</span>
-                {# luego podemos cambiar "Usuario" por el rol real #}
+                <span class="app-header__user-role">{{ user.get_rol_display }}</span>
             </div>
         </div>
         <span class="app-header__dots">● ● ●</span>
     </div>
 </header>
 
-<!-- SIDEBAR + BACKDROP -->
 <div id="sideMenu" class="side-menu">
     <div class="side-menu__header">
         <span class="side-menu__title">Se'si Eskani</span>
@@ -50,7 +47,6 @@
         <p class="side-menu__section-title">MENÚ PRINCIPAL</p>
         <ul>
             <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
-            <li><a href="#">AGO25ENE26</a></li>
         </ul>
 
         <p class="side-menu__section-title">OTROS</p>
@@ -62,9 +58,9 @@
         <p class="side-menu__section-title">ADMINISTRACIÓN</p>
         <ul>
             {% if user.rol == 'ADMINISTRADOR' %}
-            <li><a href="{% url 'core:lista_usuarios' %}">Usuarios</a></li>
+            <li><a href="{% url 'core:lista_usuarios' %}">Docentes</a></li>
             <li><a href="{% url 'core:lista_materias' %}">Materias</a></li>
-            <li><a href="{% url 'core:lista_atributos' %}">Configurar atributos N</a></li>
+            <li><a href="{% url 'core:lista_atributos' %}">Atributos de Egreso</a></li>
             {% else %}
             <li><a href="{% url 'core:lista_materias' %}">Materias</a></li>
             {% endif %}
@@ -81,7 +77,6 @@
 
 <div id="sideMenuBackdrop" class="side-menu-backdrop"></div>
 
-<!-- CONTENIDO PRINCIPAL -->
 <main class="app-main">
     <section class="app-container">
         {% if messages %}
@@ -101,16 +96,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const body = document.body;
     const menuToggle = document.getElementById('menuToggle');
     const menuClose = document.getElementById('menuClose');
-    const sideMenu = document.getElementById('sideMenu');
     const backdrop = document.getElementById('sideMenuBackdrop');
 
-    function openMenu() {
-        body.classList.add('menu-open');
-    }
-
-    function closeMenu() {
-        body.classList.remove('menu-open');
-    }
+    function openMenu() { body.classList.add('menu-open'); }
+    function closeMenu() { body.classList.remove('menu-open'); }
 
     if (menuToggle) menuToggle.addEventListener('click', openMenu);
     if (menuClose) menuClose.addEventListener('click', closeMenu);
