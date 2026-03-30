@@ -30,14 +30,15 @@
         </form>
     </section>
 
-    <!-- Logos inferiores -->
+    <!-- Todos los logos abajo -->
     <div class="auth-bottom-logos">
+        <img src="{% static 'img/logo_tecnm.png' %}" alt="TecNM" class="auth-bottom-logo" style="max-height: 90px;">
+        <img src="{% static 'img/logo_itsh.png' %}" alt="ITSH" class="auth-bottom-logo">
         <img src="{% static 'img/logocacei.png' %}" alt="CACEI" class="auth-bottom-logo">
         <img src="{% static 'img/logoingindustrial.png' %}" alt="Ingeniería Industrial" class="auth-bottom-logo">
     </div>
 </div>
 
-<!-- Modal de error -->
 {% if form.errors %}
 <div class="modal-overlay" id="errorModal">
     <div class="modal-card">

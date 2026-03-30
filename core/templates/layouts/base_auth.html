@@ -11,14 +11,14 @@
 </head>
 <body class="auth-body">
 
-    <div class="auth-logos">
-        <img src="{% static 'img/logo_tecnm.png' %}" alt="TecNM" class="auth-logo auth-logo--left">
-        <img src="{% static 'img/logo_itsh.png' %}" alt="ITSH" class="auth-logo auth-logo--right">
-    </div>
-
     <main class="auth-main">
         {% block content %}{% endblock %}
     </main>
+
+    <footer class="auth-footer">
+        <p class="auth-footer__name">Instituto Tecnológico Superior de Huetamo</p>
+        <p class="auth-footer__sub">Ingeniería Industrial &nbsp;·&nbsp; v1.0.0</p>
+    </footer>
 
 </body>
 </html>

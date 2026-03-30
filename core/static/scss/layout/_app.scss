@@ -4,6 +4,9 @@ body.app-body {
   margin: 0;
   font-family: v.$font-main;
   background-color: v.$color-bg-app;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* HEADER SUPERIOR */
@@ -113,8 +116,9 @@ body.app-body {
 /* MAIN */
 
 .app-main {
-  padding-top: 80px; /* header + margen */
-  padding-bottom: 32px;
+  padding-top: 80px;
+  padding-bottom: 0;
+  flex: 1;
 }
 
 .app-container {
@@ -247,3 +251,24 @@ body.menu-open .side-menu-backdrop {
   }
 }
 
+/* FOOTER */
+.app-footer {
+  text-align: center;
+  padding: 24px 16px;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.6;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 32px;
+}
+
+.app-footer__name {
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.app-footer__sub {
+  margin: 2px 0 0;
+}
