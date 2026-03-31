@@ -6,6 +6,10 @@ app_name = 'core'
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    
+    #editar perfil
+    #charco
+    path('perfil/', views.editar_perfil, name='perfil'),
 
     # Autenticación
     path('login/', auth_views.LoginView.as_view(
