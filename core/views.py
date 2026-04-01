@@ -255,3 +255,7 @@ def editar_perfil(request):
         form = EditarPerfilForm(instance=request.user)
 
     return render(request, 'core/perfil.html', {'form': form})
+
+#charco
+def aviso_privacidad(request):
+    return render(request, 'core/aviso_privacidad.html')
