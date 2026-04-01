@@ -22,7 +22,8 @@
         <span class="app-header__title">Bienvenido</span>
     </div>
 
-    <div class="app-header__right">
+   <div class="app-header__right">
+    <a href="{% url 'core:perfil' %}" style="text-decoration:none; color:inherit;">
         <div class="app-header__user-wrapper">
             <div class="app-header__avatar">
                 {{ user.get_full_name|first|default:user.username|first }}
@@ -34,7 +35,8 @@
                 <span class="app-header__user-role">{{ user.get_rol_display }}</span>
             </div>
         </div>
-    </div>
+    </a>
+</div>
 </header>
 
 <div id="sideMenu" class="side-menu">

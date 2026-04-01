@@ -4,9 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from functools import wraps
 from django.core.exceptions import PermissionDenied
+#charco
+from django.contrib.auth import update_session_auth_hash
 
 from .models import AtributoEgreso, Materia, Usuario
 from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm
+#charco
+from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm, EditarPerfilForm
 
 
 
@@ -232,3 +236,22 @@ def eliminar_usuario_docente(request, pk):
     return render(request, 'usuarios/confirmar_eliminar.html', {
         'usuario': usuario,
     })
+    
+    #charco 
+@login_required
+def editar_perfil(request):
+    if request.method == 'POST':
+        form = EditarPerfilForm(request.POST, instance=request.user)
+        if form.is_valid():
+            usuario = form.save()
+            nueva_pass = form.cleaned_data.get('password1')
+            if nueva_pass:
+                usuario.set_password(nueva_pass)
+                usuario.save()
+                update_session_auth_hash(request, usuario)
+            messages.success(request, 'Perfil actualizado correctamente.')
+            return redirect('core:perfil')
+    else:
+        form = EditarPerfilForm(instance=request.user)
+
+    return render(request, 'core/perfil.html', {'form': form})

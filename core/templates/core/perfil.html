@@ -1,0 +1,56 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Mi perfil - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Mi perfil</h2>
+            <p class="dashboard__subtitle">Actualiza tu usuario, correo y contraseña.</p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-grid">
+
+            <p>
+                <label>Usuario</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </p>
+
+            <p>
+                <label>Correo electrónico</label>
+                {{ form.email }}
+                {{ form.email.errors }}
+            </p>
+
+            <p>
+                <label>Nueva contraseña <small style="color:#94a3b8;">(dejar vacío para no cambiar)</small></label>
+                {{ form.password1 }}
+                {{ form.password1.errors }}
+            </p>
+
+            <p>
+                <label>Confirmar contraseña</label>
+                {{ form.password2 }}
+                {{ form.password2.errors }}
+            </p>
+
+            {{ form.non_field_errors }}
+
+        </div>
+
+        <div style="display:flex; align-items:center; gap:16px; margin-top:16px;">
+            <button type="submit" class="course-card__button" style="max-width:220px;">
+                Guardar cambios
+            </button>
+            <a href="{% url 'core:dashboard' %}" class="dashboard__subtitle" style="text-decoration:none;">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
