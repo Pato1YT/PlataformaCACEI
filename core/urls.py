@@ -10,6 +10,9 @@ urlpatterns = [
     #editar perfil
     #charco
     path('perfil/', views.editar_perfil, name='perfil'),
+    
+    #charco
+    
 
     # Autenticación
     path('login/', auth_views.LoginView.as_view(
@@ -39,4 +42,9 @@ urlpatterns = [
     #docentes
     path('usuarios/<int:pk>/editar/', views.editar_usuario_docente, name='editar_usuario_docente'),
     path('usuarios/<int:pk>/eliminar/', views.eliminar_usuario_docente, name='eliminar_usuario_docente'),
+    #charco 
+    
+    path('aviso-privacidad/', views.aviso_privacidad, name='aviso_privacidad'),
+    
+    
 ]

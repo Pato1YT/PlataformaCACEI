@@ -53,8 +53,16 @@
 
         <p class="side-menu__section-title">OTROS</p>
         <ul>
-            <li><a href="#"><i class="fa-solid fa-circle-info"></i> Instrucciones</a></li>
-            <li><a href="#"><i class="fa-solid fa-shield-halved"></i> Aviso de privacidad</a></li>
+           <li>
+              <a href="#" data-modal="instrucciones">
+                  <i class="fa-solid fa-circle-info"></i> Instrucciones
+              </a>
+           </li>
+           <li>
+    <a href="{% url 'core:aviso_privacidad' %}">
+        <i class="fa-solid fa-shield-halved"></i> Aviso de privacidad
+    </a>
+</li>
         </ul>
 
         <p class="side-menu__section-title">ADMINISTRACIÓN</p>
@@ -97,6 +105,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    // 🔹 MENU
     const body = document.body;
     const menuToggle = document.getElementById('menuToggle');
     const menuClose = document.getElementById('menuClose');
@@ -108,8 +118,68 @@ document.addEventListener('DOMContentLoaded', function () {
     if (menuToggle) menuToggle.addEventListener('click', openMenu);
     if (menuClose) menuClose.addEventListener('click', closeMenu);
     if (backdrop) backdrop.addEventListener('click', closeMenu);
+
+
+    // 🔥 MODAL INSTRUCCIONES
+    const abrirModal = document.querySelector('[data-modal="instrucciones"]');
+    const modal = document.getElementById('modalInstrucciones');
+    const cerrarModal = document.getElementById('cerrarModal');
+    const btnCerrarModal = document.getElementById('btnCerrarModal');
+
+    if (abrirModal) {
+        abrirModal.addEventListener('click', function(e) {
+            e.preventDefault();
+            modal.style.display = 'flex';
+        });
+    }
+
+    if (cerrarModal) {
+        cerrarModal.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (btnCerrarModal) {
+        btnCerrarModal.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+    }
+
 });
 </script>
+
+
+
+
+<!-- Modal Instrucciones -->
+<div id="modalInstrucciones" class="modal-custom">
+  <div class="modal-custom__content">
+
+    <div class="modal-custom__header">
+      <h3>Instrucciones de la plataforma</h3>
+      <button id="cerrarModal" class="modal-custom__close">&times;</button>
+    </div>
+
+    <div class="modal-custom__body">
+      <h4>Hola {{ user.get_full_name|default:user.username }}.</h4>
+      <p>Antes de comenzar, considera lo siguiente:</p>
+
+      <ol>
+        <li>Si no has cambiado tu contraseña, puedes hacerlo desde el menú superior.</li>
+        <li>Esta plataforma permite gestionar toda la información relacionada a los atributos de egreso del programa de IIND.</li>
+        <li>Mantén actualizada la información para evaluaciones del CACEI.</li>
+        <li>La información debe ser clara y precisa.</li>
+        <li>No olvides cerrar sesión al terminar.</li>
+      </ol>
+    </div>
+
+    <div class="modal-custom__footer">
+      <button id="btnCerrarModal" class="btn-cerrar">Cerrar</button>
+    </div>
+
+  </div>
+</div>
+
 
 </body>
 </html>
