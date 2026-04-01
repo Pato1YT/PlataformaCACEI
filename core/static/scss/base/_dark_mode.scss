@@ -1,0 +1,190 @@
+@use '../variables' as v;
+
+body.dark-mode {
+
+  background-color: #0f172a;
+  color: #e2e8f0;
+
+  // Header
+  .app-header {
+    background-color: #001e30;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  // Sidebar
+  .side-menu {
+    background-color: #001624;
+  }
+
+  // Footer
+  .app-footer {
+    border-top-color: #1e293b;
+    color: #475569;
+  }
+
+  // Carta principal (dashboard, aviso, perfil, formularios)
+  .dashboard,
+  .aviso-privacidad {
+    background-color: #1e293b;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  // Títulos y textos generales dentro de las cartas
+  .dashboard__title,
+  .aviso-privacidad__titulo,
+  .course-card__name,
+  .course-card__meta-value {
+    color: #e2e8f0;
+  }
+
+  .dashboard__subtitle,
+  .aviso-privacidad__intro,
+  .aviso-privacidad__seccion p,
+  .aviso-privacidad__cierre,
+  .course-card__meta-label {
+    color: #94a3b8;
+  }
+
+  .dashboard__tag {
+    background-color: #0c3652;
+    color: #7dd3fc;
+  }
+
+  .dashboard__filter {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+
+  .dashboard__legend {
+    color: #64748b;
+  }
+
+  // Cards de materias
+  .course-card {
+    background-color: #273549;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  .course-card__code {
+    background-color: #0c3652;
+    color: #7dd3fc;
+  }
+
+  // TABLAS — fondo levemente más claro que el resto
+  .table-wrapper {
+    background-color: #1e293b;
+    border-radius: 12px;
+  }
+
+  .data-table {
+    thead tr {
+      background-color: #001e30;
+    }
+
+    tbody tr {
+      border-bottom-color: #2d3f55;
+      background-color: #243044;
+
+      &:hover { background-color: #2d3f55; }
+    }
+
+    tbody td {
+      color: #e2e8f0;
+    }
+
+    &__btn--edit {
+      background-color: #0c3652;
+      color: #7dd3fc;
+
+      &:hover { background-color: #0e4a70; }
+    }
+
+    &__btn--delete {
+      background-color: #3b1212;
+      color: #fca5a5;
+
+      &:hover { background-color: #4f1a1a; }
+    }
+
+    &__empty {
+      color: #475569;
+    }
+  }
+
+  // Modal instrucciones
+  .modal-custom {
+    background: rgba(0, 0, 0, 0.65);
+  }
+
+  .modal-custom__content {
+    background-color: #1e293b;
+  }
+
+  .modal-custom__header {
+    background-color: #001e30;
+  }
+
+  .modal-custom__body {
+    color: #cbd5e1;
+  }
+
+  .modal-custom__greeting,
+  .modal-custom__greeting strong {
+    color: #e2e8f0;
+  }
+
+  .modal-custom__intro {
+    color: #94a3b8;
+  }
+
+  .modal-custom__list li {
+    background-color: #0f172a;
+    color: #cbd5e1;
+
+    strong { color: #e2e8f0; }
+  }
+
+  .modal-custom__tip {
+    background-color: #1c1a09;
+    border-left-color: #d97706;
+    color: #94a3b8;
+  }
+
+  .modal-custom__footer {
+    border-top-color: #334155;
+    background-color: #1e293b;
+  }
+
+  // Aviso de privacidad subtítulos
+  .aviso-privacidad__subtitulo {
+    color: #93c5fd;
+  }
+
+  // Mensajes del sistema
+  .messages__item {
+    background-color: #0c3652;
+    color: #7dd3fc;
+  }
+
+  // Formularios (perfil, crear docente, etc.)
+  .form-grid p label,
+  label {
+    color: #cbd5e1;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+
+    &:focus {
+      border-color: v.$color-accent;
+      box-shadow: 0 0 0 2px rgba(0, 163, 255, 0.2);
+    }
+  }
+}
