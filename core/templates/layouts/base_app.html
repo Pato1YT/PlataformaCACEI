@@ -8,6 +8,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
 </head>
+
+<script>
+// TOASTS — cerrar y auto-cerrar
+function cerrarToast(btn) {
+    const toast = btn.closest('.toast');
+    toast.classList.add('toast--saliendo');
+    setTimeout(() => toast.remove(), 300);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.toast').forEach(function (toast) {
+        setTimeout(function () {
+            toast.classList.add('toast--saliendo');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000); // desaparece a los 4 segundos
+    });
+});
+</script>
 <body class="app-body">
 
 <header class="app-header">
@@ -90,12 +108,29 @@
 <main class="app-main">
     <section class="app-container">
         {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li class="messages__item">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+<div class="toast-container" id="toastContainer">
+    {% for message in messages %}
+    <div class="toast toast--{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}" role="alert">
+        <span class="toast__icon">
+            {% if message.tags == 'success' %}<i class="fa-solid fa-circle-check"></i>
+            {% elif message.tags == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
+            {% elif message.tags == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
+            {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+        </span>
+        <div class="toast__body">
+            <p class="toast__title">
+                {% if message.tags == 'success' %}Éxito
+                {% elif message.tags == 'error' %}Error
+                {% elif message.tags == 'warning' %}Advertencia
+                {% else %}Información{% endif %}
+            </p>
+            <p class="toast__msg">{{ message }}</p>
+        </div>
+        <button class="toast__close" onclick="cerrarToast(this)">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
         {% block content %}{% endblock %}
     </section>
