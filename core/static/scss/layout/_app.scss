@@ -421,3 +421,23 @@ body.menu-open .side-menu-backdrop {
 
   i { margin-right: 6px; }
 }
+
+/* BOTÓN MODO OSCURO */
+.app-header__dark-btn {
+  border: none;
+  background: none;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+  margin-right: 8px;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+}
