@@ -1,0 +1,69 @@
+@use '../variables' as v;
+
+.aviso-privacidad {
+  background-color: #ffffff;
+  border-radius: v.$radius-card;
+  box-shadow: v.$shadow-card;
+  padding: 36px 44px 40px;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.aviso-privacidad__titulo {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: v.$color-primary;
+  margin-bottom: 12px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.aviso-privacidad__intro {
+  text-align: justify;
+  color: #475569;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.aviso-privacidad__seccion {
+  margin-bottom: 20px;
+}
+
+.aviso-privacidad__subtitulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: v.$color-primary;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  i {
+    color: v.$color-accent;
+    font-size: 14px;
+  }
+}
+
+.aviso-privacidad__seccion p {
+  text-align: justify;
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.75;
+  margin: 0;
+}
+
+.aviso-privacidad__cierre {
+  text-align: justify;
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 768px) {
+  .aviso-privacidad {
+    padding: 24px 18px 28px;
+  }
+}
