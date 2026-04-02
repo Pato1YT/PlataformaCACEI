@@ -31,7 +31,6 @@ class MateriaForm(forms.ModelForm):
             #'docente': forms.Select(attrs={'class': 'form-control'}),
         }
 
-
 class CrearDocenteForm(forms.ModelForm):
     class Meta:
         model = Usuario
@@ -41,6 +40,12 @@ class CrearDocenteForm(forms.ModelForm):
             'first_name': 'Nombre(s)',
             'last_name': 'Apellidos',
             'email': 'Correo electrónico',
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
         }
         
         #charco

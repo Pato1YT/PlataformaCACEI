@@ -156,7 +156,7 @@ def solo_admin(view_func):
 
 @solo_admin
 def lista_usuarios(request):
-    usuarios = Usuario.objects.all().order_by('-created_at')
+    usuarios = Usuario.objects.filter(rol=Usuario.DOCENTE).order_by('-created_at')
     return render(request, 'usuarios/lista_usuarios.html', {
         'usuarios': usuarios,
         'titulo': 'Usuarios',

@@ -3,51 +3,73 @@
 {% block title %}Mi perfil - Se'si Eskani{% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <div class="dashboard__header">
+<div class="perfil-card">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar">
+            {{ user.get_full_name|first|default:user.username|first }}
+        </div>
         <div>
-            <h2 class="dashboard__title">Mi perfil</h2>
-            <p class="dashboard__subtitle">Actualiza tu usuario, correo y contraseña.</p>
+            <h2 class="perfil-card__nombre">{{ user.get_full_name|default:user.username }}</h2>
+            <span class="perfil-card__rol">{{ user.get_rol_display }}</span>
         </div>
     </div>
 
-    <form method="post">
+    <form method="post" class="perfil-card__form">
         {% csrf_token %}
-        <div class="form-grid">
 
-            <p>
-                <label>Usuario</label>
+        <div class="perfil-card__section-title">Información de cuenta</div>
+
+        <div class="perfil-card__grid">
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Usuario</label>
                 {{ form.username }}
-                {{ form.username.errors }}
-            </p>
+                {% if form.username.errors %}
+                    <span class="perfil-card__error">{{ form.username.errors|join:", " }}</span>
+                {% endif %}
+            </div>
 
-            <p>
-                <label>Correo electrónico</label>
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Correo electrónico</label>
                 {{ form.email }}
-                {{ form.email.errors }}
-            </p>
-
-            <p>
-                <label>Nueva contraseña <small style="color:#94a3b8;">(dejar vacío para no cambiar)</small></label>
-                {{ form.password1 }}
-                {{ form.password1.errors }}
-            </p>
-
-            <p>
-                <label>Confirmar contraseña</label>
-                {{ form.password2 }}
-                {{ form.password2.errors }}
-            </p>
-
-            {{ form.non_field_errors }}
-
+                {% if form.email.errors %}
+                    <span class="perfil-card__error">{{ form.email.errors|join:", " }}</span>
+                {% endif %}
+            </div>
         </div>
 
-        <div style="display:flex; align-items:center; gap:16px; margin-top:16px;">
-            <button type="submit" class="course-card__button" style="max-width:220px;">
-                Guardar cambios
+        <div class="perfil-card__section-title" style="margin-top: 24px;">
+            Cambiar contraseña
+            <small class="perfil-card__hint">Deja vacío si no deseas cambiarla</small>
+        </div>
+
+        <div class="perfil-card__grid">
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Nueva contraseña</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                    <span class="perfil-card__error">{{ form.password1.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Confirmar contraseña</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                    <span class="perfil-card__error">{{ form.password2.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+            <p class="perfil-card__error" style="margin-top: 8px;">{{ form.non_field_errors|join:", " }}</p>
+        {% endif %}
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width: 200px;">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
             </button>
-            <a href="{% url 'core:dashboard' %}" class="dashboard__subtitle" style="text-decoration:none;">
+            <a href="{% url 'core:dashboard' %}" class="perfil-card__cancelar">
                 Cancelar
             </a>
         </div>
