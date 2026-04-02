@@ -15,7 +15,6 @@ class SessionTimeoutMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        print("🔥 Middleware activo")
         if request.user.is_authenticated:
             current_time = int(time.time())
             last_activity = request.session.get('last_activity', current_time)
