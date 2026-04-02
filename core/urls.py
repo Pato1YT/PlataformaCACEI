@@ -6,6 +6,13 @@ app_name = 'core'
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    
+    #editar perfil
+    #charco
+    path('perfil/', views.editar_perfil, name='perfil'),
+    
+    #charco
+    
 
     # Autenticación
     path('login/', auth_views.LoginView.as_view(
@@ -31,4 +38,13 @@ urlpatterns = [
     path('materias/nueva/', views.crear_materia, name='crear_materia'),
     path('materias/<int:pk>/editar/', views.editar_materia, name='editar_materia'),
     path('materias/<int:pk>/eliminar/', views.eliminar_materia, name='eliminar_materia'),
+
+    #docentes
+    path('usuarios/<int:pk>/editar/', views.editar_usuario_docente, name='editar_usuario_docente'),
+    path('usuarios/<int:pk>/eliminar/', views.eliminar_usuario_docente, name='eliminar_usuario_docente'),
+    #charco 
+    
+    path('aviso-privacidad/', views.aviso_privacidad, name='aviso_privacidad'),
+    
+    
 ]

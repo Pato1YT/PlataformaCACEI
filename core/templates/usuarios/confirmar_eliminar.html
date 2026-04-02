@@ -1,6 +1,6 @@
 {% extends 'layouts/base_app.html' %}
 
-{% block title %}Eliminar atributo - Se'si Eskani{% endblock %}
+{% block title %}Eliminar docente - Se'si Eskani{% endblock %}
 
 {% block content %}
 <div class="perfil-card" style="max-width: 500px;">
@@ -10,7 +10,7 @@
             <i class="fa-solid fa-triangle-exclamation" style="font-size:24px;"></i>
         </div>
         <div>
-            <h2 class="perfil-card__nombre">Eliminar atributo</h2>
+            <h2 class="perfil-card__nombre">Eliminar docente</h2>
             <span class="perfil-card__rol" style="background-color:#fee2e2; color:#dc2626;">
                 Acción irreversible
             </span>
@@ -18,8 +18,8 @@
     </div>
 
     <p style="font-size: 15px; color: #475569; margin-bottom: 28px; line-height: 1.6;">
-        ¿Seguro que deseas eliminar el atributo
-        <strong style="color: #1e293b;">{{ atributo.codigo }} - {{ atributo.nombre }}</strong>?
+        ¿Seguro que deseas eliminar al docente
+        <strong style="color: #1e293b;">{{ usuario.get_full_name|default:usuario.username }}</strong>?
         Esta acción no se puede deshacer.
     </p>
 
@@ -29,7 +29,7 @@
             <button type="submit" class="course-card__button" style="max-width: 180px; background-color: #dc2626;">
                 <i class="fa-solid fa-trash"></i> Sí, eliminar
             </button>
-            <a href="{% url 'core:lista_atributos' %}" class="perfil-card__cancelar">
+            <a href="{% url 'core:lista_usuarios' %}" class="perfil-card__cancelar">
                 Cancelar
             </a>
         </div>

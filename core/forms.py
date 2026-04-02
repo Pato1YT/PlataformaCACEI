@@ -1,5 +1,7 @@
 from django import forms
 from .models import AtributoEgreso, Materia, Usuario
+#charco
+from django.contrib.auth.password_validation import validate_password
 
 
 class AtributoEgresoForm(forms.ModelForm):
@@ -29,7 +31,6 @@ class MateriaForm(forms.ModelForm):
             #'docente': forms.Select(attrs={'class': 'form-control'}),
         }
 
-
 class CrearDocenteForm(forms.ModelForm):
     class Meta:
         model = Usuario
@@ -40,3 +41,40 @@ class CrearDocenteForm(forms.ModelForm):
             'last_name': 'Apellidos',
             'email': 'Correo electrónico',
         }
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+        }
+        
+        #charco
+class EditarPerfilForm(forms.ModelForm):
+    password1 = forms.CharField(
+        label='Nueva contraseña',
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    password2 = forms.CharField(
+        label='Confirmar contraseña',
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Usuario
+        fields = ['username', 'email']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        p1 = cleaned_data.get('password1')
+        p2 = cleaned_data.get('password2')
+        if p1 or p2:
+            if p1 != p2:
+                raise forms.ValidationError('Las contraseñas no coinciden.')
+        return cleaned_data
+        

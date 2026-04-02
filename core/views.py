@@ -4,9 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from functools import wraps
 from django.core.exceptions import PermissionDenied
+#charco
+from django.contrib.auth import update_session_auth_hash
 
 from .models import AtributoEgreso, Materia, Usuario
 from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm
+#charco
+from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm, EditarPerfilForm
 
 
 
@@ -152,7 +156,7 @@ def solo_admin(view_func):
 
 @solo_admin
 def lista_usuarios(request):
-    usuarios = Usuario.objects.all().order_by('-created_at')
+    usuarios = Usuario.objects.filter(rol=Usuario.DOCENTE).order_by('-created_at')
     return render(request, 'usuarios/lista_usuarios.html', {
         'usuarios': usuarios,
         'titulo': 'Usuarios',
@@ -197,3 +201,61 @@ def crear_usuario_docente(request):
         'form': form,
         'titulo': 'Crear docente',
     }) 
+
+
+
+
+
+
+
+@solo_admin
+def editar_usuario_docente(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    form = CrearDocenteForm(request.POST or None, instance=usuario)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Docente actualizado correctamente.')
+        return redirect('core:lista_usuarios')
+
+    return render(request, 'usuarios/form_docente.html', {
+        'form': form,
+        'titulo': 'Editar docente',
+    })
+
+
+@solo_admin
+def eliminar_usuario_docente(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    if request.method == 'POST':
+        usuario.delete()
+        messages.success(request, 'Docente eliminado correctamente.')
+        return redirect('core:lista_usuarios')
+
+    return render(request, 'usuarios/confirmar_eliminar.html', {
+        'usuario': usuario,
+    })
+    
+    #charco 
+@login_required
+def editar_perfil(request):
+    if request.method == 'POST':
+        form = EditarPerfilForm(request.POST, instance=request.user)
+        if form.is_valid():
+            usuario = form.save()
+            nueva_pass = form.cleaned_data.get('password1')
+            if nueva_pass:
+                usuario.set_password(nueva_pass)
+                usuario.save()
+                update_session_auth_hash(request, usuario)
+            messages.success(request, 'Perfil actualizado correctamente.')
+            return redirect('core:perfil')
+    else:
+        form = EditarPerfilForm(instance=request.user)
+
+    return render(request, 'core/perfil.html', {'form': form})
+
+#charco
+def aviso_privacidad(request):
+    return render(request, 'core/aviso_privacidad.html')

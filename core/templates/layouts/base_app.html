@@ -5,116 +5,296 @@
     <meta charset="UTF-8">
     <title>{% block title %}Se'si Eskani{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
 </head>
+
+<script>
+// TOASTS — cerrar y auto-cerrar
+function cerrarToast(btn) {
+    const toast = btn.closest('.toast');
+    toast.classList.add('toast--saliendo');
+    setTimeout(() => toast.remove(), 300);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.toast').forEach(function (toast) {
+        setTimeout(function () {
+            toast.classList.add('toast--saliendo');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000); // desaparece a los 4 segundos
+    });
+});
+</script>
 <body class="app-body">
 
-<!-- HEADER SUPERIOR -->
 <header class="app-header">
     <div class="app-header__left">
         <button id="menuToggle" class="app-header__menu-btn">
-            &#9776;
+            <i class="fa-solid fa-bars"></i>
         </button>
         <span class="app-header__brand">Se'si Eskani</span>
     </div>
 
     <div class="app-header__center">
-        <span class="app-header__title">Bienvenido</span>
+        <span class="app-header__title">{% block page_title %}{% endblock %}</span>
     </div>
 
     <div class="app-header__right">
-        <div class="app-header__user-wrapper">
-            <div class="app-header__avatar">
-                {{ user.get_full_name|first|default:user.username|first }}
+        <button id="darkModeToggle" class="app-header__dark-btn" title="Modo oscuro">
+            <i id="darkModeIcon" class="fa-solid fa-moon"></i>
+        </button>
+        <a href="{% url 'core:perfil' %}" style="text-decoration:none; color:inherit;">
+            <div class="app-header__user-wrapper">
+                <div class="app-header__avatar">
+                    {{ user.get_full_name|first|default:user.username|first }}
+                </div>
+                <div class="app-header__user-text">
+                    <span class="app-header__user-name">
+                        {{ user.get_full_name|default:user.username }}
+                    </span>
+                    <span class="app-header__user-role">{{ user.get_rol_display }}</span>
+                </div>
             </div>
-            <div class="app-header__user-text">
-                <span class="app-header__user-name">
-                    {{ user.get_full_name|default:user.username }}
-                </span>
-                <span class="app-header__user-role">Usuario</span>
-                {# luego podemos cambiar "Usuario" por el rol real #}
-            </div>
-        </div>
-        <span class="app-header__dots">● ● ●</span>
+        </a>
     </div>
 </header>
 
-<!-- SIDEBAR + BACKDROP -->
 <div id="sideMenu" class="side-menu">
     <div class="side-menu__header">
         <span class="side-menu__title">Se'si Eskani</span>
-        <button id="menuClose" class="side-menu__close">&larr;</button>
+        <button id="menuClose" class="side-menu__close"><i class="fa-solid fa-arrow-left"></i></button>
     </div>
 
     <nav class="side-menu__nav">
         <p class="side-menu__section-title">MENÚ PRINCIPAL</p>
         <ul>
-            <li><a href="{% url 'core:dashboard' %}">Inicio</a></li>
-            <li><a href="#">AGO25ENE26</a></li>
+            <li><a href="{% url 'core:dashboard' %}"><i class="fa-solid fa-house"></i> Inicio</a></li>
         </ul>
 
         <p class="side-menu__section-title">OTROS</p>
         <ul>
-            <li><a href="#">Instrucciones</a></li>
-            <li><a href="#">Aviso de privacidad</a></li>
+            <li>
+                <a href="#" data-modal="instrucciones">
+                    <i class="fa-solid fa-circle-info"></i> Instrucciones
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'core:aviso_privacidad' %}">
+                    <i class="fa-solid fa-shield-halved"></i> Aviso de privacidad
+                </a>
+            </li>
         </ul>
 
         <p class="side-menu__section-title">ADMINISTRACIÓN</p>
         <ul>
+            <li><a href="{% url 'core:lista_materias' %}"><i class="fa-solid fa-book"></i> Materias</a></li>
             {% if user.rol == 'ADMINISTRADOR' %}
-            <li><a href="{% url 'core:lista_usuarios' %}">Usuarios</a></li>
-            <li><a href="{% url 'core:lista_materias' %}">Materias</a></li>
-            <li><a href="{% url 'core:lista_atributos' %}">Configurar atributos N</a></li>
-            {% else %}
-            <li><a href="{% url 'core:lista_materias' %}">Materias</a></li>
+            <li><a href="{% url 'core:lista_usuarios' %}"><i class="fa-solid fa-chalkboard-user"></i> Docentes</a></li>
+            <li><a href="{% url 'core:lista_atributos' %}"><i class="fa-solid fa-list-check"></i> Atributos de Egreso</a></li>
             {% endif %}
         </ul>
 
         <hr class="side-menu__divider">
 
         <a href="{% url 'core:logout' %}" class="side-menu__logout">
-            <span class="side-menu__logout-icon">⎋</span>
-            Cerrar sesión
+            <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
         </a>
     </nav>
 </div>
 
 <div id="sideMenuBackdrop" class="side-menu-backdrop"></div>
 
-<!-- CONTENIDO PRINCIPAL -->
 <main class="app-main">
     <section class="app-container">
         {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li class="messages__item">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+<div class="toast-container" id="toastContainer">
+    {% for message in messages %}
+    <div class="toast toast--{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}" role="alert">
+        <span class="toast__icon">
+            {% if message.tags == 'success' %}<i class="fa-solid fa-circle-check"></i>
+            {% elif message.tags == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
+            {% elif message.tags == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
+            {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+        </span>
+        <div class="toast__body">
+            <p class="toast__title">
+                {% if message.tags == 'success' %}Éxito
+                {% elif message.tags == 'error' %}Error
+                {% elif message.tags == 'warning' %}Advertencia
+                {% else %}Información{% endif %}
+            </p>
+            <p class="toast__msg">{{ message }}</p>
+        </div>
+        <button class="toast__close" onclick="cerrarToast(this)">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
         {% block content %}{% endblock %}
     </section>
 </main>
 
+<footer class="app-footer">
+    <p class="app-footer__name">Instituto Tecnológico Superior de Huetamo</p>
+    <p class="app-footer__sub">Ingeniería Industrial &nbsp;·&nbsp; v1.0.0</p>
+</footer>
+
+<!-- ===================== MODAL INSTRUCCIONES ===================== -->
+<div id="modalInstrucciones" class="modal-custom">
+    <div class="modal-custom__content">
+
+        <div class="modal-custom__header">
+            <div class="modal-custom__header-left">
+                <i class="fa-solid fa-circle-info modal-custom__header-icon"></i>
+                <h3 class="modal-custom__title">Instrucciones de uso</h3>
+            </div>
+            <button id="cerrarModal" class="modal-custom__close">&times;</button>
+        </div>
+
+        <div class="modal-custom__body">
+            <p class="modal-custom__greeting">
+                Hola, <strong>{{ user.get_full_name|default:user.username }}</strong>.
+            </p>
+
+            {% if user.rol == 'ADMINISTRADOR' %}
+            <p class="modal-custom__intro">
+                Como <strong>Jefe de Carrera</strong>, tienes acceso completo a la plataforma.
+                Aquí un resumen de tus responsabilidades:
+            </p>
+            <ul class="modal-custom__list">
+                <li>
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span><strong>Gestión de docentes:</strong> Puedes crear, editar y eliminar cuentas de docentes desde el menú <em>Docentes</em>. Al crear uno, se genera una contraseña temporal que debes compartirle.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-book-open"></i>
+                    <span><strong>Materias:</strong> Administra la retícula académica: agrega, edita o elimina materias y asigna su semestre correspondiente.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-list-check"></i>
+                    <span><strong>Atributos de egreso:</strong> Define y configura los atributos de egreso del programa de Ingeniería Industrial que serán evaluados por el CACEI.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span><strong>Supervisión general:</strong> Eres responsable de que la información esté actualizada antes de cualquier evaluación institucional.</span>
+                </li>
+            </ul>
+
+            {% elif user.rol == 'DOCENTE' %}
+            <p class="modal-custom__intro">
+                Como <strong>Docente</strong>, esta plataforma te permite registrar y consultar la información académica de tus cursos.
+            </p>
+            <ul class="modal-custom__list">
+                <li>
+                    <i class="fa-solid fa-chalkboard"></i>
+                    <span><strong>Tus cursos:</strong> Desde el inicio puedes consultar las materias asignadas en el periodo activo.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-file-circle-check"></i>
+                    <span><strong>Evidencias:</strong> Podrás subir evidencias de trabajo relacionadas con los atributos de egreso de cada materia.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span><strong>Nivel de logro:</strong> Registra el nivel de logro (Inicial, Medio o Avanzado) de los indicadores de cada curso.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-key"></i>
+                    <span><strong>Contraseña:</strong> Si es tu primer ingreso, cambia tu contraseña temporal desde tu perfil en la parte superior.</span>
+                </li>
+            </ul>
+
+            {% else %}
+            <p class="modal-custom__intro">
+                Tienes acceso como <strong>Visitante</strong>. Puedes consultar la información disponible de forma libre.
+            </p>
+            <ul class="modal-custom__list">
+                <li>
+                    <i class="fa-solid fa-eye"></i>
+                    <span><strong>Consulta:</strong> Puedes navegar y visualizar el contenido de la plataforma, como materias y atributos de egreso.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-lock"></i>
+                    <span><strong>Sin interacción directa:</strong> Tu rol no permite crear, editar ni eliminar información. Si necesitas más acceso, comunícate con el Jefe de Carrera.</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span><strong>¿Qué es esta plataforma?</strong> Sistema de seguimiento de atributos de egreso de Ingeniería Industrial, orientado a evaluaciones del CACEI.</span>
+                </li>
+            </ul>
+            {% endif %}
+
+            <p class="modal-custom__tip">
+                <i class="fa-solid fa-lightbulb"></i>
+                No olvides cerrar sesión al terminar tu sesión de trabajo.
+            </p>
+        </div>
+
+        <div class="modal-custom__footer">
+            <button id="btnCerrarModal" class="modal-custom__btn-cerrar">
+                <i class="fa-solid fa-check"></i> Entendido
+            </button>
+        </div>
+
+    </div>
+</div>
+<!-- ============================================================== -->
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    // MENÚ LATERAL
     const body = document.body;
     const menuToggle = document.getElementById('menuToggle');
     const menuClose = document.getElementById('menuClose');
-    const sideMenu = document.getElementById('sideMenu');
     const backdrop = document.getElementById('sideMenuBackdrop');
 
-    function openMenu() {
-        body.classList.add('menu-open');
-    }
-
-    function closeMenu() {
-        body.classList.remove('menu-open');
-    }
+    function openMenu() { body.classList.add('menu-open'); }
+    function closeMenu() { body.classList.remove('menu-open'); }
 
     if (menuToggle) menuToggle.addEventListener('click', openMenu);
     if (menuClose) menuClose.addEventListener('click', closeMenu);
     if (backdrop) backdrop.addEventListener('click', closeMenu);
+
+    // MODAL INSTRUCCIONES
+    const abrirModal = document.querySelector('[data-modal="instrucciones"]');
+    const modal = document.getElementById('modalInstrucciones');
+    const cerrarModal = document.getElementById('cerrarModal');
+    const btnCerrarModal = document.getElementById('btnCerrarModal');
+
+    if (abrirModal) {
+        abrirModal.addEventListener('click', function(e) {
+            e.preventDefault();
+            closeMenu();
+            modal.style.display = 'flex';
+        });
+    }
+
+    if (cerrarModal) cerrarModal.addEventListener('click', () => modal.style.display = 'none');
+    if (btnCerrarModal) btnCerrarModal.addEventListener('click', () => modal.style.display = 'none');
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    });
+
+    // MODO OSCURO
+    const darkBtn = document.getElementById('darkModeToggle');
+    const darkIcon = document.getElementById('darkModeIcon');
+
+    if (localStorage.getItem('darkMode') === 'true') {
+        body.classList.add('dark-mode');
+        darkIcon.className = 'fa-solid fa-sun';
+    }
+
+    if (darkBtn) {
+        darkBtn.addEventListener('click', function () {
+            const isDark = body.classList.toggle('dark-mode');
+            darkIcon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            localStorage.setItem('darkMode', isDark);
+        });
+    }
+
 });
 </script>
 

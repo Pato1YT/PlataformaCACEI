@@ -1,14 +1,45 @@
-{% extends 'layouts/base.html' %}
+{% extends 'layouts/base_app.html' %}
 
-{% block title %}{{ titulo }}{% endblock %}
+{% block title %}{{ titulo }} - Se'si Eskani{% endblock %}
 
 {% block content %}
-<h2>{{ titulo }}</h2>
+<div class="perfil-card">
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Guardar</button>
-    <a href="{% url 'core:lista_atributos' %}">Cancelar</a>
-</form>
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar">
+            <i class="fa-solid fa-list-check" style="font-size:24px;"></i>
+        </div>
+        <div>
+            <h2 class="perfil-card__nombre">{{ titulo }}</h2>
+            <span class="perfil-card__rol">Atributos de egreso</span>
+        </div>
+    </div>
+
+    <form method="post" class="perfil-card__form">
+        {% csrf_token %}
+
+        <div class="perfil-card__section-title">Datos del atributo</div>
+
+        <div class="perfil-card__grid" style="grid-template-columns: 1fr;">
+            {% for field in form %}
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <span class="perfil-card__error">{{ field.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width: 200px;">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar
+            </button>
+            <a href="{% url 'core:lista_atributos' %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
 {% endblock %}

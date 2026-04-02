@@ -1,30 +1,50 @@
 {% extends 'layouts/base_app.html' %}
 
-{% block title %}{{ titulo }} - Usuarios{% endblock %}
+{% block title %}{{ titulo }} - Se'si Eskani{% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <div class="dashboard__header">
+<div class="perfil-card">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar">
+            <i class="fa-solid fa-chalkboard-user" style="font-size:24px;"></i>
+        </div>
         <div>
-            <h2 class="dashboard__title">{{ titulo }}</h2>
-            <p class="dashboard__subtitle">
-                Completa los datos del docente. La contraseña temporal se generará automáticamente.
-            </p>
+            <h2 class="perfil-card__nombre">{{ titulo }}</h2>
+            <span class="perfil-card__rol">Docentes</span>
         </div>
     </div>
 
-    <form method="post">
+    <form method="post" class="perfil-card__form">
         {% csrf_token %}
-        <div class="form-grid">
-            {{ form.as_p }}
+
+        <div class="perfil-card__section-title">Datos del docente</div>
+
+        <div class="perfil-card__grid">
+            {% for field in form %}
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <span class="perfil-card__error">{{ field.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
         </div>
 
-        <button type="submit" class="course-card__button" style="max-width: 220px;">
-            Guardar
-        </button>
-        <a href="{% url 'core:lista_usuarios' %}" class="dashboard__subtitle" style="margin-left: 16px;">
-            Cancelar
-        </a>
+        <p class="perfil-card__label" style="margin-top: 12px; color: #94a3b8; font-size: 13px;">
+            <i class="fa-solid fa-circle-info"></i>
+            La contraseña temporal se generará automáticamente.
+        </p>
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width: 200px;">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar
+            </button>
+            <a href="{% url 'core:lista_usuarios' %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
     </form>
 </div>
 {% endblock %}
