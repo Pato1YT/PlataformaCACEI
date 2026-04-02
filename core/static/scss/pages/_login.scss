@@ -10,6 +10,22 @@ body.auth-body {
   flex-direction: column;
 }
 
+.auth-logos {
+  position: fixed;
+  top: 40px;
+  left: 40px;
+  right: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none; // para no estorbar
+} 
+
+.auth-logo {
+  max-height: 160px;
+  width: auto;
+}
+
 .auth-main {
   flex: 1;
   display: flex;

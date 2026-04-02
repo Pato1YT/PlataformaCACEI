@@ -4,13 +4,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-     "sass": "sass core/static/scss:core/static/css --watch"
+    "sass": "sass core/static/scss:core/static/css --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "sass": "^1.97.3"
+    "sass": "^1.98.0"
   }
 }
