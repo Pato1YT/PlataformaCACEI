@@ -1,24 +1,42 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Iniciar sesión - Se'si Eskani{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    {% block extra_css %}{% endblock %}
-</head>
-<body class="auth-body">
+  <head>
+    <meta charset="UTF-8" />
+    <title>
+      {% block title %}
+        Iniciar sesión - Se'si Eskani
+      {% endblock %}
+    </title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=2">
+    {% block extra_css %}
+
+    {% endblock %}
+  </head>
+
+  <body class="auth-body">
+
+    
+    {# Mensajes de alerta #}
+    {% if messages %}
+      <div class="toast-container">
+        {% for message in messages %}
+          <div class="toast"> <i class="fa-solid fa-lock"></i> {{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <!-- Logos laterales -->
     <div class="auth-logos">
-        <img src="{% static 'img/logo_tecnm.png' %}" alt="TecNM" class="auth-logo auth-logo--left">
-        <img src="{% static 'img/logo_itsh.png' %}" alt="ITSH" class="auth-logo auth-logo--right">
+      <img src="{% static 'img/logo_tecnm.png' %}" alt="TecNM" class="auth-logo auth-logo--left" />
+      <img src="{% static 'img/logo_itsh.png' %}" alt="ITSH" class="auth-logo auth-logo--right" />
     </div>
 
     <!-- Contenido centrado -->
     <main class="auth-main">
-        {% block content %}{% endblock %}
-    </main>
+      {% block content %}
 
-</body>
+      {% endblock %}
+    </main>
+  </body>
 </html>
