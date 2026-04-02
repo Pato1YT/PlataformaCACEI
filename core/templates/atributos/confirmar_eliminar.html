@@ -3,27 +3,36 @@
 {% block title %}Eliminar atributo - Se'si Eskani{% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <div class="dashboard__header">
+<div class="perfil-card" style="max-width: 500px;">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar" style="background-color: #dc2626;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:24px;"></i>
+        </div>
         <div>
-            <h2 class="dashboard__title">Eliminar atributo</h2>
-            <p class="dashboard__subtitle">Esta acción no se puede deshacer.</p>
+            <h2 class="perfil-card__nombre">Eliminar atributo</h2>
+            <span class="perfil-card__rol" style="background-color:#fee2e2; color:#dc2626;">
+                Acción irreversible
+            </span>
         </div>
     </div>
 
-    <p style="margin-bottom: 24px; font-size: 15px;">
-        ¿Seguro que deseas eliminar el atributo 
-        <strong>{{ atributo.codigo }} - {{ atributo.nombre }}</strong>?
+    <p style="font-size: 15px; color: #475569; margin-bottom: 28px; line-height: 1.6;">
+        ¿Seguro que deseas eliminar el atributo
+        <strong style="color: #1e293b;">{{ atributo.codigo }} - {{ atributo.nombre }}</strong>?
+        Esta acción no se puede deshacer.
     </p>
 
-    <form method="post" style="display: flex; align-items: center; gap: 16px;">
+    <form method="post">
         {% csrf_token %}
-        <button type="submit" class="course-card__button" style="max-width: 180px; background-color: #dc2626;">
-            Sí, eliminar
-        </button>
-        <a href="{% url 'core:lista_atributos' %}" class="dashboard__subtitle">
-            Cancelar
-        </a>
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width: 180px; background-color: #dc2626;">
+                <i class="fa-solid fa-trash"></i> Sí, eliminar
+            </button>
+            <a href="{% url 'core:lista_atributos' %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
     </form>
 </div>
 {% endblock %}
