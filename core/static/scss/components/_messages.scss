@@ -89,18 +89,6 @@
   to   { opacity: 0; transform: translateX(40px); }
 }
 
-/* Modo oscuro */
-body.dark-mode {
-  .toast {
-    background-color: #1e293b;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  }
-
-  .toast__title { color: #e2e8f0; }
-  .toast__msg   { color: #94a3b8; }
-  .toast__close { color: #475569; &:hover { color: #94a3b8; } }
-}
-
 /* ===================== PERFIL ===================== */
 
 .perfil-card {
@@ -207,15 +195,62 @@ body.dark-mode {
 }
 
 .perfil-card__cancelar {
+  padding: 8px 24px;
+  border-radius: 999px;
+  background-color: #fee2e2;
+  color: #dc2626;
   font-size: 14px;
-  color: #94a3b8;
+  font-weight: 700;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 1.43;
+  margin-top: 6px;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 
-  &:hover { color: #475569; }
+  &:hover {
+    background-color: #fecaca;
+    transform: translateY(-1px);
+  }
 }
 
-/* Modo oscuro perfil */
+.form-control {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: v.$radius-input;
+  border: 2px solid #cbd5e1;
+  font-size: 14px;
+  font-family: v.$font-main;
+  outline: none;
+  background-color: #ffffff;
+  color: #1e293b;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: v.$color-border;
+    box-shadow: 0 0 0 3px rgba(0, 69, 107, 0.15);
+  }
+}
+
+/* ===================== MODO OSCURO ===================== */
+
 body.dark-mode {
+
+  .toast {
+    background-color: #1e293b;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .toast__title { color: #e2e8f0; }
+  .toast__msg   { color: #94a3b8; }
+  .toast__close {
+    color: #475569;
+    &:hover { color: #94a3b8; }
+  }
+
   .perfil-card {
     background-color: #1e293b;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
@@ -227,6 +262,7 @@ body.dark-mode {
 
   .perfil-card__nombre { color: #e2e8f0; }
   .perfil-card__label  { color: #94a3b8; }
+  .perfil-card__section-title { color: #64748b; }
 
   .perfil-card__rol {
     background-color: #0c3652;
@@ -234,7 +270,20 @@ body.dark-mode {
   }
 
   .perfil-card__cancelar {
-    color: #475569;
-    &:hover { color: #94a3b8; }
+    background-color: #3b1212;
+    color: #fca5a5;
+
+    &:hover { background-color: #4f1a1a; }
+  }
+
+  .form-control {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+
+    &:focus {
+      border-color: v.$color-accent;
+      box-shadow: 0 0 0 3px rgba(0, 163, 255, 0.2);
+    }
   }
 }
