@@ -15,6 +15,11 @@
                 {% endif %}
             </p>
         </div>
+        <a href="{% url 'core:importar_cursos' %}"
+            class="course-card__button"
+            style="max-width: 240px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
+            Importar carga académica
+        </a>
 
         <a href="{% url 'core:crear_curso' %}"
            class="course-card__button"
