@@ -90,7 +90,11 @@ document.addEventListener('DOMContentLoaded', function () {
         <ul>
             <li><a href="{% url 'core:lista_materias' %}"><i class="fa-solid fa-book"></i> Materias</a></li>
             {% if user.rol == 'ADMINISTRADOR' %}
+<<<<<<< HEAD
            <li><a href="{% url 'core:lista_cursos' %}"><i class="fa-solid fa-calendar-days"></i> Cursos</a></li>
+=======
+            <li><a href="{% url 'core:lista_cursos' %}"><i class="fa-solid fa-calendar-days"></i> Cursos</a></li>
+>>>>>>> c7c45c1 (Mejora del apartado de cursos e implementacion de formulario para la creacion de un periodo)
             <li><a href="{% url 'core:lista_usuarios' %}"><i class="fa-solid fa-chalkboard-user"></i> Docentes</a></li>
             <li><a href="{% url 'core:lista_atributos' %}"><i class="fa-solid fa-list-check"></i> Atributos de Egreso</a></li>
             {% endif %}

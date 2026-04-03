@@ -106,3 +106,22 @@ class CursoForm(forms.ModelForm):
         grupo = self.cleaned_data['grupo'].strip().upper()
         return grupo
         
+        
+class PeriodoForm(forms.ModelForm):
+    class Meta:
+        model = Periodo
+        fields = ['codigo', 'nombre', 'fecha_inicio', 'fecha_fin', 'es_activo']
+        labels = {
+            'codigo': 'Codigo',
+            'nombre': 'Nombre',
+            'fecha_inicio': 'Fecha inicio',
+            'fecha_fin': 'Fecha fin',
+            'es_activo': 'Es activo',
+        }
+        widgets = {
+            'codigo': forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'es_activo': forms.CheckboxInput(),
+        }
