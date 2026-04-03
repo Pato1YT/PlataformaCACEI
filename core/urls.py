@@ -49,4 +49,10 @@ urlpatterns = [
     # Consumir el EXCEL (chano)
     path('materias/importar/', views.importar_materias, name='importar_materias'),
     
+    # Cursos / carga académica
+    path('cursos/', views.lista_cursos, name='lista_cursos'),
+    path('cursos/nuevo/', views.crear_curso, name='crear_curso'),
+    path('cursos/<int:pk>/editar/', views.editar_curso, name='editar_curso'),
+    path('cursos/<int:pk>/eliminar/', views.eliminar_curso, name='eliminar_curso'),
+    
 ]

@@ -7,8 +7,8 @@ from django.core.exceptions import PermissionDenied
 #charco
 from django.contrib.auth import update_session_auth_hash
 
-from .models import AtributoEgreso, Materia, Usuario
-from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm
+from .models import AtributoEgreso, Materia, Usuario, Curso, Periodo
+from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm, CursoForm
 #charco
 from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm, EditarPerfilForm
 
@@ -151,8 +151,22 @@ def eliminar_materia(request, pk):
     
 @login_required
 def dashboard(request):
-    materias = Materia.objects.all().order_by('semestre', 'clave')
-    return render(request, 'core/dashboard.html', {'materias': materias})
+    periodo_activo = Periodo.objects.filter(es_activo=True).first()
+
+    cursos = Curso.objects.none()
+
+    if periodo_activo:
+        cursos = Curso.objects.filter(periodo=periodo_activo).select_related(
+            'materia', 'docente', 'periodo'
+        ).order_by('materia__semestre', 'materia__clave', 'grupo')
+
+        if request.user.rol == Usuario.DOCENTE:
+            cursos = cursos.filter(docente=request.user)
+
+    return render(request, 'core/dashboard.html', {
+        'cursos': cursos,
+        'periodo_activo': periodo_activo,
+    })
 
 def solo_admin(view_func):
     @wraps(view_func)
@@ -387,3 +401,86 @@ def editar_perfil(request):
 #charco
 def aviso_privacidad(request):
     return render(request, 'core/aviso_privacidad.html')
+
+
+
+# PARA LOS CURSOS (PERIODO)
+@login_required
+@solo_admin
+def lista_cursos(request):
+    periodo_activo = Periodo.objects.filter(es_activo=True).first()
+
+    cursos = Curso.objects.none()
+    if periodo_activo:
+        cursos = Curso.objects.filter(periodo=periodo_activo).select_related(
+            'materia', 'docente', 'periodo'
+        ).order_by('materia__semestre', 'materia__clave', 'grupo')
+
+    return render(request, 'cursos/lista_cursos.html', {
+        'cursos': cursos,
+        'periodo_activo': periodo_activo,
+    })
+
+
+@login_required
+@solo_admin
+def crear_curso(request):
+    periodo_activo = Periodo.objects.filter(es_activo=True).first()
+
+    if not periodo_activo:
+        messages.error(request, 'No hay un periodo activo. Debes activar un periodo antes de crear cursos.')
+        return redirect('core:lista_cursos')
+
+    if request.method == 'POST':
+        form = CursoForm(request.POST)
+        if form.is_valid():
+            curso = form.save(commit=False)
+            curso.periodo = periodo_activo
+            curso.save()
+            messages.success(request, 'Curso creado correctamente.')
+            return redirect('core:lista_cursos')
+    else:
+        form = CursoForm(initial={'grupo': 'A'})
+
+    return render(request, 'cursos/form_curso.html', {
+        'form': form,
+        'titulo': 'Crear curso',
+        'periodo_activo': periodo_activo,
+    })
+
+
+@login_required
+@solo_admin
+def editar_curso(request, pk):
+    curso = get_object_or_404(Curso, pk=pk)
+
+    if request.method == 'POST':
+        form = CursoForm(request.POST, instance=curso)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Curso actualizado correctamente.')
+            return redirect('core:lista_cursos')
+    else:
+        form = CursoForm(instance=curso)
+
+    return render(request, 'cursos/form_curso.html', {
+        'form': form,
+        'titulo': 'Editar curso',
+        'periodo_activo': curso.periodo,
+        'curso': curso,
+    })
+
+
+@login_required
+@solo_admin
+def eliminar_curso(request, pk):
+    curso = get_object_or_404(Curso, pk=pk)
+
+    if request.method == 'POST':
+        curso.delete()
+        messages.success(request, 'Curso eliminado correctamente.')
+        return redirect('core:lista_cursos')
+
+    return render(request, 'cursos/confirmar_eliminar.html', {
+        'curso': curso,
+    })

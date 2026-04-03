@@ -1,0 +1,49 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}{{ titulo }} - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">{{ titulo }}</h2>
+            <p class="dashboard__subtitle">
+                Periodo activo:
+                <strong>{{ periodo_activo.nombre }}</strong>
+            </p>
+        </div>
+    </div>
+
+    <div class="table-wrapper" style="padding: 24px;">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-grid">
+                {% for field in form %}
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="{{ field.id_for_label }}"><strong>{{ field.label }}</strong></label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div style="color: #c0392b; margin-top: 6px;">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div style="display:flex; gap:12px; margin-top:20px;">
+                <button type="submit" class="course-card__button" style="max-width: 180px;">
+                    Guardar
+                </button>
+
+                <a href="{% url 'core:lista_cursos' %}"
+                   class="data-table__btn data-table__btn--edit"
+                   style="text-decoration:none;">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
