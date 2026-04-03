@@ -60,9 +60,21 @@
                 </div>
             </article>
         {% empty %}
-            <!-- por ahora, ejemplo estático si no hay materias -->
-            <p>No hay materias registradas todavía. Ve al menú Administración &gt; Materias.</p>
+            <div style="padding: 20px 0;">
+                <p style="margin-bottom: 16px;">
+                    No hay materias registradas todavía.
+                </p>
+                <a href="{% url 'core:importar_materias' %}"
+                class="course-card__button"
+                style="max-width: 260px; text-align:center; text-decoration:none; display:inline-block;">
+                Cargar materias desde Excel
+                </a>
+            </div>
         {% endfor %}
+
+            <!-- por ahora, ejemplo estático si no hay materias -->
+            <!--<p>No hay materias registradas todavía. Ve al menú Administración &gt; Materias.</p>
+
     </div>
 </div>
 {% endblock %}

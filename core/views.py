@@ -12,16 +12,26 @@ from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm
 #charco
 from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm, EditarPerfilForm
 
+#chano
+import os
+import json
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+from .utils.importador_materias import (
+    obtener_hojas_excel,
+    analizar_hoja_excel,
+    ImportadorMateriasError,
+)
 
 
 
-@login_required
-def dashboard(request):
-    """
-    Vista principal del sistema.
-    Aquí luego pondremos estadísticas, resúmenes, etc.
-    """
-    return render(request, 'core/dashboard.html', {'materias': materias})
+#@login_required
+#def dashboard(request):
+    #"""
+    #Vista principal del sistema.
+    #Aquí luego pondremos estadísticas, resúmenes, etc.
+    #"""
+    #return render(request, 'core/dashboard.html', {'materias': materias})
 
 
 @login_required
@@ -153,6 +163,124 @@ def solo_admin(view_func):
             raise PermissionDenied  # 403
         return view_func(request, *args, **kwargs)
     return _wrapped
+
+@login_required
+@solo_admin
+def importar_materias(request):
+    hojas = []
+    archivo_temporal = None
+    hoja_seleccionada = None
+    preview_data = []
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        # PASO 1: subir archivo
+        if accion == 'subir_archivo':
+            archivo = request.FILES.get('archivo_excel')
+
+            if not archivo:
+                messages.error(request, 'Debes seleccionar un archivo Excel.')
+                return render(request, 'materias/importar_materias.html')
+
+            if not archivo.name.endswith(('.xlsx', '.xls')):
+                messages.error(request, 'El archivo debe ser Excel (.xlsx o .xls).')
+                return render(request, 'materias/importar_materias.html')
+
+            carpeta_temp = os.path.join(settings.MEDIA_ROOT, 'temp_imports')
+            os.makedirs(carpeta_temp, exist_ok=True)
+
+            fs = FileSystemStorage(location=carpeta_temp)
+            nombre_archivo = fs.save(archivo.name, archivo)
+            archivo_temporal = nombre_archivo
+            ruta_archivo = fs.path(nombre_archivo)
+
+            try:
+                hojas = obtener_hojas_excel(ruta_archivo)
+                messages.success(request, 'Archivo cargado correctamente. Ahora selecciona una hoja.')
+            except ImportadorMateriasError as e:
+                fs.delete(nombre_archivo)
+                messages.error(request, str(e))
+
+            return render(request, 'materias/importar_materias.html', {
+                'hojas': hojas,
+                'archivo_temporal': archivo_temporal,
+            })
+
+        # PASO 2: analizar hoja
+        elif accion == 'analizar_hoja':
+            hoja_seleccionada = request.POST.get('hoja')
+            archivo_temporal = request.POST.get('archivo_temporal')
+
+            if not hoja_seleccionada or not archivo_temporal:
+                messages.error(request, 'Debes seleccionar una hoja válida.')
+                return redirect('core:importar_materias')
+
+            ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
+
+            try:
+                hojas = obtener_hojas_excel(ruta_archivo)
+                preview_data = analizar_hoja_excel(ruta_archivo, hoja_seleccionada)
+                messages.success(request, f'Se analizaron {len(preview_data)} materias correctamente.')
+            except ImportadorMateriasError as e:
+                messages.error(request, str(e))
+
+            return render(request, 'materias/importar_materias.html', {
+                'hojas': hojas,
+                'archivo_temporal': archivo_temporal,
+                'hoja_seleccionada': hoja_seleccionada,
+                'preview_data': preview_data,
+                'preview_json': json.dumps(preview_data),
+            })
+
+        # PASO 3: guardar materias
+        elif accion == 'guardar_materias':
+            hoja_seleccionada = request.POST.get('hoja')
+            archivo_temporal = request.POST.get('archivo_temporal')
+
+            if not hoja_seleccionada or not archivo_temporal:
+                messages.error(request, 'No se pudo recuperar la información a guardar.')
+                return redirect('core:importar_materias')
+
+            ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
+
+            if not os.path.exists(ruta_archivo):
+                messages.error(request, 'El archivo temporal ya no existe. Vuelve a cargar el Excel.')
+                return redirect('core:importar_materias')
+
+            try:
+                preview_data = analizar_hoja_excel(ruta_archivo, hoja_seleccionada)
+            except ImportadorMateriasError as e:
+                messages.error(request, str(e))
+                return redirect('core:importar_materias')
+
+            creadas = 0
+            actualizadas = 0
+
+            for fila in preview_data:
+                _, created = Materia.objects.update_or_create(
+                    clave=fila['clave'],
+                    defaults={
+                        'nombre': fila['nombre'],
+                        'semestre': int(fila['semestre']),
+                    }
+                )
+
+                if created:
+                    creadas += 1
+                else:
+                    actualizadas += 1
+
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+
+            messages.success(
+                request,
+                f'Importación completada. Materias creadas: {creadas}. Materias actualizadas: {actualizadas}.'
+            )
+            return redirect('core:lista_materias')
+
+    return render(request, 'materias/importar_materias.html')
 
 @solo_admin
 def lista_usuarios(request):

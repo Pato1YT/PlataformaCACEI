@@ -116,6 +116,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Configuración para el tiempo de inactividad de la sesión
 SESSION_TIMEOUT = 1800  # 30 minutos
 
+# Con lo sigueinte se maneja el tiempo de sesión activa
+SESSION_COOKIE_AGE = 18000 # Tiempop 5 hrs
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Mantiene la sesión abierta si el navegador se cierra
+SESSION_SAVE_EVERY_REQUEST = True  # Se reinicia el tiempo si hay actividad
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

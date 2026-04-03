@@ -46,5 +46,7 @@ urlpatterns = [
     
     path('aviso-privacidad/', views.aviso_privacidad, name='aviso_privacidad'),
     
+    # Consumir el EXCEL (chano)
+    path('materias/importar/', views.importar_materias, name='importar_materias'),
     
 ]
