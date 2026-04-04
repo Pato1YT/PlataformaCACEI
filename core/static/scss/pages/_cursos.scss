@@ -1,0 +1,93 @@
+@use '../variables' as v;
+
+.periodo-form__grid {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.periodo-form__row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e2e8f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.periodo-form__row--checkbox {
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+}
+
+.periodo-form__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.periodo-form__label-check {
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.periodo-form__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.periodo-form__btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &--primary {
+    background-color: v.$color-primary;
+    color: #ffffff;
+
+    &:hover {
+      background-color: darken(v.$color-primary, 5%);
+    }
+  }
+
+  &--secondary {
+    background-color: v.$color-accent;
+    color: #ffffff;
+
+    &:hover {
+      background-color: darken(v.$color-accent, 5%);
+    }
+  }
+}
+
+// Modo oscuro
+body.dark-mode {
+  .periodo-form__grid {
+    border-color: #334155;
+  }
+
+  .periodo-form__row {
+    border-bottom-color: #334155;
+  }
+
+  .periodo-form__label,
+  .periodo-form__label-check {
+    color: #e2e8f0;
+  }
+}

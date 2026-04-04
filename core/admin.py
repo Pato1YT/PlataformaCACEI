@@ -5,7 +5,9 @@ from .models import (
     AtributoEgreso,
     Materia,
     Evidencia,
-    ReporteNivelLogro
+    ReporteNivelLogro,
+    Periodo,
+    Curso
 )
 
 # Register your models here.
@@ -22,3 +24,5 @@ admin.site.register(AtributoEgreso)
 admin.site.register(Materia)
 admin.site.register(Evidencia)
 admin.site.register(ReporteNivelLogro)
+admin.site.register(Periodo)
+admin.site.register(Curso)

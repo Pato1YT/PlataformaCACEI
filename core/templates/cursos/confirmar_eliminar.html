@@ -1,0 +1,38 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Eliminar curso - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Eliminar curso</h2>
+            <p class="dashboard__subtitle">
+                ¿Seguro que deseas eliminar este curso?
+            </p>
+        </div>
+    </div>
+
+    <div class="table-wrapper" style="padding: 24px;">
+        <p>
+            <strong>{{ curso.materia.clave }} - {{ curso.materia.nombre }}</strong><br>
+            Docente: {{ curso.docente.get_full_name|default:curso.docente.username }}<br>
+            Grupo: {{ curso.grupo }}<br>
+            Periodo: {{ curso.periodo.nombre }}
+        </p>
+
+        <form method="post" style="margin-top:20px;">
+            {% csrf_token %}
+            <button type="submit" class="data-table__btn data-table__btn--delete">
+                Sí, eliminar
+            </button>
+
+            <a href="{% url 'core:lista_cursos' %}"
+               class="data-table__btn data-table__btn--edit"
+               style="text-decoration:none;">
+                Cancelar
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}{{ titulo }} - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="perfil-card" style="max-width: 680px;">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar">
+            <i class="fa-solid fa-calendar-days" style="font-size:24px;"></i>
+        </div>
+        <div>
+            <h2 class="perfil-card__nombre">{{ titulo }}</h2>
+            <span class="perfil-card__rol">Periodos</span>
+        </div>
+    </div>
+
+    <form method="post" class="perfil-card__form">
+        {% csrf_token %}
+
+        <div class="perfil-card__section-title">Datos del periodo</div>
+
+        <div class="perfil-card__grid" style="grid-template-columns: 1fr 1fr;">
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Codigo</label>
+                {{ form.codigo }}
+                {% if form.codigo.errors %}
+                    <span class="perfil-card__error">{{ form.codigo.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Nombre</label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}
+                    <span class="perfil-card__error">{{ form.nombre.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Fecha inicio</label>
+                {{ form.fecha_inicio }}
+                {% if form.fecha_inicio.errors %}
+                    <span class="perfil-card__error">{{ form.fecha_inicio.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Fecha fin</label>
+                {{ form.fecha_fin }}
+                {% if form.fecha_fin.errors %}
+                    <span class="perfil-card__error">{{ form.fecha_fin.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <div class="perfil-card__field" style="grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 10px;">
+                {{ form.es_activo }}
+                <label class="perfil-card__label" style="margin: 0;">Es activo</label>
+                {% if form.es_activo.errors %}
+                    <span class="perfil-card__error">{{ form.es_activo.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% if form.non_field_errors %}
+            <p class="perfil-card__error" style="margin-top: 8px;">{{ form.non_field_errors|join:", " }}</p>
+        {% endif %}
+
+        <div class="perfil-card__actions">
+    <button type="submit" class="course-card__button" style="max-width: 160px;">
+        Guardar
+    </button>
+    <a href="{% url 'core:lista_cursos' %}" class="perfil-card__cancelar">
+        Cancelar
+    </a>
+</div>
+    </form>
+</div>
+{% endblock %}
