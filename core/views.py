@@ -25,6 +25,18 @@ from .utils.importador_materias import (
     ImportadorMateriasError,
 )
 
+from .utils.importador_docentes import (
+    obtener_hojas_excel_docentes,
+    analizar_hoja_docentes,
+    ImportadorDocentesError,
+)
+
+from .utils.importador_cursos import (
+    ImportadorCursosError,
+    obtener_hojas_excel_cursos,
+    analizar_hoja_cursos,
+)
+
 
 
 #@login_required
@@ -551,4 +563,337 @@ def editar_periodo(request, pk):
         'form': form,
         'titulo': 'Editar Periodo',
         'periodo': periodo,
+    
+    
+@solo_admin
+def importar_docentes(request):
+    hojas = []
+    archivo_temporal = None
+    hoja_seleccionada = None
+    preview_data = []
+    resumen_creados = []
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        # PASO 1: subir archivo
+        if accion == 'subir_archivo':
+            archivo = request.FILES.get('archivo_excel')
+
+            if not archivo:
+                messages.error(request, 'Debes seleccionar un archivo Excel.')
+                return render(request, 'usuarios/importar_docentes.html')
+
+            if not archivo.name.endswith(('.xlsx', '.xls')):
+                messages.error(request, 'El archivo debe ser Excel (.xlsx o .xls).')
+                return render(request, 'usuarios/importar_docentes.html')
+
+            carpeta_temp = os.path.join(settings.MEDIA_ROOT, 'temp_imports')
+            os.makedirs(carpeta_temp, exist_ok=True)
+
+            fs = FileSystemStorage(location=carpeta_temp)
+            nombre_archivo = fs.save(archivo.name, archivo)
+            archivo_temporal = nombre_archivo
+            ruta_archivo = fs.path(nombre_archivo)
+
+            try:
+                hojas = obtener_hojas_excel_docentes(ruta_archivo)
+                messages.success(request, 'Archivo cargado correctamente. Ahora selecciona una hoja.')
+            except ImportadorDocentesError as e:
+                fs.delete(nombre_archivo)
+                messages.error(request, str(e))
+
+            return render(request, 'usuarios/importar_docentes.html', {
+                'hojas': hojas,
+                'archivo_temporal': archivo_temporal,
+            })
+
+        # PASO 2: analizar hoja
+        elif accion == 'analizar_hoja':
+            hoja_seleccionada = request.POST.get('hoja')
+            archivo_temporal = request.POST.get('archivo_temporal')
+
+            if not hoja_seleccionada or not archivo_temporal:
+                messages.error(request, 'Debes seleccionar una hoja válida.')
+                return redirect('core:importar_docentes')
+
+            ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
+
+            try:
+                hojas = obtener_hojas_excel_docentes(ruta_archivo)
+                preview_data = analizar_hoja_docentes(ruta_archivo, hoja_seleccionada)
+
+                # marcar estado previo
+                for fila in preview_data:
+                    existe = Usuario.objects.filter(
+                        rol=Usuario.DOCENTE,
+                        first_name__iexact=fila['first_name'],
+                        last_name__iexact=fila['last_name'],
+                    ).exists()
+
+                    fila['estado'] = 'Ya existe' if existe else 'Nuevo'
+
+                messages.success(request, f'Se detectaron {len(preview_data)} docentes únicos.')
+            except ImportadorDocentesError as e:
+                messages.error(request, str(e))
+
+            return render(request, 'usuarios/importar_docentes.html', {
+                'hojas': hojas,
+                'archivo_temporal': archivo_temporal,
+                'hoja_seleccionada': hoja_seleccionada,
+                'preview_data': preview_data,
+            })
+
+        # PASO 3: guardar docentes
+        elif accion == 'guardar_docentes':
+            hoja_seleccionada = request.POST.get('hoja')
+            archivo_temporal = request.POST.get('archivo_temporal')
+
+            if not hoja_seleccionada or not archivo_temporal:
+                messages.error(request, 'No se pudo recuperar la información para guardar.')
+                return redirect('core:importar_docentes')
+
+            ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
+
+            if not os.path.exists(ruta_archivo):
+                messages.error(request, 'El archivo temporal ya no existe. Vuelve a cargar el Excel.')
+                return redirect('core:importar_docentes')
+
+            try:
+                preview_data = analizar_hoja_docentes(ruta_archivo, hoja_seleccionada)
+            except ImportadorDocentesError as e:
+                messages.error(request, str(e))
+                return redirect('core:importar_docentes')
+
+            creados = 0
+            omitidos = 0
+            resumen_creados = []
+
+            for fila in preview_data:
+                existe = Usuario.objects.filter(
+                    rol=Usuario.DOCENTE,
+                    first_name__iexact=fila['first_name'],
+                    last_name__iexact=fila['last_name'],
+                ).first()
+
+                if existe:
+                    omitidos += 1
+                    continue
+
+                username_base = fila['username_base']
+                username_final = username_base
+                contador = 1
+
+                while Usuario.objects.filter(username=username_final).exists():
+                    username_final = f"{username_base}{contador}"
+                    contador += 1
+
+                password_temporal = Usuario.objects.make_random_password()
+
+                usuario = Usuario.objects.create_user(
+                    username=username_final,
+                    first_name=fila['first_name'],
+                    last_name=fila['last_name'],
+                    email='',
+                    password=password_temporal,
+                    rol=Usuario.DOCENTE,
+                )
+
+                creados += 1
+                resumen_creados.append({
+                    'nombre': usuario.get_full_name() or usuario.username,
+                    'username': usuario.username,
+                    'password_temporal': password_temporal,
+                })
+
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+
+            messages.success(
+                request,
+                f'Importación completada. Docentes creados: {creados}. Docentes omitidos: {omitidos}.'
+            )
+
+            return render(request, 'usuarios/importar_docentes.html', {
+                'resumen_creados': resumen_creados,
+            })
+
+    return render(request, 'usuarios/importar_docentes.html')
+
+@solo_admin
+def importar_cursos(request):
+    hojas = []
+    archivo_temporal = None
+    hoja_seleccionada = None
+    preview_data = []
+
+    periodo = Periodo.objects.filter(es_activo=True).first()
+
+    if not periodo:
+        messages.error(request, "No hay un periodo activo.")
+        return redirect('core:lista_cursos')
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        # PASO 1: subir archivo
+        if accion == 'subir_archivo':
+            archivo = request.FILES.get('archivo_excel')
+
+            if not archivo:
+                messages.error(request, 'Debes seleccionar un archivo Excel.')
+                return render(request, 'cursos/importar_cursos.html', {
+                    'periodo_activo': periodo,
+                })
+
+            if not archivo.name.endswith(('.xlsx', '.xls')):
+                messages.error(request, 'El archivo debe ser Excel (.xlsx o .xls).')
+                return render(request, 'cursos/importar_cursos.html', {
+                    'periodo_activo': periodo,
+                })
+
+            carpeta_temp = os.path.join(settings.MEDIA_ROOT, 'temp_imports')
+            os.makedirs(carpeta_temp, exist_ok=True)
+
+            fs = FileSystemStorage(location=carpeta_temp)
+            nombre_archivo = fs.save(archivo.name, archivo)
+            archivo_temporal = nombre_archivo
+            ruta_archivo = fs.path(nombre_archivo)
+
+            try:
+                hojas = obtener_hojas_excel_cursos(ruta_archivo)
+                messages.success(request, 'Archivo cargado correctamente. Ahora selecciona una hoja.')
+            except ImportadorCursosError as e:
+                fs.delete(nombre_archivo)
+                messages.error(request, str(e))
+
+            return render(request, 'cursos/importar_cursos.html', {
+                'hojas': hojas,
+                'archivo_temporal': archivo_temporal,
+                'periodo_activo': periodo,
+            })
+
+        # PASO 2: analizar hoja
+        elif accion == 'analizar_hoja':
+            hoja_seleccionada = request.POST.get('hoja')
+            archivo_temporal = request.POST.get('archivo_temporal')
+
+            if not hoja_seleccionada or not archivo_temporal:
+                messages.error(request, 'Debes seleccionar una hoja válida.')
+                return redirect('core:importar_cursos')
+
+            ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
+
+            try:
+                hojas = obtener_hojas_excel_cursos(ruta_archivo)
+                preview_data = analizar_hoja_cursos(
+                    ruta_archivo,
+                    hoja_seleccionada,
+                    periodo,
+                    Materia.objects.all(),
+                    Usuario.objects.filter(rol=Usuario.DOCENTE),
+                    Curso.objects.all(),
+                )
+
+                resumen = {
+                    'total': len(preview_data),
+                    'listo_para_crear': sum(1 for fila in preview_data if fila['estado'] == 'Listo para crear'),
+                    'curso_ya_existe': sum(1 for fila in preview_data if fila['estado'] == 'Curso ya existe'),
+                    'docente_no_encontrado': sum(1 for fila in preview_data if fila['estado'] == 'Docente no encontrado'),
+                    'materia_no_encontrada': sum(1 for fila in preview_data if fila['estado'] == 'Materia no encontrada'),
+                    'no_corresponde_periodo': sum(1 for fila in preview_data if fila['estado'] == 'No corresponde al periodo'),
+                    'semestre_invalido': sum(1 for fila in preview_data if fila['estado'] == 'Semestre inválido'),
+                }
+
+                preview_data_filtrada = [
+                    fila for fila in preview_data
+                    if fila['estado'] in [
+                        'Listo para crear',
+                        'Curso ya existe',
+                        'Docente no encontrado',
+                        'Materia no encontrada',
+                    ]
+                ]
+
+                messages.success(request, f"Se analizaron {resumen['total']} filas.")
+
+            except ImportadorCursosError as e:
+                messages.error(request, str(e))
+                preview_data_filtrada = []
+                resumen = {}
+
+            return render(request, 'cursos/importar_cursos.html', {
+                'hojas': hojas,
+                'archivo_temporal': archivo_temporal,
+                'hoja_seleccionada': hoja_seleccionada,
+                'preview_data': preview_data_filtrada,
+                'periodo_activo': periodo,
+                'resumen': resumen,
+            })
+        # PASO 3: guardar cursos
+        elif accion == 'guardar_cursos':
+            hoja_seleccionada = request.POST.get('hoja')
+            archivo_temporal = request.POST.get('archivo_temporal')
+
+            if not hoja_seleccionada or not archivo_temporal:
+                messages.error(request, 'No se pudo recuperar la información para guardar.')
+                return redirect('core:importar_cursos')
+
+            ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
+
+            if not os.path.exists(ruta_archivo):
+                messages.error(request, 'El archivo temporal ya no existe. Vuelve a cargar el Excel.')
+                return redirect('core:importar_cursos')
+
+            try:
+                preview_data = analizar_hoja_cursos(
+                    ruta_archivo,
+                    hoja_seleccionada,
+                    periodo,
+                    Materia.objects.all(),
+                    Usuario.objects.filter(rol=Usuario.DOCENTE),
+                    Curso.objects.all(),
+                )
+            except ImportadorCursosError as e:
+                messages.error(request, str(e))
+                return redirect('core:importar_cursos')
+
+            creados = 0
+            omitidos = 0
+
+            for fila in preview_data:
+                if fila['estado'] != 'Listo para crear':
+                    omitidos += 1
+                    continue
+
+                materia = Materia.objects.filter(id=fila['materia_id']).first()
+                docente = Usuario.objects.filter(id=fila['docente_id']).first()
+
+                if not materia or not docente:
+                    omitidos += 1
+                    continue
+
+                _, created = Curso.objects.get_or_create(
+                    materia=materia,
+                    periodo=periodo,
+                    docente=docente,
+                    grupo='A',
+                )
+
+                if created:
+                    creados += 1
+                else:
+                    omitidos += 1
+
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+
+            messages.success(
+                request,
+                f'Importación completada. Cursos creados: {creados}. Filas omitidas: {omitidos}.'
+            )
+            return redirect('core:lista_cursos')
+
+    return render(request, 'cursos/importar_cursos.html', {
+        'periodo_activo': periodo,
     })

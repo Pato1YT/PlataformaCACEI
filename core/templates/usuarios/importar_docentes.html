@@ -1,0 +1,135 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Importar docentes - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Importar docentes desde Excel</h2>
+            <p class="dashboard__subtitle">
+                Sube un archivo, selecciona una hoja y revisa los docentes detectados antes de importar.
+            </p>
+        </div>
+
+        <a href="{% url 'core:lista_usuarios' %}" class="course-card__button" style="max-width: 220px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
+            Volver
+        </a>
+    </div>
+
+    {% if messages %}
+        <div style="margin-bottom: 20px;">
+            {% for message in messages %}
+                <div style="padding: 12px; border-radius: 8px; margin-bottom: 10px; background: #f3f7fb;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="subir_archivo">
+
+            <div style="margin-bottom: 16px;">
+                <label for="archivo_excel"><strong>Selecciona un archivo Excel</strong></label><br><br>
+                <input type="file" name="archivo_excel" id="archivo_excel" accept=".xlsx,.xls">
+            </div>
+
+            <button type="submit" class="course-card__button" style="max-width: 220px;">
+                Cargar archivo
+            </button>
+        </form>
+    </div>
+
+    {% if hojas %}
+    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="analizar_hoja">
+            <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
+
+            <div style="margin-bottom: 16px;">
+                <label for="hoja"><strong>Selecciona la hoja</strong></label><br><br>
+                <select name="hoja" id="hoja" class="dashboard__filter" required>
+                    <option value="">-- Selecciona una hoja --</option>
+                    {% for hoja in hojas %}
+                        <option value="{{ hoja }}" {% if hoja == hoja_seleccionada %}selected{% endif %}>
+                            {{ hoja }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="course-card__button" style="max-width: 220px;">
+                Analizar hoja
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if preview_data %}
+    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
+        <h3 style="margin-bottom: 16px;">Vista previa de docentes detectados</h3>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nombre detectado</th>
+                    <th>Nombre limpio</th>
+                    <th>Username sugerido</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in preview_data %}
+                <tr>
+                    <td>{{ fila.nombre_original }}</td>
+                    <td>{{ fila.nombre_limpio }}</td>
+                    <td><span class="course-card__code">{{ fila.username_base }}</span></td>
+                    <td>{{ fila.estado }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <form method="post" style="margin-top: 24px;">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="guardar_docentes">
+            <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
+            <input type="hidden" name="hoja" value="{{ hoja_seleccionada }}">
+
+            <button type="submit" class="course-card__button" style="max-width: 260px;">
+                Confirmar e importar docentes
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if resumen_creados %}
+    <div class="table-wrapper" style="padding: 24px;">
+        <h3 style="margin-bottom: 16px;">Docentes creados</h3>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Usuario</th>
+                    <th>Contraseña temporal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in resumen_creados %}
+                <tr>
+                    <td>{{ item.nombre }}</td>
+                    <td><span class="course-card__code">{{ item.username }}</span></td>
+                    <td><span class="course-card__code">{{ item.password_temporal }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
