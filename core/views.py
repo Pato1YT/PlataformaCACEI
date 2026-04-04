@@ -563,6 +563,7 @@ def editar_periodo(request, pk):
         'form': form,
         'titulo': 'Editar Periodo',
         'periodo': periodo,
+        })
     
     
 @solo_admin
