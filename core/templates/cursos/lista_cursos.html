@@ -10,6 +10,7 @@
             <p class="dashboard__subtitle">
                 {% if periodo_activo %}
                     Periodo activo: <strong>{{ periodo_activo.nombre }}</strong>
+                    <span class="dashboard__tag" style="margin-left: 8px;">{{ periodo_activo.codigo }}</span>
                 {% else %}
                     No hay periodo activo configurado.
                 {% endif %}
@@ -21,11 +22,18 @@
             Importar carga académica
         </a>
 
-        <a href="{% url 'core:crear_curso' %}"
-           class="course-card__button"
-           style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block;">
-            Nuevo curso
-        </a>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: stretch; min-width: 180px;">
+            <a href="{% url 'core:crear_periodo' %}"
+               class="course-card__button"
+               style="text-align:center; text-decoration:none; display:block; font-weight:700; background-color: #475569;">
+                Crear periodo
+            </a>
+            <a href="{% url 'core:crear_curso' %}"
+               class="course-card__button"
+               style="text-align:center; text-decoration:none; display:block; font-weight:700;">
+                Nuevo curso
+            </a>
+        </div>
     </div>
 
     <div class="table-wrapper">

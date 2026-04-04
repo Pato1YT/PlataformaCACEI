@@ -56,5 +56,10 @@ urlpatterns = [
     path('cursos/<int:pk>/editar/', views.editar_curso, name='editar_curso'),
     path('cursos/<int:pk>/eliminar/', views.eliminar_curso, name='eliminar_curso'),
     path('cursos/importar/', views.importar_cursos, name='importar_cursos'),
+
+    # Periodos
+    path('periodos/nuevo/', views.crear_periodo, name='crear_periodo'),
+    path('periodos/<int:pk>/editar/', views.editar_periodo, name='editar_periodo'),
+    
     
 ]

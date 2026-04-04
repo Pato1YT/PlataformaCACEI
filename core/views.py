@@ -12,6 +12,8 @@ from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm, CursoForm
 #charco
 from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm, EditarPerfilForm
 
+from .forms import AtributoEgresoForm, MateriaForm, CrearDocenteForm, CursoForm, PeriodoForm
+
 #chano
 import os
 import json
@@ -496,6 +498,71 @@ def eliminar_curso(request, pk):
     return render(request, 'cursos/confirmar_eliminar.html', {
         'curso': curso,
     })
+
+@login_required
+@solo_admin
+def crear_periodo(request):
+    if request.method == 'POST':
+        form = PeriodoForm(request.POST)
+        if form.is_valid():
+            periodo = form.save()
+            messages.success(request, f'Periodo "{periodo.nombre}" creado correctamente.')
+            return redirect('core:lista_cursos')
+    else:
+        form = PeriodoForm()
+
+    return render(request, 'periodos/form_periodo.html', {
+        'form': form,
+        'titulo': 'Agregar Periodo',
+    })
+
+
+@login_required
+@solo_admin
+def editar_periodo(request, pk):
+    periodo = get_object_or_404(Periodo, pk=pk)
+
+    if request.method == 'POST':
+        form = PeriodoForm(request.POST, instance=periodo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Periodo "{periodo.nombre}" actualizado correctamente.')
+            return redirect('core:lista_cursos')
+    else:
+        form = PeriodoForm(instance=periodo)
+
+    return render(request, 'periodos/form_periodo.html', {
+        'form': form,
+        'titulo': 'Editar Periodo',
+        'periodo': periodo,
+    })
+
+
+@login_required
+@solo_admin
+def editar_periodo(request, pk):
+    periodo = get_object_or_404(Periodo, pk=pk)
+    next_action = request.POST.get('next_action', '')
+
+    if request.method == 'POST':
+        form = PeriodoForm(request.POST, instance=periodo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Periodo "{periodo.nombre}" actualizado correctamente.')
+
+            if next_action == 'agregar_otro':
+                return redirect('core:crear_periodo')
+            elif next_action == 'continuar_editando':
+                return redirect('core:editar_periodo', pk=periodo.pk)
+            else:
+                return redirect('core:lista_cursos')
+    else:
+        form = PeriodoForm(instance=periodo)
+
+    return render(request, 'periodos/form_periodo.html', {
+        'form': form,
+        'titulo': 'Editar Periodo',
+        'periodo': periodo,
     
     
 @solo_admin
