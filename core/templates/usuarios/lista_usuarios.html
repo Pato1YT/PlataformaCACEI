@@ -9,12 +9,18 @@
             <h2 class="dashboard__title">Docentes</h2>
             <p class="dashboard__subtitle">Gestión de docentes y visitantes del sistema.</p>
         </div>
-        <a href="{% url 'core:importar_docentes' %}" class="course-card__button" style="max-width: 220px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
-            Importar Excel
-        </a>
-        <a href="{% url 'core:crear_usuario_docente' %}" class="course-card__button" style="max-width: 220px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
-            Nuevo docente
-        </a>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <a href="{% url 'core:importar_docentes' %}"
+               class="course-card__button"
+               style="max-width: 180px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color: #475569;">
+                <i class="fa-solid fa-file-excel"></i> Importar Excel
+            </a>
+            <a href="{% url 'core:crear_usuario_docente' %}"
+               class="course-card__button"
+               style="max-width: 180px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
+                <i class="fa-solid fa-square-plus"></i> Nuevo docente
+            </a>
+        </div>
     </div>
 
     <div class="table-wrapper">
@@ -25,7 +31,7 @@
                     <th>Usuario</th>
                     <th>Correo</th>
                     <th>Rol</th>
-                    <th>Activo</th>
+                    <th>Contraseña temporal</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -36,7 +42,32 @@
                     <td><span class="course-card__code">{{ usuario.username }}</span></td>
                     <td>{{ usuario.email|default:"-" }}</td>
                     <td>{{ usuario.get_rol_display }}</td>
-                    <td>{% if usuario.is_active %}Sí{% else %}No{% endif %}</td>
+                    <td>
+                        {% if usuario.password_temporal %}
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span id="pass-{{ usuario.pk }}"
+                                      data-visible="0"
+                                      style="font-family: monospace; font-size: 13px;
+                                             background: #f1f5f9; padding: 3px 8px;
+                                             border-radius: 6px; letter-spacing: 0.04em;">
+                                    ••••••••
+                                </span>
+                               <button type="button"
+        data-pk="{{ usuario.pk }}"
+        data-pass="{{ usuario.password_temporal }}"
+        onclick="togglePass(this)"
+        style="background:none; border:none; cursor:pointer;
+               color: #64748b; font-size: 14px; padding: 2px 4px;"
+        title="Mostrar/ocultar">
+    <i class="fa-solid fa-eye" id="icon-{{ usuario.pk }}"></i>
+</button>
+                            </div>
+                        {% else %}
+                            <span style="color: #94a3b8; font-size: 12px;">
+                                <i class="fa-solid fa-check" style="color:#22c55e;"></i> Ya la cambió
+                            </span>
+                        {% endif %}
+                    </td>
                     <td class="data-table__actions">
                         <a href="{% url 'core:editar_usuario_docente' usuario.pk %}" class="data-table__btn data-table__btn--edit">Editar</a>
                         <a href="{% url 'core:eliminar_usuario_docente' usuario.pk %}" class="data-table__btn data-table__btn--delete">Eliminar</a>
@@ -51,4 +82,22 @@
         </table>
     </div>
 </div>
+
+<script>
+function togglePass(btn) {
+    const pk = btn.dataset.pk;
+    const pass = btn.dataset.pass;
+    const span = document.getElementById('pass-' + pk);
+    const icon = document.getElementById('icon-' + pk);
+    if (span.dataset.visible === '1') {
+        span.textContent = '••••••••';
+        icon.className = 'fa-solid fa-eye';
+        span.dataset.visible = '0';
+    } else {
+        span.textContent = pass;
+        icon.className = 'fa-solid fa-eye-slash';
+        span.dataset.visible = '1';
+    }
+}
+</script>
 {% endblock %}

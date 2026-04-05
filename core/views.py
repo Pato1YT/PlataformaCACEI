@@ -333,6 +333,8 @@ def crear_usuario_docente(request):
             password_temporal = Usuario.objects.make_random_password()
 
             # 2) Creamos el usuario como DOCENTE
+          # 2) Creamos el usuario como DOCENTE
+          # 2) Creamos el usuario como DOCENTE
             usuario = Usuario.objects.create_user(
                 username=username,
                 email=email,
@@ -341,14 +343,11 @@ def crear_usuario_docente(request):
                 last_name=last_name,
                 rol=Usuario.DOCENTE,
             )
-
-            # 3) Aviso al admin con las credenciales
-            messages.success(
-                request,
-                f"Docente creado correctamente. "
-                f"Usuario: {usuario.username} | Contraseña temporal: {password_temporal}"
+            Usuario.objects.filter(pk=usuario.pk).update(
+                password_temporal=password_temporal
             )
 
+            messages.success(request, f"Docente '{usuario.username}' creado correctamente.")
             return redirect('core:lista_usuarios')
     else:
         form = CrearDocenteForm()
@@ -403,6 +402,7 @@ def editar_perfil(request):
             nueva_pass = form.cleaned_data.get('password1')
             if nueva_pass:
                 usuario.set_password(nueva_pass)
+                usuario.password_temporal = None
                 usuario.save()
                 update_session_auth_hash(request, usuario)
             messages.success(request, 'Perfil actualizado correctamente.')

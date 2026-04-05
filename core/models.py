@@ -19,6 +19,7 @@ class Usuario(AbstractUser):
     ]
 
     rol = models.CharField(max_length=20, choices=ROLES, default=VISITANTE)
+    password_temporal = models.CharField(max_length=128, blank=True, null=True, help_text="Contraseña temporal visible para el administrador.")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
