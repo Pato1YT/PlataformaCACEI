@@ -1,52 +1,69 @@
 {% extends 'layouts/base_app.html' %}
 
-{% block title %}Dashboard - Se'si Eskani{% endblock %}
+{% block title %}Inicio - Se'si Eskani{% endblock %}
 
 {% block content %}
 <div class="dashboard">
+
+    <!-- ENCABEZADO -->
     <div class="dashboard__header">
         <div>
             <h2 class="dashboard__title">
                 {% if periodo_activo %}
-                    Semestre {{ periodo_activo.nombre }}
+                    {{ periodo_activo.nombre }}
                 {% else %}
                     Dashboard académico
                 {% endif %}
             </h2>
             <p class="dashboard__subtitle">
                 {% if periodo_activo %}
-                    Cursos registrados <strong>{{ cursos|length }}</strong>
+                    <i class="fa-solid fa-chalkboard" style="margin-right:4px; color:#00a3ff;"></i>
+                    Cursos registrados: <strong>{{ cursos|length }}</strong>
                 {% else %}
                     No hay periodo activo configurado.
                 {% endif %}
             </p>
         </div>
 
-        {% if periodo_activo %}
-            <span class="dashboard__tag">{{ periodo_activo.codigo }}</span>
-        {% endif %}
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            {% if periodo_activo %}
+                <span class="dashboard__tag">
+                    <i class="fa-solid fa-calendar-days" style="margin-right:4px;"></i>
+                    {{ periodo_activo.codigo }}
+                </span>
+            {% endif %}
+            {% if request.user.rol == 'ADMINISTRADOR' and periodo_activo %}
+                <a href="{% url 'core:crear_curso' %}"
+                   class="course-card__button"
+                   style="max-width: 180px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
+                    <i class="fa-solid fa-square-plus"></i> Nuevo curso
+                </a>
+            {% endif %}
+        </div>
     </div>
 
+    <!-- FILTROS -->
     <div class="dashboard__filters">
-        <select class="dashboard__filter">
-            <option>Todos los semestres</option>
-        </select>
-        <select class="dashboard__filter">
-            <option>Todos los niveles</option>
+        <select class="dashboard__filter" id="filtro-semestre">
+            <option value="">Todos los semestres</option>
+            {% for curso in cursos %}
+                <option value="{{ curso.materia.semestre }}">Semestre {{ curso.materia.semestre }}</option>
+            {% endfor %}
         </select>
         <input type="text" class="dashboard__filter dashboard__filter--search"
-               placeholder="Buscar materia o clave...">
+               id="filtro-busqueda"
+               placeholder="Buscar materia, clave o docente...">
     </div>
 
-    <div class="dashboard__legend">
-        <span><span class="legend-dot legend-dot--initial"></span> I Inicial</span>
-        <span><span class="legend-dot legend-dot--medium"></span> M Medio</span>
-        <span><span class="legend-dot legend-dot--advanced"></span> A Avanzado</span>
-    </div>
+    <!-- SEPARADOR -->
+    <div class="dashboard__divider"></div>
 
-    <div class="dashboard__grid">
+    <!-- GRID DE CARDS -->
+    <div class="dashboard__grid" id="courses-grid">
         {% for curso in cursos %}
-            <article class="course-card">
+            <article class="course-card"
+                     data-semestre="{{ curso.materia.semestre }}"
+                     data-search="{{ curso.materia.nombre|lower }} {{ curso.materia.clave|lower }} {{ curso.docente.get_full_name|lower }}">
                 <header class="course-card__header">
                     <h3 class="course-card__name">{{ curso.materia.nombre }}</h3>
                     <span class="course-card__code">{{ curso.materia.clave }}</span>
@@ -55,47 +72,100 @@
                 <div class="course-card__body">
                     <div class="course-card__meta">
                         <div>
-                            <span class="course-card__meta-label">Sem</span>
+                            <span class="course-card__meta-label">Semestre</span>
                             <span class="course-card__meta-value">{{ curso.materia.semestre }}</span>
                         </div>
                         <div>
                             <span class="course-card__meta-label">Grupo</span>
                             <span class="course-card__meta-value">{{ curso.grupo }}</span>
                         </div>
-                        <div>
-                            <span class="course-card__meta-label">Docente</span>
-                            <span class="course-card__meta-value">
-                                {{ curso.docente.get_full_name|default:curso.docente.username }}
-                            </span>
-                        </div>
+                    </div>
+
+                    <div class="course-card__docente">
+                        <i class="fa-solid fa-chalkboard-user" style="font-size:12px; color:#00a3ff;"></i>
+                        {{ curso.docente.get_full_name|default:curso.docente.username }}
                     </div>
 
                     <button class="course-card__button">
-                        Ver detalles
+                        <i class="fa-solid fa-eye" style="margin-right:5px;"></i>Ver detalles
                     </button>
                 </div>
             </article>
         {% empty %}
-            <div style="padding: 20px 0;">
+            <div class="dashboard__empty">
                 {% if periodo_activo %}
-                    <p style="margin-bottom: 16px;">
-                        No hay cursos registrados para el periodo activo.
-                    </p>
-
+                    <div class="dashboard__empty-icon">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <p class="dashboard__empty-title">No hay cursos registrados</p>
+                    <p class="dashboard__empty-text">No hay cursos para el periodo activo aún.</p>
                     {% if request.user.rol == 'ADMINISTRADOR' %}
                         <a href="{% url 'core:crear_curso' %}"
                            class="course-card__button"
-                           style="max-width: 260px; text-align:center; text-decoration:none; display:inline-block;">
-                            Crear curso
+                           style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block; margin-top:8px;">
+                            <i class="fa-solid fa-square-plus"></i> Crear primer curso
                         </a>
                     {% endif %}
                 {% else %}
-                    <p style="margin-bottom: 16px;">
-                        No hay un periodo activo configurado.
+                    <div class="dashboard__empty-icon">
+                        <i class="fa-solid fa-calendar-xmark"></i>
+                    </div>
+                    <p class="dashboard__empty-title">Sin periodo activo</p>
+                    <p class="dashboard__empty-text">
+                        Configura un periodo activo en <strong>Administración &rsaquo; Cursos</strong>.
                     </p>
                 {% endif %}
             </div>
         {% endfor %}
     </div>
+
+    <!-- Sin resultados de búsqueda -->
+    <div class="dashboard__no-results" id="no-results" style="display:none;">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        No se encontraron cursos con ese criterio.
+    </div>
+
 </div>
+
+<script>
+(function () {
+    const filtroSemestre = document.getElementById('filtro-semestre');
+    const filtroBusqueda = document.getElementById('filtro-busqueda');
+    const grid = document.getElementById('courses-grid');
+    const noResults = document.getElementById('no-results');
+
+    // Eliminar opciones duplicadas del select de semestre y ordenar
+    if (filtroSemestre) {
+        const seen = new Set();
+        Array.from(filtroSemestre.options).forEach(opt => {
+            if (opt.value && seen.has(opt.value)) opt.remove();
+            else seen.add(opt.value);
+        });
+        const opts = Array.from(filtroSemestre.options).slice(1);
+        opts.sort((a, b) => parseInt(a.value) - parseInt(b.value));
+        while (filtroSemestre.options.length > 1) filtroSemestre.remove(1);
+        opts.forEach(o => filtroSemestre.add(o));
+    }
+
+    function filtrar() {
+        if (!grid) return;
+        const semestre = filtroSemestre ? filtroSemestre.value : '';
+        const texto = filtroBusqueda ? filtroBusqueda.value.toLowerCase().trim() : '';
+        const cards = grid.querySelectorAll('.course-card');
+        let visibles = 0;
+
+        cards.forEach(card => {
+            const matchSem = !semestre || card.dataset.semestre === semestre;
+            const matchTxt = !texto || (card.dataset.search || '').includes(texto);
+            card.style.display = (matchSem && matchTxt) ? '' : 'none';
+            if (matchSem && matchTxt) visibles++;
+        });
+
+        if (noResults) noResults.style.display = (cards.length > 0 && visibles === 0) ? 'block' : 'none';
+    }
+
+    if (filtroSemestre) filtroSemestre.addEventListener('change', filtrar);
+    if (filtroBusqueda) filtroBusqueda.addEventListener('input', filtrar);
+})();
+</script>
 {% endblock %}

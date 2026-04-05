@@ -402,7 +402,8 @@ def editar_perfil(request):
             nueva_pass = form.cleaned_data.get('password1')
             if nueva_pass:
                 usuario.set_password(nueva_pass)
-                usuario.password_temporal = None
+                # Guardar la nueva contraseña para que el admin pueda verla
+                usuario.password_temporal = nueva_pass
                 usuario.save()
                 update_session_auth_hash(request, usuario)
             messages.success(request, 'Perfil actualizado correctamente.')
