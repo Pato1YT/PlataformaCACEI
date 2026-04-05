@@ -26,12 +26,23 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            {% if periodo_activo %}
-                <span class="dashboard__tag">
-                    <i class="fa-solid fa-calendar-days" style="margin-right:4px;"></i>
-                    {{ periodo_activo.codigo }}
-                </span>
-            {% endif %}
+            {% if periodos %}
+<form method="get" id="periodoForm" action="{% url 'core:dashboard' %}">
+    <select 
+        name="periodo_id" 
+        class="dashboard__filter"
+        onchange="document.getElementById('periodoForm').submit()"
+        style="min-width: 180px;">
+        {% for periodo in periodos %}
+            <option 
+                value="{{ periodo.pk }}"
+                {% if periodo_activo and periodo.pk == periodo_activo.pk %}selected{% endif %}>
+                {{ periodo.codigo }}
+            </option>
+        {% endfor %}
+    </select>
+</form>
+{% endif %}
             {% if request.user.rol == 'ADMINISTRADOR' and periodo_activo %}
                 
                 <a href="{% url 'core:crear_curso' %}"

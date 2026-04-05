@@ -176,10 +176,16 @@ def eliminar_materia(request, pk):
     
 @login_required
 def dashboard(request):
-    periodo_activo = Periodo.objects.filter(es_activo=True).first()
+    periodos = Periodo.objects.all().order_by('-fecha_inicio')
+    
+    # Si mandan un periodo_id por GET lo usamos, si no el activo
+    periodo_id = request.GET.get('periodo_id')
+    if periodo_id:
+        periodo_activo = Periodo.objects.filter(pk=periodo_id).first()
+    else:
+        periodo_activo = Periodo.objects.filter(es_activo=True).first()
 
     cursos = Curso.objects.none()
-
     if periodo_activo:
         cursos = Curso.objects.filter(periodo=periodo_activo).select_related(
             'materia', 'docente', 'periodo'
@@ -191,6 +197,7 @@ def dashboard(request):
     return render(request, 'core/dashboard.html', {
         'cursos': cursos,
         'periodo_activo': periodo_activo,
+        'periodos': periodos,
     })
 
 def solo_admin(view_func):
@@ -517,7 +524,10 @@ def crear_periodo(request):
     if request.method == 'POST':
         form = PeriodoForm(request.POST)
         if form.is_valid():
-            periodo = form.save()
+            periodo = form.save(commit=False)
+            if periodo.es_activo:
+                Periodo.objects.filter(es_activo=True).update(es_activo=False)
+            periodo.save()
             messages.success(request, f'Periodo "{periodo.nombre}" creado correctamente.')
             return redirect('core:lista_cursos')
     else:
@@ -528,26 +538,25 @@ def crear_periodo(request):
         'titulo': 'Agregar Periodo',
     })
 
+#@login_required
+#@solo_admin
+#def editar_periodo(request, pk):
+    #periodo = get_object_or_404(Periodo, pk=pk)
 
-@login_required
-@solo_admin
-def editar_periodo(request, pk):
-    periodo = get_object_or_404(Periodo, pk=pk)
+    #if request.method == 'POST':
+        #form = PeriodoForm(request.POST, instance=periodo)
+        #if form.is_valid():
+            #form.save()
+            #messages.success(request, f'Periodo "{periodo.nombre}" actualizado correctamente.')
+            #return redirect('core:lista_cursos')
+    #else:
+        #form = PeriodoForm(instance=periodo)
 
-    if request.method == 'POST':
-        form = PeriodoForm(request.POST, instance=periodo)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Periodo "{periodo.nombre}" actualizado correctamente.')
-            return redirect('core:lista_cursos')
-    else:
-        form = PeriodoForm(instance=periodo)
-
-    return render(request, 'periodos/form_periodo.html', {
-        'form': form,
-        'titulo': 'Editar Periodo',
-        'periodo': periodo,
-    })
+   # return render(request, 'periodos/form_periodo.html', {
+       # 'form': form,
+        #'titulo': 'Editar Periodo',
+        #'periodo': periodo,
+   # })
 
 
 @login_required
@@ -559,7 +568,10 @@ def editar_periodo(request, pk):
     if request.method == 'POST':
         form = PeriodoForm(request.POST, instance=periodo)
         if form.is_valid():
-            form.save()
+            periodo = form.save(commit=False)
+            if periodo.es_activo:
+                Periodo.objects.filter(es_activo=True).exclude(pk=periodo.pk).update(es_activo=False)
+            periodo.save()
             messages.success(request, f'Periodo "{periodo.nombre}" actualizado correctamente.')
 
             if next_action == 'agregar_otro':
@@ -575,8 +587,7 @@ def editar_periodo(request, pk):
         'form': form,
         'titulo': 'Editar Periodo',
         'periodo': periodo,
-        })
-    
+    })
     
 @solo_admin
 def importar_docentes(request):
