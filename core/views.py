@@ -700,6 +700,8 @@ def importar_docentes(request):
                     password=password_temporal,
                     rol=Usuario.DOCENTE,
                 )
+                usuario.password_temporal = password_temporal
+                usuario.save(update_fields=['password_temporal'])
 
                 creados += 1
                 resumen_creados.append({
@@ -707,18 +709,6 @@ def importar_docentes(request):
                     'username': usuario.username,
                     'password_temporal': password_temporal,
                 })
-
-            if os.path.exists(ruta_archivo):
-                os.remove(ruta_archivo)
-
-            messages.success(
-                request,
-                f'Importación completada. Docentes creados: {creados}. Docentes omitidos: {omitidos}.'
-            )
-
-            return render(request, 'usuarios/importar_docentes.html', {
-                'resumen_creados': resumen_creados,
-            })
 
     return render(request, 'usuarios/importar_docentes.html')
 

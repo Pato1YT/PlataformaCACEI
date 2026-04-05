@@ -33,6 +33,7 @@
                 </span>
             {% endif %}
             {% if request.user.rol == 'ADMINISTRADOR' and periodo_activo %}
+                
                 <a href="{% url 'core:crear_curso' %}"
                    class="course-card__button"
                    style="max-width: 180px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
@@ -104,6 +105,11 @@
                            class="course-card__button"
                            style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block; margin-top:8px;">
                             <i class="fa-solid fa-square-plus"></i> Crear primer curso
+                        </a>
+                        <a href="{% url 'core:importar_cursos' %}"
+                           class="course-card__button"
+                           style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block; margin-top:8px; background-color: #16a34a;">
+                            <i class="fa-solid fa-file-excel"></i> Importar Excel
                         </a>
                     {% endif %}
                 {% else %}
