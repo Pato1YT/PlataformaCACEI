@@ -36,7 +36,15 @@ from .utils.importador_cursos import (
     obtener_hojas_excel_cursos,
     analizar_hoja_cursos,
 )
-
+def solo_admin(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('core:login')
+        if request.user.rol != Usuario.ADMINISTRADOR:
+            raise PermissionDenied  # 403
+        return view_func(request, *args, **kwargs)
+    return _wrapped
 
 
 #@login_required
@@ -115,6 +123,7 @@ def lista_materias(request):
 
 
 @login_required
+@solo_admin
 def crear_materia(request):
     if request.method == 'POST':
         form = MateriaForm(request.POST)
@@ -132,6 +141,7 @@ def crear_materia(request):
 
 
 @login_required
+@solo_admin
 def editar_materia(request, pk):
     materia = get_object_or_404(Materia, pk=pk)
 
@@ -151,6 +161,7 @@ def editar_materia(request, pk):
 
 
 @login_required
+@solo_admin
 def eliminar_materia(request, pk):
     materia = get_object_or_404(Materia, pk=pk)
 

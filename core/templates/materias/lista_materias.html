@@ -9,9 +9,8 @@
             <h2 class="dashboard__title">Materias</h2>
             <p class="dashboard__subtitle">Gestión de la retícula académica.</p>
         </div>
-        
 
-
+        {% if request.user.rol == 'ADMINISTRADOR' %}
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <a href="{% url 'core:importar_materias' %}"
                class="course-card__button"
@@ -24,6 +23,7 @@
                 <i class="fa-solid fa-square-plus"></i> Nueva materia
             </a>
         </div>
+        {% endif %}
     </div>
 
     <div class="table-wrapper">
@@ -34,7 +34,9 @@
                     <th>Nombre</th>
                     <th>Semestre</th>
                     <th>Especialidad</th>
+                    {% if request.user.rol == 'ADMINISTRADOR' %}
                     <th>Acciones</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -44,14 +46,16 @@
                     <td>{{ materia.nombre }}</td>
                     <td>{{ materia.semestre }}</td>
                     <td>{% if materia.es_especialidad %}Sí{% else %}No{% endif %}</td>
+                    {% if request.user.rol == 'ADMINISTRADOR' %}
                     <td class="data-table__actions">
                         <a href="{% url 'core:editar_materia' materia.pk %}" class="data-table__btn data-table__btn--edit">Editar</a>
                         <a href="{% url 'core:eliminar_materia' materia.pk %}" class="data-table__btn data-table__btn--delete">Eliminar</a>
                     </td>
+                    {% endif %}
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="data-table__empty">No hay materias registradas todavía.</td>
+                    <td colspan="{% if request.user.rol == 'ADMINISTRADOR' %}5{% else %}4{% endif %}" class="data-table__empty">No hay materias registradas todavía.</td>
                 </tr>
                 {% endfor %}
             </tbody>
