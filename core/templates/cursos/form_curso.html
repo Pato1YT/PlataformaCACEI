@@ -1,0 +1,51 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}{{ titulo }} - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="perfil-card">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar">
+            <i class="fa-solid fa-chalkboard" style="font-size:24px;"></i>
+        </div>
+        <div>
+            <h2 class="perfil-card__nombre">{{ titulo }}</h2>
+            <span class="perfil-card__rol">
+                Periodo: {{ periodo_activo.nombre }}
+            </span>
+        </div>
+    </div>
+
+    <form method="post" class="perfil-card__form">
+        {% csrf_token %}
+
+        <div class="perfil-card__section-title">Datos del curso</div>
+
+        <div class="perfil-card__grid" style="grid-template-columns: 1fr 1fr;">
+            {% for field in form %}
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <span class="perfil-card__error">{{ field.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if form.non_field_errors %}
+            <p class="perfil-card__error" style="margin-top: 8px;">{{ form.non_field_errors|join:", " }}</p>
+        {% endif %}
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width: 200px;">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar
+            </button>
+            <a href="{% url 'core:lista_cursos' %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

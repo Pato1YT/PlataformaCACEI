@@ -38,6 +38,7 @@ urlpatterns = [
     path('materias/nueva/', views.crear_materia, name='crear_materia'),
     path('materias/<int:pk>/editar/', views.editar_materia, name='editar_materia'),
     path('materias/<int:pk>/eliminar/', views.eliminar_materia, name='eliminar_materia'),
+    path('usuarios/importar/', views.importar_docentes, name='importar_docentes'),
 
     #docentes
     path('usuarios/<int:pk>/editar/', views.editar_usuario_docente, name='editar_usuario_docente'),
@@ -45,6 +46,20 @@ urlpatterns = [
     #charco 
     
     path('aviso-privacidad/', views.aviso_privacidad, name='aviso_privacidad'),
+    
+    # Consumir el EXCEL (chano)
+    path('materias/importar/', views.importar_materias, name='importar_materias'),
+    
+    # Cursos / carga académica
+    path('cursos/', views.lista_cursos, name='lista_cursos'),
+    path('cursos/nuevo/', views.crear_curso, name='crear_curso'),
+    path('cursos/<int:pk>/editar/', views.editar_curso, name='editar_curso'),
+    path('cursos/<int:pk>/eliminar/', views.eliminar_curso, name='eliminar_curso'),
+    path('cursos/importar/', views.importar_cursos, name='importar_cursos'),
+
+    # Periodos
+    path('periodos/nuevo/', views.crear_periodo, name='crear_periodo'),
+    path('periodos/<int:pk>/editar/', views.editar_periodo, name='editar_periodo'),
     
     
 ]

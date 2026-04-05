@@ -1,5 +1,5 @@
 from django import forms
-from .models import AtributoEgreso, Materia, Usuario
+from .models import AtributoEgreso, Materia, Usuario, Curso, Periodo
 #charco
 from django.contrib.auth.password_validation import validate_password
 
@@ -77,4 +77,51 @@ class EditarPerfilForm(forms.ModelForm):
             if p1 != p2:
                 raise forms.ValidationError('Las contraseñas no coinciden.')
         return cleaned_data
+    
+    
+class CursoForm(forms.ModelForm):
+    class Meta:
+        model = Curso
+        fields = ['materia', 'docente', 'grupo']
+        labels = {
+            'materia': 'Materia',
+            'docente': 'Docente',
+            'grupo': 'Grupo',
+        }
+        widgets = {
+            'materia': forms.Select(attrs={'class': 'form-control'}),
+            'docente': forms.Select(attrs={'class': 'form-control'}),
+            'grupo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. A'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['materia'].queryset = Materia.objects.all().order_by('semestre', 'clave')
+        self.fields['docente'].queryset = Usuario.objects.filter(
+            rol=Usuario.DOCENTE
+        ).order_by('first_name', 'last_name', 'username')
         
+    def clean_grupo(self):
+        grupo = self.cleaned_data['grupo'].strip().upper()
+        return grupo
+        
+        
+class PeriodoForm(forms.ModelForm):
+    class Meta:
+        model = Periodo
+        fields = ['codigo', 'nombre', 'fecha_inicio', 'fecha_fin', 'es_activo']
+        labels = {
+            'codigo': 'Codigo',
+            'nombre': 'Nombre',
+            'fecha_inicio': 'Fecha inicio',
+            'fecha_fin': 'Fecha fin',
+            'es_activo': 'Es activo',
+        }
+        widgets = {
+            'codigo': forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'es_activo': forms.CheckboxInput(),
+        }

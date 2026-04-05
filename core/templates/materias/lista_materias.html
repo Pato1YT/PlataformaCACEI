@@ -9,6 +9,12 @@
             <h2 class="dashboard__title">Materias</h2>
             <p class="dashboard__subtitle">Gestión de la retícula académica.</p>
         </div>
+         <div style="display:flex; gap:12px; align-items:center;">
+        <a href="{% url 'core:importar_materias' %}"
+           class="course-card__button"
+           style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block;">
+            Importar Excel
+        </a>
         <a href="{% url 'core:crear_materia' %}" class="course-card__button" style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block;">
              Nueva materia
         </a>
@@ -38,9 +44,17 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="5" class="data-table__empty">No hay materias registradas todavía.</td>
-                </tr>
+                    <tr>
+                        <td colspan="5" class="data-table__empty">
+                            No hay materias registradas todavía.
+                            <br><br>
+                            <a href="{% url 'core:importar_materias' %}"
+                            class="course-card__button"
+                            style="max-width: 220px; text-align:center; text-decoration:none; display:inline-block;">
+                            Cargar materias desde Excel
+                            </a>
+                        </td>
+                    </tr>
                 {% endfor %}
             </tbody>
         </table>
