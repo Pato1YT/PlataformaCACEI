@@ -3,55 +3,77 @@
 {% block title %}Importar carga académica - Se'si Eskani{% endblock %}
 
 {% block content %}
-<div class="dashboard">
+<div class="perfil-card" style="max-width: 960px;">
 
-    <div class="dashboard__header">
+    <!-- ENCABEZADO -->
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar">
+            <i class="fa-solid fa-file-excel" style="font-size:24px;"></i>
+        </div>
         <div>
-            <h2 class="dashboard__title">Importar carga académica</h2>
-            <p class="dashboard__subtitle">
+            <h2 class="perfil-card__nombre">Importar carga académica</h2>
+            <span class="perfil-card__rol">
                 {% if periodo_activo %}
-                    Periodo activo: <strong>{{ periodo_activo.nombre }}</strong>
+                    Periodo: {{ periodo_activo.nombre }}
+                {% else %}
+                    Cursos
                 {% endif %}
-            </p>
+            </span>
         </div>
     </div>
 
-    {% if messages %}
-        <div style="margin-bottom: 20px;">
-            {% for message in messages %}
-                <div style="padding: 12px; border-radius: 8px; margin-bottom: 10px; background: #f3f7fb;">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+    <!-- PASO 1: SUBIR ARCHIVO -->
+    <div class="perfil-card__section-title">
+        <i class="fa-solid fa-upload" style="color:#00a3ff;"></i>
+        Paso 1 — Selecciona el archivo
+    </div>
 
-    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
+    <div class="import-card">
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="accion" value="subir_archivo">
 
-            <div style="margin-bottom: 16px;">
-                <label for="archivo_excel"><strong>Seleccionar archivo</strong></label><br><br>
-                <input type="file" name="archivo_excel" id="archivo_excel" accept=".xlsx,.xls">
+            <div class="perfil-card__field" style="margin-bottom: 20px;">
+                <label class="perfil-card__label">Archivo Excel (.xlsx o .xls)</label>
+                <input type="file" name="archivo_excel" id="archivo_excel"
+                       accept=".xlsx,.xls" class="import-file-input">
             </div>
 
-            <button type="submit" class="course-card__button" style="max-width: 220px;">
-                Subir
-            </button>
+            {% if not hojas and not preview_data %}
+            <div class="perfil-card__actions">
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-upload"></i> Cargar archivo
+                </button>
+                <a href="{% url 'core:lista_cursos' %}" class="perfil-card__cancelar">
+                    Cancelar
+                </a>
+            </div>
+            {% else %}
+            <div>
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-upload"></i> Cargar archivo
+                </button>
+            </div>
+            {% endif %}
         </form>
     </div>
 
+    <!-- PASO 2: SELECCIONAR HOJA -->
     {% if hojas %}
-    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
+    <div class="perfil-card__section-title" style="margin-top: 28px;">
+        <i class="fa-solid fa-table-cells" style="color:#00a3ff;"></i>
+        Paso 2 — Selecciona la hoja
+    </div>
+
+    <div class="import-card">
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="accion" value="analizar_hoja">
             <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
 
-            <div style="margin-bottom: 16px;">
-                <label for="hoja"><strong>Selecciona la hoja</strong></label><br><br>
-                <select name="hoja" id="hoja" class="dashboard__filter" required>
+            <div class="perfil-card__field" style="margin-bottom: 20px;">
+                <label class="perfil-card__label">Hoja a analizar</label>
+                <select name="hoja" id="hoja" class="form-control" required>
                     <option value="">-- Selecciona una hoja --</option>
                     {% for hoja in hojas %}
                         <option value="{{ hoja }}" {% if hoja == hoja_seleccionada %}selected{% endif %}>
@@ -61,60 +83,73 @@
                 </select>
             </div>
 
-            <button type="submit" class="course-card__button" style="max-width: 220px;">
-                Analizar hoja
-            </button>
+            {% if not preview_data %}
+            <div class="perfil-card__actions">
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Analizar hoja
+                </button>
+                <a href="{% url 'core:lista_cursos' %}" class="perfil-card__cancelar">
+                    Cancelar
+                </a>
+            </div>
+            {% else %}
+            <div>
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Analizar hoja
+                </button>
+            </div>
+            {% endif %}
         </form>
     </div>
     {% endif %}
 
+    <!-- RESUMEN DEL ANÁLISIS -->
     {% if resumen %}
-<div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
-    <h3 style="margin-bottom: 16px;">Resumen del análisis</h3>
+    <div class="perfil-card__section-title" style="margin-top: 28px;">
+        <i class="fa-solid fa-chart-bar" style="color:#00a3ff;"></i>
+        Resumen del análisis
+    </div>
 
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
-        <div class="course-card" style="padding: 16px;">
-            <div class="course-card__meta-label">Total analizadas</div>
-            <div class="course-card__meta-value">{{ resumen.total }}</div>
+    <div class="import-resumen-grid">
+        <div class="import-resumen-card">
+            <span class="import-resumen-card__valor">{{ resumen.total }}</span>
+            <span class="import-resumen-card__label">Total filas</span>
         </div>
-
-        <div class="course-card" style="padding: 16px;">
-            <div class="course-card__meta-label">Listas para crear</div>
-            <div class="course-card__meta-value">{{ resumen.listo_para_crear }}</div>
+        <div class="import-resumen-card import-resumen-card--ok">
+            <span class="import-resumen-card__valor">{{ resumen.listo_para_crear }}</span>
+            <span class="import-resumen-card__label">Listos para crear</span>
         </div>
-
-        <div class="course-card" style="padding: 16px;">
-            <div class="course-card__meta-label">Cursos ya existentes</div>
-            <div class="course-card__meta-value">{{ resumen.curso_ya_existe }}</div>
+        <div class="import-resumen-card import-resumen-card--warn">
+            <span class="import-resumen-card__valor">{{ resumen.curso_ya_existe }}</span>
+            <span class="import-resumen-card__label">Ya existen</span>
         </div>
-
-        <div class="course-card" style="padding: 16px;">
-            <div class="course-card__meta-label">Docente no encontrado</div>
-            <div class="course-card__meta-value">{{ resumen.docente_no_encontrado }}</div>
+        <div class="import-resumen-card import-resumen-card--err">
+            <span class="import-resumen-card__valor">{{ resumen.docente_no_encontrado }}</span>
+            <span class="import-resumen-card__label">Docente no encontrado</span>
         </div>
-
-        <div class="course-card" style="padding: 16px;">
-            <div class="course-card__meta-label">Materia no encontrada</div>
-            <div class="course-card__meta-value">{{ resumen.materia_no_encontrada }}</div>
+        <div class="import-resumen-card import-resumen-card--err">
+            <span class="import-resumen-card__valor">{{ resumen.materia_no_encontrada }}</span>
+            <span class="import-resumen-card__label">Materia no encontrada</span>
         </div>
-
-        <div class="course-card" style="padding: 16px;">
-            <div class="course-card__meta-label">Fuera del periodo</div>
-            <div class="course-card__meta-value">{{ resumen.no_corresponde_periodo }}</div>
+        <div class="import-resumen-card import-resumen-card--warn">
+            <span class="import-resumen-card__valor">{{ resumen.no_corresponde_periodo }}</span>
+            <span class="import-resumen-card__label">Fuera del periodo</span>
         </div>
-
-        <div class="course-card" style="padding: 16px;">
-            <div class="course-card__meta-label">Semestre inválido</div>
-            <div class="course-card__meta-value">{{ resumen.semestre_invalido }}</div>
+        <div class="import-resumen-card import-resumen-card--warn">
+            <span class="import-resumen-card__valor">{{ resumen.semestre_invalido }}</span>
+            <span class="import-resumen-card__label">Semestre inválido</span>
         </div>
     </div>
-</div>
-{% endif %}
+    {% endif %}
 
+    <!-- PASO 3: VISTA PREVIA Y CONFIRMAR -->
     {% if preview_data %}
-    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
-        <h3 style="margin-bottom: 16px;">Vista previa</h3>
+    <div class="perfil-card__section-title" style="margin-top: 28px;">
+        <i class="fa-solid fa-eye" style="color:#00a3ff;"></i>
+        Paso 3 — Vista previa
+    </div>
 
+    <div class="table-wrapper" style="margin-bottom: 24px;">
         <table class="data-table">
             <thead>
                 <tr>
@@ -128,27 +163,46 @@
             <tbody>
                 {% for row in preview_data %}
                 <tr>
-                    <td>{{ row.clave }}</td>
+                    <td><span class="course-card__code">{{ row.clave }}</span></td>
                     <td>{{ row.materia }}</td>
                     <td>{{ row.semestre }}</td>
                     <td>{{ row.docente }}</td>
-                    <td>{{ row.estado }}</td>
+                    <td>
+                        {% if row.estado == 'Listo para crear' %}
+                            <span style="color:#16a34a; font-weight:600;">
+                                <i class="fa-solid fa-circle-check"></i> {{ row.estado }}
+                            </span>
+                        {% elif row.estado == 'Curso ya existe' %}
+                            <span style="color:#94a3b8;">
+                                <i class="fa-solid fa-circle-minus"></i> {{ row.estado }}
+                            </span>
+                        {% else %}
+                            <span style="color:#ef4444; font-weight:600;">
+                                <i class="fa-solid fa-circle-xmark"></i> {{ row.estado }}
+                            </span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-
-        <form method="post" style="margin-top: 24px;">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="guardar_cursos">
-            <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
-            <input type="hidden" name="hoja" value="{{ hoja_seleccionada }}">
-
-            <button type="submit" class="course-card__button" style="max-width: 260px;">
-                Confirmar e importar cursos
-            </button>
-        </form>
     </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="guardar_cursos">
+        <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
+        <input type="hidden" name="hoja" value="{{ hoja_seleccionada }}">
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width: 260px;">
+                <i class="fa-solid fa-floppy-disk"></i> Confirmar e importar
+            </button>
+            <a href="{% url 'core:lista_cursos' %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
+    </form>
     {% endif %}
 
 </div>

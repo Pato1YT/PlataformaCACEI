@@ -3,56 +3,71 @@
 {% block title %}Importar docentes - Se'si Eskani{% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <div class="dashboard__header">
-        <div>
-            <h2 class="dashboard__title">Importar docentes desde Excel</h2>
-            <p class="dashboard__subtitle">
-                Sube un archivo, selecciona una hoja y revisa los docentes detectados antes de importar.
-            </p>
-        </div>
+<div class="perfil-card" style="max-width: 860px;">
 
-        <a href="{% url 'core:lista_usuarios' %}" class="course-card__button" style="max-width: 220px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
-            Volver
-        </a>
+    <!-- ENCABEZADO -->
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar">
+            <i class="fa-solid fa-file-excel" style="font-size:24px;"></i>
+        </div>
+        <div>
+            <h2 class="perfil-card__nombre">Importar docentes desde Excel</h2>
+            <span class="perfil-card__rol">Docentes</span>
+        </div>
     </div>
 
-    {% if messages %}
-        <div style="margin-bottom: 20px;">
-            {% for message in messages %}
-                <div style="padding: 12px; border-radius: 8px; margin-bottom: 10px; background: #f3f7fb;">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+    <!-- PASO 1: SUBIR ARCHIVO -->
+    <div class="perfil-card__section-title">
+        <i class="fa-solid fa-upload" style="color:#00a3ff;"></i>
+        Paso 1 — Selecciona el archivo
+    </div>
 
-    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
+    <div class="import-card">
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="accion" value="subir_archivo">
 
-            <div style="margin-bottom: 16px;">
-                <label for="archivo_excel"><strong>Selecciona un archivo Excel</strong></label><br><br>
-                <input type="file" name="archivo_excel" id="archivo_excel" accept=".xlsx,.xls">
+            <div class="perfil-card__field" style="margin-bottom: 20px;">
+                <label class="perfil-card__label">Archivo Excel (.xlsx o .xls)</label>
+                <input type="file" name="archivo_excel" id="archivo_excel"
+                       accept=".xlsx,.xls" class="import-file-input">
             </div>
 
-            <button type="submit" class="course-card__button" style="max-width: 220px;">
-                Cargar archivo
-            </button>
+            {% if not hojas and not preview_data and not resumen_creados %}
+            <div class="perfil-card__actions">
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-upload"></i> Cargar archivo
+                </button>
+                <a href="{% url 'core:lista_usuarios' %}" class="perfil-card__cancelar">
+                    Cancelar
+                </a>
+            </div>
+            {% else %}
+            <div>
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-upload"></i> Cargar archivo
+                </button>
+            </div>
+            {% endif %}
         </form>
     </div>
 
+    <!-- PASO 2: SELECCIONAR HOJA -->
     {% if hojas %}
-    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
+    <div class="perfil-card__section-title" style="margin-top: 28px;">
+        <i class="fa-solid fa-table-cells" style="color:#00a3ff;"></i>
+        Paso 2 — Selecciona la hoja
+    </div>
+
+    <div class="import-card">
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="accion" value="analizar_hoja">
             <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
 
-            <div style="margin-bottom: 16px;">
-                <label for="hoja"><strong>Selecciona la hoja</strong></label><br><br>
-                <select name="hoja" id="hoja" class="dashboard__filter" required>
+            <div class="perfil-card__field" style="margin-bottom: 20px;">
+                <label class="perfil-card__label">Hoja a analizar</label>
+                <select name="hoja" id="hoja" class="form-control" required>
                     <option value="">-- Selecciona una hoja --</option>
                     {% for hoja in hojas %}
                         <option value="{{ hoja }}" {% if hoja == hoja_seleccionada %}selected{% endif %}>
@@ -62,17 +77,34 @@
                 </select>
             </div>
 
-            <button type="submit" class="course-card__button" style="max-width: 220px;">
-                Analizar hoja
-            </button>
+            {% if not preview_data and not resumen_creados %}
+            <div class="perfil-card__actions">
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Analizar hoja
+                </button>
+                <a href="{% url 'core:lista_usuarios' %}" class="perfil-card__cancelar">
+                    Cancelar
+                </a>
+            </div>
+            {% else %}
+            <div>
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Analizar hoja
+                </button>
+            </div>
+            {% endif %}
         </form>
     </div>
     {% endif %}
 
+    <!-- PASO 3: VISTA PREVIA Y CONFIRMAR -->
     {% if preview_data %}
-    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
-        <h3 style="margin-bottom: 16px;">Vista previa de docentes detectados</h3>
+    <div class="perfil-card__section-title" style="margin-top: 28px;">
+        <i class="fa-solid fa-eye" style="color:#00a3ff;"></i>
+        Paso 3 — Vista previa ({{ preview_data|length }} docentes detectados)
+    </div>
 
+    <div class="table-wrapper" style="margin-bottom: 24px;">
         <table class="data-table">
             <thead>
                 <tr>
@@ -88,29 +120,48 @@
                     <td>{{ fila.nombre_original }}</td>
                     <td>{{ fila.nombre_limpio }}</td>
                     <td><span class="course-card__code">{{ fila.username_base }}</span></td>
-                    <td>{{ fila.estado }}</td>
+                    <td>
+                        {% if fila.estado == 'Nuevo' %}
+                            <span style="color:#16a34a; font-weight:600;">
+                                <i class="fa-solid fa-circle-plus"></i> Nuevo
+                            </span>
+                        {% else %}
+                            <span style="color:#94a3b8;">
+                                <i class="fa-solid fa-circle-check"></i> Ya existe
+                            </span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-
-        <form method="post" style="margin-top: 24px;">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="guardar_docentes">
-            <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
-            <input type="hidden" name="hoja" value="{{ hoja_seleccionada }}">
-
-            <button type="submit" class="course-card__button" style="max-width: 260px;">
-                Confirmar e importar docentes
-            </button>
-        </form>
     </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="guardar_docentes">
+        <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
+        <input type="hidden" name="hoja" value="{{ hoja_seleccionada }}">
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width: 260px;">
+                <i class="fa-solid fa-floppy-disk"></i> Confirmar e importar
+            </button>
+            <a href="{% url 'core:lista_usuarios' %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
+    </form>
     {% endif %}
 
+    <!-- RESULTADO FINAL: DOCENTES CREADOS -->
     {% if resumen_creados %}
-    <div class="table-wrapper" style="padding: 24px;">
-        <h3 style="margin-bottom: 16px;">Docentes creados</h3>
+    <div class="perfil-card__section-title" style="margin-top: 28px;">
+        <i class="fa-solid fa-circle-check" style="color:#16a34a;"></i>
+        Importación completada — {{ resumen_creados|length }} docentes creados
+    </div>
 
+    <div class="table-wrapper" style="margin-bottom: 24px;">
         <table class="data-table">
             <thead>
                 <tr>
@@ -130,6 +181,14 @@
             </tbody>
         </table>
     </div>
+
+    <div class="perfil-card__actions">
+        <a href="{% url 'core:lista_usuarios' %}" class="course-card__button"
+           style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block;">
+            <i class="fa-solid fa-arrow-left"></i> Volver a docentes
+        </a>
+    </div>
     {% endif %}
+
 </div>
 {% endblock %}

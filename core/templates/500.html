@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error 500 - Se'si Eskani</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #e8eef6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .error-card {
+            background-color: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+            padding: 48px 56px;
+            max-width: 860px;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 48px;
+        }
+
+        .error-card__left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .error-card__code {
+            font-size: 72px;
+            font-weight: 800;
+            color: #00456b;
+            line-height: 1;
+            margin: 0;
+        }
+
+        .error-card__frase {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .error-card__desc {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+            line-height: 1.7;
+        }
+
+        .error-card__right {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .error-card__img {
+            width: 260px;
+            max-width: 100%;
+        }
+
+        .error-footer {
+            margin-top: 28px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            .error-card {
+                flex-direction: column;
+                padding: 36px 28px;
+                text-align: center;
+                align-items: center;
+            }
+            .error-card__left {
+                align-items: center;
+            }
+            .error-card__img {
+                width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-card">
+        <div class="error-card__left">
+            <p class="error-card__code">ERROR 500</p>
+            <p class="error-card__frase">Ups, ingeniero… parece que<br>este proceso se salió de control.</p>
+            <p class="error-card__desc">
+                Algo falló en el servidor. No es tu culpa.<br>
+                Intenta de nuevo en unos momentos o contacta al administrador.
+            </p>
+        </div>
+        <div class="error-card__right">
+            <img src="{% static 'img/Error500.png' %}" alt="Error 500" class="error-card__img">
+        </div>
+    </div>
+
+    <div class="error-footer">
+        <p>Instituto Tecnológico Superior de Huetamo &nbsp;·&nbsp; Ingeniería Industrial &nbsp;·&nbsp; v1.0.0</p>
+    </div>
+
+</body>
+</html>

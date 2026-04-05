@@ -36,7 +36,15 @@ from .utils.importador_cursos import (
     obtener_hojas_excel_cursos,
     analizar_hoja_cursos,
 )
-
+def solo_admin(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('core:login')
+        if request.user.rol != Usuario.ADMINISTRADOR:
+            raise PermissionDenied  # 403
+        return view_func(request, *args, **kwargs)
+    return _wrapped
 
 
 #@login_required
@@ -115,6 +123,7 @@ def lista_materias(request):
 
 
 @login_required
+@solo_admin
 def crear_materia(request):
     if request.method == 'POST':
         form = MateriaForm(request.POST)
@@ -132,6 +141,7 @@ def crear_materia(request):
 
 
 @login_required
+@solo_admin
 def editar_materia(request, pk):
     materia = get_object_or_404(Materia, pk=pk)
 
@@ -151,6 +161,7 @@ def editar_materia(request, pk):
 
 
 @login_required
+@solo_admin
 def eliminar_materia(request, pk):
     materia = get_object_or_404(Materia, pk=pk)
 
@@ -165,10 +176,16 @@ def eliminar_materia(request, pk):
     
 @login_required
 def dashboard(request):
-    periodo_activo = Periodo.objects.filter(es_activo=True).first()
+    periodos = Periodo.objects.all().order_by('-fecha_inicio')
+    
+    # Si mandan un periodo_id por GET lo usamos, si no el activo
+    periodo_id = request.GET.get('periodo_id')
+    if periodo_id:
+        periodo_activo = Periodo.objects.filter(pk=periodo_id).first()
+    else:
+        periodo_activo = Periodo.objects.filter(es_activo=True).first()
 
     cursos = Curso.objects.none()
-
     if periodo_activo:
         cursos = Curso.objects.filter(periodo=periodo_activo).select_related(
             'materia', 'docente', 'periodo'
@@ -180,6 +197,7 @@ def dashboard(request):
     return render(request, 'core/dashboard.html', {
         'cursos': cursos,
         'periodo_activo': periodo_activo,
+        'periodos': periodos,
     })
 
 def solo_admin(view_func):
@@ -333,6 +351,8 @@ def crear_usuario_docente(request):
             password_temporal = Usuario.objects.make_random_password()
 
             # 2) Creamos el usuario como DOCENTE
+          # 2) Creamos el usuario como DOCENTE
+          # 2) Creamos el usuario como DOCENTE
             usuario = Usuario.objects.create_user(
                 username=username,
                 email=email,
@@ -341,14 +361,11 @@ def crear_usuario_docente(request):
                 last_name=last_name,
                 rol=Usuario.DOCENTE,
             )
-
-            # 3) Aviso al admin con las credenciales
-            messages.success(
-                request,
-                f"Docente creado correctamente. "
-                f"Usuario: {usuario.username} | Contraseña temporal: {password_temporal}"
+            Usuario.objects.filter(pk=usuario.pk).update(
+                password_temporal=password_temporal
             )
 
+            messages.success(request, f"Docente '{usuario.username}' creado correctamente.")
             return redirect('core:lista_usuarios')
     else:
         form = CrearDocenteForm()
@@ -403,6 +420,8 @@ def editar_perfil(request):
             nueva_pass = form.cleaned_data.get('password1')
             if nueva_pass:
                 usuario.set_password(nueva_pass)
+                # Guardar la nueva contraseña para que el admin pueda verla
+                usuario.password_temporal = nueva_pass
                 usuario.save()
                 update_session_auth_hash(request, usuario)
             messages.success(request, 'Perfil actualizado correctamente.')
@@ -505,7 +524,10 @@ def crear_periodo(request):
     if request.method == 'POST':
         form = PeriodoForm(request.POST)
         if form.is_valid():
-            periodo = form.save()
+            periodo = form.save(commit=False)
+            if periodo.es_activo:
+                Periodo.objects.filter(es_activo=True).update(es_activo=False)
+            periodo.save()
             messages.success(request, f'Periodo "{periodo.nombre}" creado correctamente.')
             return redirect('core:lista_cursos')
     else:
@@ -516,26 +538,25 @@ def crear_periodo(request):
         'titulo': 'Agregar Periodo',
     })
 
+#@login_required
+#@solo_admin
+#def editar_periodo(request, pk):
+    #periodo = get_object_or_404(Periodo, pk=pk)
 
-@login_required
-@solo_admin
-def editar_periodo(request, pk):
-    periodo = get_object_or_404(Periodo, pk=pk)
+    #if request.method == 'POST':
+        #form = PeriodoForm(request.POST, instance=periodo)
+        #if form.is_valid():
+            #form.save()
+            #messages.success(request, f'Periodo "{periodo.nombre}" actualizado correctamente.')
+            #return redirect('core:lista_cursos')
+    #else:
+        #form = PeriodoForm(instance=periodo)
 
-    if request.method == 'POST':
-        form = PeriodoForm(request.POST, instance=periodo)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Periodo "{periodo.nombre}" actualizado correctamente.')
-            return redirect('core:lista_cursos')
-    else:
-        form = PeriodoForm(instance=periodo)
-
-    return render(request, 'periodos/form_periodo.html', {
-        'form': form,
-        'titulo': 'Editar Periodo',
-        'periodo': periodo,
-    })
+   # return render(request, 'periodos/form_periodo.html', {
+       # 'form': form,
+        #'titulo': 'Editar Periodo',
+        #'periodo': periodo,
+   # })
 
 
 @login_required
@@ -547,7 +568,10 @@ def editar_periodo(request, pk):
     if request.method == 'POST':
         form = PeriodoForm(request.POST, instance=periodo)
         if form.is_valid():
-            form.save()
+            periodo = form.save(commit=False)
+            if periodo.es_activo:
+                Periodo.objects.filter(es_activo=True).exclude(pk=periodo.pk).update(es_activo=False)
+            periodo.save()
             messages.success(request, f'Periodo "{periodo.nombre}" actualizado correctamente.')
 
             if next_action == 'agregar_otro':
@@ -563,8 +587,7 @@ def editar_periodo(request, pk):
         'form': form,
         'titulo': 'Editar Periodo',
         'periodo': periodo,
-        })
-    
+    })
     
 @solo_admin
 def importar_docentes(request):
@@ -699,6 +722,8 @@ def importar_docentes(request):
                     password=password_temporal,
                     rol=Usuario.DOCENTE,
                 )
+                usuario.password_temporal = password_temporal
+                usuario.save(update_fields=['password_temporal'])
 
                 creados += 1
                 resumen_creados.append({
@@ -706,18 +731,6 @@ def importar_docentes(request):
                     'username': usuario.username,
                     'password_temporal': password_temporal,
                 })
-
-            if os.path.exists(ruta_archivo):
-                os.remove(ruta_archivo)
-
-            messages.success(
-                request,
-                f'Importación completada. Docentes creados: {creados}. Docentes omitidos: {omitidos}.'
-            )
-
-            return render(request, 'usuarios/importar_docentes.html', {
-                'resumen_creados': resumen_creados,
-            })
 
     return render(request, 'usuarios/importar_docentes.html')
 

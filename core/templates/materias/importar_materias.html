@@ -3,61 +3,71 @@
 {% block title %}Importar materias - Se'si Eskani{% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <div class="dashboard__header">
-        <div>
-            <h2 class="dashboard__title">Importar materias desde Excel</h2>
-            <p class="dashboard__subtitle">
-                Sube un archivo de Excel para analizar y registrar materias.
-            </p>
+<div class="perfil-card" style="max-width: 860px;">
+
+    <!-- ENCABEZADO -->
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar">
+            <i class="fa-solid fa-file-excel" style="font-size:24px;"></i>
         </div>
-        <a href="{% url 'core:lista_materias' %}"
-           class="course-card__button"
-           style="max-width: 180px; text-align:center; text-decoration:none; display:inline-block;">
-            Volver
-        </a>
+        <div>
+            <h2 class="perfil-card__nombre">Importar materias desde Excel</h2>
+            <span class="perfil-card__rol">Materias</span>
+        </div>
     </div>
 
-    {% if messages %}
-        <div style="margin-bottom: 20px;">
-            {% for message in messages %}
-                <div style="padding: 12px; border-radius: 8px; margin-bottom: 10px; background: #f3f7fb;">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+    <!-- PASO 1: SUBIR ARCHIVO -->
+    <div class="perfil-card__section-title">
+        <i class="fa-solid fa-upload" style="color:#00a3ff;"></i>
+        Paso 1 — Selecciona el archivo
+    </div>
 
-    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
+    <div class="import-card">
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="accion" value="subir_archivo">
 
-            <div style="margin-bottom: 16px;">
-                <label for="archivo_excel"><strong>Selecciona un archivo Excel</strong></label><br><br>
-                <input type="file" name="archivo_excel" id="archivo_excel" accept=".xlsx,.xls">
+            <div class="perfil-card__field" style="margin-bottom: 20px;">
+                <label class="perfil-card__label">Archivo Excel (.xlsx o .xls)</label>
+                <input type="file" name="archivo_excel" id="archivo_excel"
+                       accept=".xlsx,.xls" class="import-file-input">
             </div>
 
-            <button type="submit"
-                    class="course-card__button"
-                    style="max-width: 220px;">
-                Cargar archivo
-            </button>
+            {% if not hojas and not preview_data %}
+            <div class="perfil-card__actions">
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-upload"></i> Cargar archivo
+                </button>
+                <a href="{% url 'core:lista_materias' %}" class="perfil-card__cancelar">
+                    Cancelar
+                </a>
+            </div>
+            {% else %}
+            <div>
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-upload"></i> Cargar archivo
+                </button>
+            </div>
+            {% endif %}
         </form>
     </div>
 
+    <!-- PASO 2: SELECCIONAR HOJA -->
     {% if hojas %}
-    <div class="table-wrapper" style="padding: 24px; margin-bottom: 24px;">
-        <h3 style="margin-bottom: 16px;">Hojas detectadas</h3>
+    <div class="perfil-card__section-title" style="margin-top: 28px;">
+        <i class="fa-solid fa-table-cells" style="color:#00a3ff;"></i>
+        Paso 2 — Selecciona la hoja
+    </div>
 
+    <div class="import-card">
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="accion" value="analizar_hoja">
             <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
 
-            <div style="margin-bottom: 16px;">
-                <label for="hoja"><strong>Selecciona la hoja a analizar</strong></label><br><br>
-                <select name="hoja" id="hoja" class="dashboard__filter" required>
+            <div class="perfil-card__field" style="margin-bottom: 20px;">
+                <label class="perfil-card__label">Hoja a analizar</label>
+                <select name="hoja" id="hoja" class="form-control" required>
                     <option value="">-- Selecciona una hoja --</option>
                     {% for hoja in hojas %}
                         <option value="{{ hoja }}" {% if hoja == hoja_seleccionada %}selected{% endif %}>
@@ -67,19 +77,34 @@
                 </select>
             </div>
 
-            <button type="submit"
-                    class="course-card__button"
-                    style="max-width: 220px;">
-                Analizar hoja
-            </button>
+            {% if not preview_data %}
+            <div class="perfil-card__actions">
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Analizar hoja
+                </button>
+                <a href="{% url 'core:lista_materias' %}" class="perfil-card__cancelar">
+                    Cancelar
+                </a>
+            </div>
+            {% else %}
+            <div>
+                <button type="submit" class="course-card__button" style="max-width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Analizar hoja
+                </button>
+            </div>
+            {% endif %}
         </form>
     </div>
     {% endif %}
 
+    <!-- PASO 3: VISTA PREVIA Y CONFIRMAR -->
     {% if preview_data %}
-    <div class="table-wrapper" style="padding: 24px;">
-        <h3 style="margin-bottom: 16px;">Vista previa</h3>
+    <div class="perfil-card__section-title" style="margin-top: 28px;">
+        <i class="fa-solid fa-eye" style="color:#00a3ff;"></i>
+        Paso 3 — Vista previa ({{ preview_data|length }} materias detectadas)
+    </div>
 
+    <div class="table-wrapper" style="margin-bottom: 24px;">
         <table class="data-table">
             <thead>
                 <tr>
@@ -98,20 +123,24 @@
                 {% endfor %}
             </tbody>
         </table>
-
-        <form method="post" style="margin-top: 24px;">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="guardar_materias">
-            <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
-            <input type="hidden" name="hoja" value="{{ hoja_seleccionada }}">
-
-            <button type="submit"
-                class="course-card__button"
-                style="max-width: 260px;">
-                Confirmar e importar materias
-            </button>
-        </form> 
     </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="guardar_materias">
+        <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
+        <input type="hidden" name="hoja" value="{{ hoja_seleccionada }}">
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width: 260px;">
+                <i class="fa-solid fa-floppy-disk"></i> Confirmar e importar
+            </button>
+            <a href="{% url 'core:lista_materias' %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
+    </form>
     {% endif %}
+
 </div>
 {% endblock %}

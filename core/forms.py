@@ -111,13 +111,6 @@ class PeriodoForm(forms.ModelForm):
     class Meta:
         model = Periodo
         fields = ['codigo', 'nombre', 'fecha_inicio', 'fecha_fin', 'es_activo']
-        labels = {
-            'codigo': 'Codigo',
-            'nombre': 'Nombre',
-            'fecha_inicio': 'Fecha inicio',
-            'fecha_fin': 'Fecha fin',
-            'es_activo': 'Es activo',
-        }
         widgets = {
             'codigo': forms.TextInput(attrs={'class': 'form-control'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
@@ -125,3 +118,14 @@ class PeriodoForm(forms.ModelForm):
             'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'es_activo': forms.CheckboxInput(),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get('fecha_inicio')
+        fecha_fin = cleaned_data.get('fecha_fin')
+
+        if fecha_inicio and fecha_fin:
+            if fecha_inicio >= fecha_fin:
+                raise forms.ValidationError('La fecha de inicio debe ser menor a la fecha de fin.')
+
+        return cleaned_data
