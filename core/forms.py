@@ -144,3 +144,12 @@ class PeriodoForm(forms.ModelForm):
         if not nombre.replace(' ', '').isalnum():
             raise forms.ValidationError('El nombre solo puede contener letras, números y espacios.')
         return nombre
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get('fecha_inicio')
+        fecha_fin = cleaned_data.get('fecha_fin')
+        if fecha_inicio and fecha_fin:
+            if fecha_inicio > fecha_fin:
+                raise forms.ValidationError('La fecha de inicio no puede ser mayor que la fecha de fin.')
+        return cleaned_data

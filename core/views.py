@@ -529,7 +529,7 @@ def crear_periodo(request):
                 Periodo.objects.filter(es_activo=True).update(es_activo=False)
             periodo.save()
             messages.success(request, f'Periodo "{periodo.nombre}" creado correctamente.')
-            return redirect('core:lista_cursos')
+            return redirect('core:lista_periodos')
     else:
         form = PeriodoForm()
 
@@ -601,7 +601,7 @@ def editar_periodo(request, pk):
             elif next_action == 'continuar_editando':
                 return redirect('core:editar_periodo', pk=periodo.pk)
             else:
-                return redirect('core:lista_cursos')
+                return redirect('core:lista_periodos')
     else:
         form = PeriodoForm(instance=periodo)
 
