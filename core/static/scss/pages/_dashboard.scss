@@ -121,10 +121,14 @@
 
 .course-card__code {
   font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 999px;
+  padding: 3px 8px;
+  border-radius: 6px;
   background-color: #e0f2fe;
   color: #0369a1;
+  font-family: monospace;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .course-card__body {

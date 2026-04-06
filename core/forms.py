@@ -22,14 +22,21 @@ class MateriaForm(forms.ModelForm):
         widgets = {
             'clave': forms.TextInput(attrs={'class': 'form-control'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'semestre': forms.NumberInput(attrs={'class': 'form-control'}),
+            'semestre': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1,
+                'max': 8,
+            }),
             'es_especialidad': forms.CheckboxInput(attrs={'class': 'form-control'}),
-            #'nivel': forms.NumberInput(attrs={'class': 'form-control'}),
-            #'grupo': forms.TextInput(attrs={'class': 'form-control'}),
-            #'periodo': forms.TextInput(attrs={'class': 'form-control'}),
-            #'atributo_egreso': forms.Select(attrs={'class': 'form-control'}),
-            #'docente': forms.Select(attrs={'class': 'form-control'}),
         }
+
+    def clean_semestre(self):
+        semestre = self.cleaned_data.get('semestre')
+        if semestre is None:
+            raise forms.ValidationError('El semestre es obligatorio.')
+        if semestre < 1 or semestre > 8:
+            raise forms.ValidationError('El semestre debe ser un valor entre 1 y 8.')
+        return semestre
 
 class CrearDocenteForm(forms.ModelForm):
     class Meta:
