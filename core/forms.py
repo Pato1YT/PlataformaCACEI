@@ -128,8 +128,8 @@ class PeriodoForm(forms.ModelForm):
         widgets = {
             'codigo': forms.TextInput(attrs={'class': 'form-control'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
+            'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
             'es_activo': forms.CheckboxInput(),
         }
 
@@ -149,7 +149,18 @@ class PeriodoForm(forms.ModelForm):
         cleaned_data = super().clean()
         fecha_inicio = cleaned_data.get('fecha_inicio')
         fecha_fin = cleaned_data.get('fecha_fin')
+
         if fecha_inicio and fecha_fin:
             if fecha_inicio > fecha_fin:
                 raise forms.ValidationError('La fecha de inicio no puede ser mayor que la fecha de fin.')
+
+        es_activo = cleaned_data.get('es_activo')
+        if es_activo:
+            from .models import Periodo
+            qs = Periodo.objects.filter(es_activo=True)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError('Ya existe un periodo activo. Desactívalo antes de activar otro.')
+
         return cleaned_data
