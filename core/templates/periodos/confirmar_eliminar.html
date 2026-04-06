@@ -1,0 +1,38 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Eliminar periodo - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="perfil-card" style="max-width: 500px;">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar" style="background-color: #dc2626;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:24px;"></i>
+        </div>
+        <div>
+            <h2 class="perfil-card__nombre">Eliminar periodo</h2>
+            <span class="perfil-card__rol" style="background-color:#fee2e2; color:#dc2626;">
+                Acción irreversible
+            </span>
+        </div>
+    </div>
+
+    <p style="font-size: 15px; color: #475569; margin-bottom: 28px; line-height: 1.6;">
+        ¿Seguro que deseas eliminar el periodo
+        <strong style="color: #1e293b;">{{ periodo.codigo }} - {{ periodo.nombre }}</strong>?
+        Esta acción no se puede deshacer.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width: 180px; background-color: #dc2626;">
+                <i class="fa-solid fa-trash"></i> Sí, eliminar
+            </button>
+            <a href="{% url 'core:lista_periodos' %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

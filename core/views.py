@@ -529,13 +529,35 @@ def crear_periodo(request):
                 Periodo.objects.filter(es_activo=True).update(es_activo=False)
             periodo.save()
             messages.success(request, f'Periodo "{periodo.nombre}" creado correctamente.')
-            return redirect('core:lista_cursos')
+            return redirect('core:lista_periodos')
     else:
         form = PeriodoForm()
 
     return render(request, 'periodos/form_periodo.html', {
         'form': form,
         'titulo': 'Agregar Periodo',
+    })
+
+@login_required
+@solo_admin
+def lista_periodos(request):
+    periodos = Periodo.objects.all().order_by('-fecha_inicio')
+    return render(request, 'periodos/lista_periodos.html', {
+        'periodos': periodos,
+    })
+
+@login_required
+@solo_admin
+def eliminar_periodo(request, pk):
+    periodo = get_object_or_404(Periodo, pk=pk)
+
+    if request.method == 'POST':
+        periodo.delete()
+        messages.success(request, f'Periodo "{periodo.nombre}" eliminado correctamente.')
+        return redirect('core:lista_periodos')
+
+    return render(request, 'periodos/confirmar_eliminar.html', {
+        'periodo': periodo,
     })
 
 #@login_required
@@ -579,7 +601,7 @@ def editar_periodo(request, pk):
             elif next_action == 'continuar_editando':
                 return redirect('core:editar_periodo', pk=periodo.pk)
             else:
-                return redirect('core:lista_cursos')
+                return redirect('core:lista_periodos')
     else:
         form = PeriodoForm(instance=periodo)
 
