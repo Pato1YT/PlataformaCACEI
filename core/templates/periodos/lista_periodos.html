@@ -1,0 +1,69 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Periodos - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Periodos</h2>
+            <p class="dashboard__subtitle">Gestión de periodos académicos.</p>
+        </div>
+        <a href="{% url 'core:crear_periodo' %}"
+           class="course-card__button"
+           style="max-width:180px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
+            <i class="fa-solid fa-square-plus"></i> Nuevo periodo
+        </a>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                    <th>Activo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for periodo in periodos %}
+                <tr>
+                    <td><span class="course-card__code">{{ periodo.codigo }}</span></td>
+                    <td>{{ periodo.nombre }}</td>
+                    <td>{{ periodo.fecha_inicio }}</td>
+                    <td>{{ periodo.fecha_fin }}</td>
+                    <td>
+                        {% if periodo.es_activo %}
+                            <span style="color:#16a34a; font-weight:700;">
+                                <i class="fa-solid fa-circle-check"></i> Sí
+                            </span>
+                        {% else %}
+                            <span style="color:#94a3b8;">
+                                <i class="fa-solid fa-circle-xmark"></i> No
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="data-table__actions">
+                        <a href="{% url 'core:editar_periodo' periodo.pk %}"
+                           class="data-table__btn data-table__btn--edit">Editar</a>
+                        <a href="{% url 'core:eliminar_periodo' periodo.pk %}"
+                           class="data-table__btn data-table__btn--delete">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="data-table__empty">No hay periodos registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

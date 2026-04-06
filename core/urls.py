@@ -60,6 +60,9 @@ urlpatterns = [
     # Periodos
     path('periodos/nuevo/', views.crear_periodo, name='crear_periodo'),
     path('periodos/<int:pk>/editar/', views.editar_periodo, name='editar_periodo'),
+
+    path('periodos/', views.lista_periodos, name='lista_periodos'),
+    path('periodos/<int:pk>/eliminar/', views.eliminar_periodo, name='eliminar_periodo'),
     
     
 ]

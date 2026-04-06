@@ -118,6 +118,13 @@ class PeriodoForm(forms.ModelForm):
     class Meta:
         model = Periodo
         fields = ['codigo', 'nombre', 'fecha_inicio', 'fecha_fin', 'es_activo']
+        labels = {
+            'codigo': 'Codigo',
+            'nombre': 'Nombre',
+            'fecha_inicio': 'Fecha inicio',
+            'fecha_fin': 'Fecha fin',
+            'es_activo': 'Es activo',
+        }
         widgets = {
             'codigo': forms.TextInput(attrs={'class': 'form-control'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
@@ -126,13 +133,14 @@ class PeriodoForm(forms.ModelForm):
             'es_activo': forms.CheckboxInput(),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        fecha_inicio = cleaned_data.get('fecha_inicio')
-        fecha_fin = cleaned_data.get('fecha_fin')
+    def clean_codigo(self):
+        codigo = self.cleaned_data.get('codigo', '').strip()
+        if not codigo.isalnum():
+            raise forms.ValidationError('El código solo puede contener letras y números, sin espacios ni caracteres especiales.')
+        return codigo
 
-        if fecha_inicio and fecha_fin:
-            if fecha_inicio >= fecha_fin:
-                raise forms.ValidationError('La fecha de inicio debe ser menor a la fecha de fin.')
-
-        return cleaned_data
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre', '').strip()
+        if not nombre.replace(' ', '').isalnum():
+            raise forms.ValidationError('El nombre solo puede contener letras, números y espacios.')
+        return nombre

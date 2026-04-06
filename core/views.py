@@ -538,6 +538,28 @@ def crear_periodo(request):
         'titulo': 'Agregar Periodo',
     })
 
+@login_required
+@solo_admin
+def lista_periodos(request):
+    periodos = Periodo.objects.all().order_by('-fecha_inicio')
+    return render(request, 'periodos/lista_periodos.html', {
+        'periodos': periodos,
+    })
+
+@login_required
+@solo_admin
+def eliminar_periodo(request, pk):
+    periodo = get_object_or_404(Periodo, pk=pk)
+
+    if request.method == 'POST':
+        periodo.delete()
+        messages.success(request, f'Periodo "{periodo.nombre}" eliminado correctamente.')
+        return redirect('core:lista_periodos')
+
+    return render(request, 'periodos/confirmar_eliminar.html', {
+        'periodo': periodo,
+    })
+
 #@login_required
 #@solo_admin
 #def editar_periodo(request, pk):
