@@ -163,10 +163,19 @@ class ReporteNivelLogro(models.Model):
 
 # PARA LOS PERIODOS
 class Periodo(models.Model):
+    PAR = "PAR"
+    IMPAR = "IMPAR"
+
+    TIPOS_OFERTA = [
+        (PAR, "Semestres pares (2, 4, 6, 8)"),
+        (IMPAR, "Semestres impares (1, 3, 5, 7)"),
+    ]
+    
     codigo = models.CharField(max_length=20, unique=True)
     nombre = models.CharField(max_length=255)
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
+    tipo_oferta = models.CharField(max_length=10, choices=TIPOS_OFERTA, default=PAR)
     es_activo = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -286,3 +295,27 @@ class ResultadoIndicador(models.Model):
 
     def __str__(self):
         return f"{self.curso} - {self.indicador.codigo} ({self.get_nivel_display()})"
+    
+    
+# PARA LAS MATERIAS CORRESPONDIENTE A CADA PERIODO/SEMESTRE
+class PeriodoMateria(models.Model):
+    periodo = models.ForeignKey(
+        Periodo,
+        on_delete=models.CASCADE,
+        related_name='materias_periodo'
+    )
+    materia = models.ForeignKey(
+        Materia,
+        on_delete=models.PROTECT,
+        related_name='periodos_materia'
+    )
+    semestre_en_periodo = models.PositiveIntegerField()
+    es_especialidad = models.BooleanField(default=False)
+    es_ofertable = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('periodo', 'materia')
+        ordering = ['semestre_en_periodo', 'materia__clave']

@@ -117,12 +117,13 @@ class CursoForm(forms.ModelForm):
 class PeriodoForm(forms.ModelForm):
     class Meta:
         model = Periodo
-        fields = ['codigo', 'nombre', 'fecha_inicio', 'fecha_fin', 'es_activo']
+        fields = ['codigo', 'nombre', 'fecha_inicio', 'fecha_fin', 'tipo_oferta', 'es_activo']
         labels = {
             'codigo': 'Codigo',
             'nombre': 'Nombre',
             'fecha_inicio': 'Fecha inicio',
             'fecha_fin': 'Fecha fin',
+            'tipo_oferta' : 'Tipo oferta',
             'es_activo': 'Es activo',
         }
         widgets = {
@@ -130,6 +131,7 @@ class PeriodoForm(forms.ModelForm):
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
             'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
+            'tipo_oferta': forms.Select(attrs={'class': 'form-control'}),
             'es_activo': forms.CheckboxInput(),
         }
 

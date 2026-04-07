@@ -262,3 +262,8 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         })
 
     return preview_data
+
+def obtener_semestres_validos(periodo):
+    if periodo.tipo_oferta == 'PAR':
+        return [2, 4, 6, 8]
+    return [1, 3, 5, 7]
