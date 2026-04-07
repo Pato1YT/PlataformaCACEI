@@ -1,7 +1,8 @@
 import re
 import pandas as pd
 from unidecode import unidecode
-
+import calendar
+from datetime import date
 
 class ImportadorCursosError(Exception):
     pass
@@ -28,6 +29,62 @@ def obtener_semestres_validos(periodo):
     # por defecto, impares
     return [1, 3, 5, 7]
 
+MESES_PERIODO = {
+    'enero': (1, 'ENE'), 'febrero': (2, 'FEB'), 'marzo': (3, 'MAR'),
+    'abril': (4, 'ABR'), 'mayo': (5, 'MAY'), 'junio': (6, 'JUN'),
+    'julio': (7, 'JUL'), 'agosto': (8, 'AGO'), 'septiembre': (9, 'SEP'),
+    'octubre': (10, 'OCT'), 'noviembre': (11, 'NOV'), 'diciembre': (12, 'DIC'),
+}
+
+def parsear_periodo_desde_excel(archivo_excel, nombre_hoja):
+    """
+    Lee la columna 'Periodo' del Excel y extrae las fechas para generar
+    automáticamente el código y nombre del periodo.
+    Ejemplo: 'Enero 2026 - Junio 2026' -> codigo='ENE26JUN26'
+    Retorna un dict con codigo, nombre, fecha_inicio, fecha_fin o None si no se pudo.
+    """
+    try:
+        df = pd.read_excel(archivo_excel, sheet_name=nombre_hoja)
+    except Exception:
+        return None
+
+    if 'Periodo' not in df.columns:
+        return None
+
+    # Buscar el primer valor de Periodo que parezca un rango de fechas
+    for valor in df['Periodo'].dropna():
+        texto = str(valor).strip().lower()
+        patron = r'(\w+)\s+(\d{4})\s*[-–]\s*(\w+)\s+(\d{4})'
+        m = re.search(patron, texto)
+        if not m:
+            continue
+
+        mes_inicio_str, anio_inicio, mes_fin_str, anio_fin = m.groups()
+
+        if mes_inicio_str not in MESES_PERIODO or mes_fin_str not in MESES_PERIODO:
+            continue
+
+        num_inicio, abr_inicio = MESES_PERIODO[mes_inicio_str]
+        num_fin, abr_fin = MESES_PERIODO[mes_fin_str]
+
+        year_inicio = int(anio_inicio)
+        year_fin = int(anio_fin)
+
+        codigo = f'{abr_inicio}{str(year_inicio)[2:]}{abr_fin}{str(year_fin)[2:]}'
+        nombre = f'{abr_inicio} {year_inicio} - {abr_fin} {year_fin}'
+
+        fecha_inicio = date(year_inicio, num_inicio, 1)
+        ultimo_dia = calendar.monthrange(year_fin, num_fin)[1]
+        fecha_fin = date(year_fin, num_fin, ultimo_dia)
+
+        return {
+            'codigo': codigo,
+            'nombre': nombre,
+            'fecha_inicio': fecha_inicio,
+            'fecha_fin': fecha_fin,
+        }
+
+    return None
 
 def convertir_semestre_a_numero(valor):
     if pd.isna(valor):

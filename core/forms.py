@@ -157,10 +157,18 @@ class PeriodoForm(forms.ModelForm):
         es_activo = cleaned_data.get('es_activo')
         if es_activo:
             from .models import Periodo
+
+            # Validar que solo haya un periodo activo
             qs = Periodo.objects.filter(es_activo=True)
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
                 raise forms.ValidationError('Ya existe un periodo activo. Desactívalo antes de activar otro.')
+
+            # Validar que sea el periodo más reciente
+            periodo_mas_reciente = Periodo.objects.order_by('-fecha_inicio').first()
+            if periodo_mas_reciente and self.instance and self.instance.pk:
+                if periodo_mas_reciente.pk != self.instance.pk:
+                    raise forms.ValidationError('Solo se puede activar el periodo más reciente.')
 
         return cleaned_data

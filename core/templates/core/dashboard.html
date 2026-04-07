@@ -54,7 +54,7 @@
                  </div>
             {% endif %}
             {% if request.user.rol == 'ADMINISTRADOR' and periodo_activo %}
-                <a href="{% url 'core:crear_curso' %}"
+                <a href="{% url 'core:crear_curso' %}?periodo_id={{ periodo_activo.pk }}"
                    class="course-card__button"
                    style="width: 150px; text-align:center; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:700;">
                     <i class="fa-solid fa-square-plus"></i> Nuevo curso

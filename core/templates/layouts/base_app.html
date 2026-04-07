@@ -86,10 +86,12 @@ document.addEventListener('DOMContentLoaded', function () {
             </li>
         </ul>
 
-        <p class="side-menu__section-title">ADMINISTRACIÓN</p>
+        
         <ul>
-            <li><a href="{% url 'core:lista_materias' %}"><i class="fa-solid fa-book"></i> Materias</a></li>
+            
             {% if user.rol == 'ADMINISTRADOR' %}
+            <p class="side-menu__section-title">ADMINISTRACIÓN</p>
+            <li><a href="{% url 'core:lista_materias' %}"><i class="fa-solid fa-book"></i> Materias</a></li>
             <li><a href="{% url 'core:lista_cursos' %}"><i class="fa-solid fa-calendar-days"></i> Cursos</a></li>
             <li><a href="{% url 'core:lista_usuarios' %}"><i class="fa-solid fa-chalkboard-user"></i> Docentes</a></li>
             <li><a href="{% url 'core:lista_atributos' %}"><i class="fa-solid fa-list-check"></i> Atributos de Egreso</a></li>

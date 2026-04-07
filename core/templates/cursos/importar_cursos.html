@@ -15,12 +15,30 @@
             <span class="perfil-card__rol">
                 {% if periodo_activo %}
                     Periodo: {{ periodo_activo.nombre }}
+                {% elif periodo_detectado %}
+                    Periodo detectado: {{ periodo_detectado.codigo }}
                 {% else %}
                     Cursos
                 {% endif %}
             </span>
         </div>
     </div>
+
+    <!-- AVISO DE PERIODO DETECTADO -->
+    {% if periodo_detectado and not periodo_activo or periodo_detectado %}
+    <div style="background:#fef3c7; border-left:4px solid #f59e0b; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:14px; color:#92400e;">
+        <i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px;"></i>
+        <strong>Periodo detectado desde el Excel:</strong>
+        {{ periodo_detectado.codigo }} — {{ periodo_detectado.nombre }}
+        ({{ periodo_detectado.fecha_inicio }} al {{ periodo_detectado.fecha_fin }}).
+        {% if not periodo_activo %}
+            Se creará automáticamente al confirmar la importación.
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- PASO 1: SUBIR ARCHIVO -->
+    <div class="perfil-card__section-title">
 
     <!-- PASO 1: SUBIR ARCHIVO -->
     <div class="perfil-card__section-title">

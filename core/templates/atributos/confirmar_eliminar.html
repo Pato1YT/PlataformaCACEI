@@ -1,10 +1,7 @@
 {% extends 'layouts/base_app.html' %}
-
 {% block title %}Eliminar atributo - Se'si Eskani{% endblock %}
-
 {% block content %}
 <div class="perfil-card" style="max-width: 500px;">
-
     <div class="perfil-card__header">
         <div class="perfil-card__avatar" style="background-color: #dc2626;">
             <i class="fa-solid fa-triangle-exclamation" style="font-size:24px;"></i>
@@ -17,9 +14,9 @@
         </div>
     </div>
 
-    <p style="font-size: 15px; color: #475569; margin-bottom: 28px; line-height: 1.6;">
+    <p class="confirmar-texto">
         ¿Seguro que deseas eliminar el atributo
-        <strong style="color: #1e293b;">{{ atributo.codigo }} - {{ atributo.nombre }}</strong>?
+        <strong class="confirmar-nombre">{{ atributo.codigo }} - {{ atributo.nombre }}</strong>?
         Esta acción no se puede deshacer.
     </p>
 
@@ -29,9 +26,7 @@
             <button type="submit" class="course-card__button" style="max-width: 180px; background-color: #dc2626;">
                 <i class="fa-solid fa-trash"></i> Sí, eliminar
             </button>
-            <a href="{% url 'core:lista_atributos' %}" class="perfil-card__cancelar">
-                Cancelar
-            </a>
+            <a href="{% url 'core:lista_atributos' %}" class="perfil-card__cancelar">Cancelar</a>
         </div>
     </form>
 </div>

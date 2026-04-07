@@ -35,7 +35,9 @@ from .utils.importador_cursos import (
     ImportadorCursosError,
     obtener_hojas_excel_cursos,
     analizar_hoja_cursos,
+    parsear_periodo_desde_excel,
 )
+
 def solo_admin(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
@@ -458,11 +460,16 @@ def lista_cursos(request):
 @login_required
 @solo_admin
 def crear_curso(request):
-    periodo_activo = Periodo.objects.filter(es_activo=True).first()
+    # Usar el periodo seleccionado en el dashboard si viene por GET, si no el activo
+    periodo_id = request.GET.get('periodo_id') or request.POST.get('periodo_id')
+    if periodo_id:
+        periodo_activo = Periodo.objects.filter(pk=periodo_id).first()
+    else:
+        periodo_activo = Periodo.objects.filter(es_activo=True).first()
 
     if not periodo_activo:
-        messages.error(request, 'No hay un periodo activo. Debes activar un periodo antes de crear cursos.')
-        return redirect('core:lista_cursos')
+        messages.error(request, 'No hay ningún periodo disponible para crear cursos.')
+        return redirect('core:lista_periodos')
 
     if request.method == 'POST':
         form = CursoForm(request.POST)
@@ -471,7 +478,7 @@ def crear_curso(request):
             curso.periodo = periodo_activo
             curso.save()
             messages.success(request, 'Curso creado correctamente.')
-            return redirect('core:lista_cursos')
+            return redirect('core:lista_periodos')
     else:
         form = CursoForm(initial={'grupo': 'A'})
 
@@ -480,7 +487,6 @@ def crear_curso(request):
         'titulo': 'Crear curso',
         'periodo_activo': periodo_activo,
     })
-
 
 @login_required
 @solo_admin
@@ -762,13 +768,9 @@ def importar_cursos(request):
     archivo_temporal = None
     hoja_seleccionada = None
     preview_data = []
+    periodo_detectado = None
 
     periodo = Periodo.objects.filter(es_activo=True).first()
-
-    if not periodo:
-        messages.error(request, "No hay un periodo activo.")
-        return redirect('core:lista_cursos')
-
     if request.method == 'POST':
         accion = request.POST.get('accion')
 
@@ -796,6 +798,9 @@ def importar_cursos(request):
             archivo_temporal = nombre_archivo
             ruta_archivo = fs.path(nombre_archivo)
 
+            
+
+
             try:
                 hojas = obtener_hojas_excel_cursos(ruta_archivo)
                 messages.success(request, 'Archivo cargado correctamente. Ahora selecciona una hoja.')
@@ -807,7 +812,7 @@ def importar_cursos(request):
                 'hojas': hojas,
                 'archivo_temporal': archivo_temporal,
                 'periodo_activo': periodo,
-            })
+            }) 
 
         # PASO 2: analizar hoja
         elif accion == 'analizar_hoja':
@@ -820,17 +825,38 @@ def importar_cursos(request):
 
             ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
 
+            # Intentar detectar periodo desde el Excel
+            periodo_detectado = parsear_periodo_desde_excel(ruta_archivo, hoja_seleccionada)
+
+            # Si no hay periodo activo pero sí se detectó uno, usarlo para el análisis
+            periodo_para_analisis = periodo
+            if not periodo_para_analisis and periodo_detectado:
+                # Crear un objeto Periodo temporal (sin guardar) para el análisis
+                periodo_para_analisis = Periodo(
+                    codigo=periodo_detectado['codigo'],
+                    nombre=periodo_detectado['nombre'],
+                    fecha_inicio=periodo_detectado['fecha_inicio'],
+                    fecha_fin=periodo_detectado['fecha_fin'],
+                    es_activo=False,
+                )
+
+            if not periodo_para_analisis:
+                messages.error(request, 'No se pudo detectar el periodo desde el Excel y no hay periodo activo.')
+                return render(request, 'cursos/importar_cursos.html', {
+                    'hojas': hojas,
+                    'archivo_temporal': archivo_temporal,
+                })
+
             try:
                 hojas = obtener_hojas_excel_cursos(ruta_archivo)
                 preview_data = analizar_hoja_cursos(
                     ruta_archivo,
                     hoja_seleccionada,
-                    periodo,
+                    periodo_para_analisis,
                     Materia.objects.all(),
                     Usuario.objects.filter(rol=Usuario.DOCENTE),
                     Curso.objects.all(),
                 )
-
                 resumen = {
                     'total': len(preview_data),
                     'listo_para_crear': sum(1 for fila in preview_data if fila['estado'] == 'Listo para crear'),
@@ -863,9 +889,11 @@ def importar_cursos(request):
                 'archivo_temporal': archivo_temporal,
                 'hoja_seleccionada': hoja_seleccionada,
                 'preview_data': preview_data_filtrada,
-                'periodo_activo': periodo,
+                'periodo_activo': periodo_para_analisis,
+                'periodo_detectado': periodo_detectado,
                 'resumen': resumen,
             })
+        
         # PASO 3: guardar cursos
         elif accion == 'guardar_cursos':
             hoja_seleccionada = request.POST.get('hoja')
@@ -879,6 +907,28 @@ def importar_cursos(request):
 
             if not os.path.exists(ruta_archivo):
                 messages.error(request, 'El archivo temporal ya no existe. Vuelve a cargar el Excel.')
+                return redirect('core:importar_cursos')
+
+            # Crear periodo automáticamente si se detectó y no existe aún
+            periodo_detectado = parsear_periodo_desde_excel(ruta_archivo, hoja_seleccionada)
+            if not periodo and periodo_detectado:
+                codigo = periodo_detectado['codigo']
+                periodo_existente = Periodo.objects.filter(codigo=codigo).first()
+                if periodo_existente:
+                    periodo = periodo_existente
+                else:
+                    # Es el periodo más reciente, desactivar cualquier activo
+                    Periodo.objects.filter(es_activo=True).update(es_activo=False)
+                    periodo = Periodo.objects.create(
+                        codigo=codigo,
+                        nombre=periodo_detectado['nombre'],
+                        fecha_inicio=periodo_detectado['fecha_inicio'],
+                        fecha_fin=periodo_detectado['fecha_fin'],
+                        es_activo=True,
+                    )
+                    messages.success(request, f'Periodo "{periodo.nombre}" creado automáticamente.')
+            elif not periodo:
+                messages.error(request, 'No se pudo detectar ni encontrar un periodo para importar los cursos.')
                 return redirect('core:importar_cursos')
 
             try:
