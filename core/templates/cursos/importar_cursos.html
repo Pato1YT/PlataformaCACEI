@@ -3,7 +3,7 @@
 {% block title %}Importar carga académica - Se'si Eskani{% endblock %}
 
 {% block content %}
-<div class="perfil-card" style="max-width: 960px;">
+<div class="perfil-card" style="max-width: 860px;">
 
     <!-- ENCABEZADO -->
     <div class="perfil-card__header">
@@ -25,7 +25,7 @@
     </div>
 
     <!-- AVISO DE PERIODO DETECTADO -->
-    {% if periodo_detectado and not periodo_activo or periodo_detectado %}
+    {% if periodo_detectado %}
     <div style="background:#fef3c7; border-left:4px solid #f59e0b; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:14px; color:#92400e;">
         <i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px;"></i>
         <strong>Periodo detectado desde el Excel:</strong>
@@ -36,9 +36,6 @@
         {% endif %}
     </div>
     {% endif %}
-
-    <!-- PASO 1: SUBIR ARCHIVO -->
-    <div class="perfil-card__section-title">
 
     <!-- PASO 1: SUBIR ARCHIVO -->
     <div class="perfil-card__section-title">
@@ -164,7 +161,7 @@
     {% if preview_data %}
     <div class="perfil-card__section-title" style="margin-top: 28px;">
         <i class="fa-solid fa-eye" style="color:#00a3ff;"></i>
-        Paso 3 — Vista previa
+        Paso 3 — Vista previa ({{ preview_data|length }} cursos detectados)
     </div>
 
     <div class="table-wrapper" style="margin-bottom: 24px;">

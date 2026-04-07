@@ -141,8 +141,8 @@ class PeriodoForm(forms.ModelForm):
 
     def clean_nombre(self):
         nombre = self.cleaned_data.get('nombre', '').strip()
-        if not nombre.replace(' ', '').isalnum():
-            raise forms.ValidationError('El nombre solo puede contener letras, números y espacios.')
+        if not nombre.replace(' ', '').replace('-', '').isalnum():
+            raise forms.ValidationError('El nombre solo puede contener letras, números, espacios y guiones.')
         return nombre
     
     def clean(self):
