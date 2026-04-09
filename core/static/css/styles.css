@@ -1754,5 +1754,13 @@ body.dark-mode .perfil-card .perfil-card__cancelar {
 body.dark-mode .perfil-card .perfil-card__cancelar:hover {
   background-color: #4f1a1a;
 }
+body.dark-mode .periodo-detectado-aviso {
+  background: #2d2208 !important;
+  border-left-color: #d97706 !important;
+  color: #fcd34d !important;
+}
+body.dark-mode .periodo-detectado-aviso strong {
+  color: #fde68a !important;
+}
 
 /*# sourceMappingURL=styles.css.map */

@@ -235,4 +235,15 @@ body.dark-mode {
       &:hover { background-color: #4f1a1a; }
     }
   }
+
+  // Aviso periodo detectado en importar cursos
+  .periodo-detectado-aviso {
+    background: #2d2208 !important;
+    border-left-color: #d97706 !important;
+    color: #fcd34d !important;
+
+    strong {
+      color: #fde68a !important;
+    }
+  }
 }

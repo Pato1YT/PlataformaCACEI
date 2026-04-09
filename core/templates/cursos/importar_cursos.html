@@ -26,7 +26,7 @@
 
     <!-- AVISO DE PERIODO DETECTADO -->
     {% if periodo_detectado %}
-    <div style="background:#fef3c7; border-left:4px solid #f59e0b; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:14px; color:#92400e;">
+   <div class="periodo-detectado-aviso" style="background:#fef3c7; border-left:4px solid #f59e0b; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:14px; color:#92400e;">
         <i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px;"></i>
         <strong>Periodo detectado desde el Excel:</strong>
         {{ periodo_detectado.codigo }} — {{ periodo_detectado.nombre }}
