@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 # Create your models here.
 
 # =========================
@@ -51,42 +52,221 @@ class AtributoEgreso(models.Model):
 
     def __str__(self):
         return f"{self.codigo} - {self.nombre}"
+    
+    
+# PARA LOS PERIODOS
+class Periodo(models.Model):
+    PAR = "PAR"
+    IMPAR = "IMPAR"
 
+    TIPOS_OFERTA = [
+        (PAR, "Semestres pares (2, 4, 6, 8)"),
+        (IMPAR, "Semestres impares (1, 3, 5, 7)"),
+    ]
+    
+    codigo = models.CharField(max_length=20, unique=True)
+    nombre = models.CharField(max_length=255)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    tipo_oferta = models.CharField(max_length=10, choices=TIPOS_OFERTA, default=PAR)
+    es_activo = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Periodo"
+        verbose_name_plural = "Periodos"
+        ordering = ['-fecha_inicio']
 
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre}"
+    
+    def clean(self):
+        if self.fecha_inicio and self.fecha_fin and self.fecha_inicio > self.fecha_fin:
+            raise ValidationError("La fecha de inicio no puede ser mayor que la fecha de fin.")
+
+        if self.es_activo:
+            existe_otro_activo = Periodo.objects.filter(es_activo=True).exclude(pk=self.pk).exists()
+            if existe_otro_activo:
+                raise ValidationError("Solo puede existir un periodo activo a la vez.")
+    
+    
 # =========================
 # MATERIAS (RETÍCULA ACADÉMICA)
 # =========================
 
 class Materia(models.Model):
-    clave = models.CharField(max_length=20, unique=True)
-    nombre = models.CharField(max_length=255)
-    
-    semestre = models.PositiveIntegerField()
-    es_especialidad = models.BooleanField(default=False)
+    periodo = models.ForeignKey(
+        Periodo,
+        on_delete=models.CASCADE,
+        related_name='materias'
+    )
     
     atributos_egreso = models.ManyToManyField(
         AtributoEgreso,
-        through="MateriaAtributoEgreso",
+        through='MateriaAtributoEgreso',
         related_name='materias',
         blank=True,
     )
+    
+    clave = models.CharField(max_length=20)
+    nombre = models.CharField(max_length=255)
+    semestre = models.PositiveIntegerField()
+    es_especialidad = models.BooleanField(default=False)
 
-    #docente = models.ForeignKey(
-        #Usuario,
-        #on_delete=models.PROTECT,
-        #related_name="materias",
-        #limit_choices_to={'rol': Usuario.DOCENTE}
-    #)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Materia"
-        verbose_name_plural = "Materias"
-        ordering = ["semestre", "clave"]
+        unique_together = ('periodo', 'clave')
+        ordering = ['periodo', 'semestre', 'clave']
+        
+    def __str__(self):
+        return f"{self.clave} - {self.nombre} ({self.periodo.codigo})"
+    
+    def clean(self):
+        if not self.periodo_id or not self.semestre:
+            return
+
+        if self.periodo.tipo_oferta == Periodo.PAR and self.semestre % 2 != 0:
+            raise ValidationError("En un periodo de oferta PAR solo se permiten materias de semestres pares.")
+
+        if self.periodo.tipo_oferta == Periodo.IMPAR and self.semestre % 2 == 0:
+            raise ValidationError("En un periodo de oferta IMPAR solo se permiten materias de semestres impares.")
+    
+# PARA EL CURSO
+class Curso(models.Model):
+    materia = models.ForeignKey(
+        Materia,
+        on_delete=models.PROTECT,
+        related_name='cursos',
+    )
+    
+    docente = models.ForeignKey(
+        Usuario,
+        on_delete=models.PROTECT,
+        related_name='cursos',
+        limit_choices_to={'rol': Usuario.DOCENTE},
+    )
+
+    grupo = models.CharField(max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Curso"
+        verbose_name_plural = "Cursos"
+        unique_together = ('materia', 'grupo')
+        ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.clave} - {self.nombre}"
+        return f"{self.materia.clave} - {self.grupo} ({self.materia.periodo.codigo})"
     
+    def clean(self):
+        if self.docente and self.docente.rol != Usuario.DOCENTE:
+            raise ValidationError("El usuario asignado al curso debe tener rol DOCENTE.")
     
+# PARA LOS CRITERIOS E INDICADORES
+class CriterioDesempeno(models.Model):
+    atributo_egreso = models.ForeignKey(
+        AtributoEgreso,
+        on_delete=models.PROTECT,
+        related_name='criterios',
+    )
+    
+    codigo = models.CharField(max_length=20)
+    descripcion = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Criterio de desempeño"
+        verbose_name_plural = "Criterios de desempeño"
+        unique_together = ('atributo_egreso', 'codigo')
+
+    def __str__(self):
+        return f"{self.codigo} - {self.descripcion[:40]}..."
+
+
+class Indicador(models.Model):
+    criterio = models.ForeignKey(
+        CriterioDesempeno,
+        on_delete=models.PROTECT,
+        related_name='indicadores',
+    )
+    
+    codigo = models.CharField(max_length=20)
+    descripcion = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Indicador"
+        verbose_name_plural = "Indicadores"
+        unique_together = ('criterio', 'codigo')
+
+    def __str__(self):
+        return f"{self.codigo} - {self.descripcion[:40]}..."
+
+# PARA RESULTADOS DEL INDICADOR
+class ResultadoIndicador(models.Model):
+    NIVEL_LOGRO = [
+        ('I', 'Inicial'),
+        ('M', 'Medio'),
+        ('A', 'Avanzado'),
+    ]
+
+    curso = models.ForeignKey(
+        Curso,
+        on_delete=models.CASCADE,
+        related_name='resultados_indicadores',
+    )
+    indicador = models.ForeignKey(
+        Indicador,
+        on_delete=models.PROTECT,
+        related_name='resultados',
+    )
+    nivel = models.CharField(max_length=1, choices=NIVEL_LOGRO)
+    comentario = models.TextField(blank=True)
+    fecha_evaluacion = models.DateTimeField()
+    usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.PROTECT,
+        related_name='evaluaciones_registradas',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Resultado de indicador"
+        verbose_name_plural = "Resultados de indicadores"
+        unique_together = ('curso', 'indicador')
+
+    def __str__(self):
+        return f"{self.curso} - {self.indicador.codigo} ({self.get_nivel_display()})"
+    
+    def clean(self):
+        if self.usuario and self.usuario.rol not in [Usuario.DOCENTE, Usuario.ADMINISTRADOR]:
+            raise ValidationError("Solo un docente o un administrador pueden registrar resultados de indicadores.")
+
+        if self.usuario and self.curso:
+            if self.usuario.rol == Usuario.DOCENTE and self.curso.docente_id != self.usuario.id:
+                raise ValidationError("El docente que registra el resultado debe ser el docente asignado al curso.")
+
+        if self.curso and self.indicador:
+            atributo_indicador = self.indicador.criterio.atributo_egreso
+
+            existe_relacion = MateriaAtributoEgreso.objects.filter(
+                materia=self.curso.materia,
+                atributo_egreso=atributo_indicador
+            ).exists()
+
+            if not existe_relacion:
+                raise ValidationError(
+                    "El indicador seleccionado no corresponde a un atributo de egreso ligado a la materia del curso."
+                )
+    
+        
 class MateriaAtributoEgreso(models.Model):
     NIVEL_APORTE = [
         ('I', 'Inicial'),
@@ -141,15 +321,13 @@ class Evidencia(models.Model):
 # =========================
 
 class ReporteNivelLogro(models.Model):
-    materia = models.ForeignKey(
-        Materia,
+    materia_atributo = models.OneToOneField(
+        MateriaAtributoEgreso,
         on_delete=models.CASCADE,
-        related_name="reportes"
+        related_name="reporte_nivel_logro"
     )
-
     porcentaje_meta = models.DecimalField(max_digits=5, decimal_places=2)
     porcentaje_obtenido = models.DecimalField(max_digits=5, decimal_places=2)
-
     comentarios = models.TextField(blank=True, null=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
@@ -158,164 +336,4 @@ class ReporteNivelLogro(models.Model):
         verbose_name_plural = "Reportes de nivel de logro"
 
     def __str__(self):
-        return f"Reporte - {self.materia}"
-
-
-# PARA LOS PERIODOS
-class Periodo(models.Model):
-    PAR = "PAR"
-    IMPAR = "IMPAR"
-
-    TIPOS_OFERTA = [
-        (PAR, "Semestres pares (2, 4, 6, 8)"),
-        (IMPAR, "Semestres impares (1, 3, 5, 7)"),
-    ]
-    
-    codigo = models.CharField(max_length=20, unique=True)
-    nombre = models.CharField(max_length=255)
-    fecha_inicio = models.DateField()
-    fecha_fin = models.DateField()
-    tipo_oferta = models.CharField(max_length=10, choices=TIPOS_OFERTA, default=PAR)
-    es_activo = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        verbose_name = "Periodo"
-        verbose_name_plural = "Periodos"
-        ordering = ['-fecha_inicio']
-
-    def __str__(self):
-        return f"{self.codigo} - {self.nombre}"
-
-    
-# PARA EL CURSO
-class Curso(models.Model):
-    materia = models.ForeignKey(
-        Materia,
-        on_delete=models.PROTECT,
-        related_name='cursos',
-    )
-    periodo = models.ForeignKey(
-        Periodo,
-        on_delete=models.PROTECT,
-        related_name='cursos',
-    )
-    docente = models.ForeignKey(
-        Usuario,
-        on_delete=models.PROTECT,
-        related_name='cursos',
-        limit_choices_to={'rol': Usuario.DOCENTE},
-    )
-
-    grupo = models.CharField(max_length=10)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Curso"
-        verbose_name_plural = "Cursos"
-        unique_together = ('materia', 'periodo', 'grupo', 'docente')
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.materia.clave} - {self.grupo} ({self.periodo.codigo})"
-    
-# PARA LOS CRITERIOS E INDICADORES
-class CriterioDesempeno(models.Model):
-    atributo_egreso = models.ForeignKey(
-        AtributoEgreso,
-        on_delete=models.PROTECT,
-        related_name='criterios',
-    )
-    codigo = models.CharField(max_length=20)
-    descripcion = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Criterio de desempeño"
-        verbose_name_plural = "Criterios de desempeño"
-
-    def __str__(self):
-        return f"{self.codigo} - {self.descripcion[:40]}..."
-
-
-class Indicador(models.Model):
-    criterio = models.ForeignKey(
-        CriterioDesempeno,
-        on_delete=models.PROTECT,
-        related_name='indicadores',
-    )
-    codigo = models.CharField(max_length=20)
-    descripcion = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Indicador"
-        verbose_name_plural = "Indicadores"
-
-    def __str__(self):
-        return f"{self.codigo} - {self.descripcion[:40]}..."
-
-# PARA RESULTADOS DEL INDICADOR
-class ResultadoIndicador(models.Model):
-    NIVEL_LOGRO = [
-        ('I', 'Inicial'),
-        ('M', 'Medio'),
-        ('A', 'Avanzado'),
-    ]
-
-    curso = models.ForeignKey(
-        Curso,
-        on_delete=models.CASCADE,
-        related_name='resultados_indicadores',
-    )
-    indicador = models.ForeignKey(
-        Indicador,
-        on_delete=models.PROTECT,
-        related_name='resultados',
-    )
-    nivel = models.CharField(max_length=1, choices=NIVEL_LOGRO)
-    comentario = models.TextField(blank=True)
-    fecha_evaluacion = models.DateTimeField()
-    usuario = models.ForeignKey(
-        Usuario,
-        on_delete=models.PROTECT,
-        related_name='evaluaciones_registradas',
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Resultado de indicador"
-        verbose_name_plural = "Resultados de indicadores"
-        unique_together = ('curso', 'indicador')
-
-    def __str__(self):
-        return f"{self.curso} - {self.indicador.codigo} ({self.get_nivel_display()})"
-    
-    
-# PARA LAS MATERIAS CORRESPONDIENTE A CADA PERIODO/SEMESTRE
-class PeriodoMateria(models.Model):
-    periodo = models.ForeignKey(
-        Periodo,
-        on_delete=models.CASCADE,
-        related_name='materias_periodo'
-    )
-    materia = models.ForeignKey(
-        Materia,
-        on_delete=models.PROTECT,
-        related_name='periodos_materia'
-    )
-    semestre_en_periodo = models.PositiveIntegerField()
-    es_especialidad = models.BooleanField(default=False)
-    es_ofertable = models.BooleanField(default=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('periodo', 'materia')
-        ordering = ['semestre_en_periodo', 'materia__clave']
+        return f"Reporte - {self.materia_atributo.materia.clave} - {self.materia_atributo.atributo_egreso.codigo}"

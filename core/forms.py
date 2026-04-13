@@ -16,6 +16,10 @@ class AtributoEgresoForm(forms.ModelForm):
 
 
 class MateriaForm(forms.ModelForm):
+    def __init__(self, *args, periodo=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.periodo = periodo
+
     class Meta:
         model = Materia
         fields = ['clave', 'nombre', 'semestre', 'es_especialidad']
@@ -27,7 +31,7 @@ class MateriaForm(forms.ModelForm):
                 'min': 1,
                 'max': 8,
             }),
-            'es_especialidad': forms.CheckboxInput(attrs={'class': 'form-control'}),
+            'es_especialidad': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def clean_semestre(self):
@@ -36,6 +40,13 @@ class MateriaForm(forms.ModelForm):
             raise forms.ValidationError('El semestre es obligatorio.')
         if semestre < 1 or semestre > 8:
             raise forms.ValidationError('El semestre debe ser un valor entre 1 y 8.')
+
+        if self.periodo:
+            if self.periodo.tipo_oferta == Periodo.PAR and semestre % 2 != 0:
+                raise forms.ValidationError('Para un periodo par, el semestre debe ser par.')
+            if self.periodo.tipo_oferta == Periodo.IMPAR and semestre % 2 == 0:
+                raise forms.ValidationError('Para un periodo impar, el semestre debe ser impar.')
+
         return semestre
 
 class CrearDocenteForm(forms.ModelForm):
@@ -101,14 +112,21 @@ class CursoForm(forms.ModelForm):
             'grupo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. A'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, periodo=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.periodo = periodo
 
-        self.fields['materia'].queryset = Materia.objects.all().order_by('semestre', 'clave')
+        if periodo:
+            self.fields['materia'].queryset = Materia.objects.filter(
+                periodo=periodo
+            ).order_by('semestre', 'clave')
+        else:
+            self.fields['materia'].queryset = Materia.objects.none()
+
         self.fields['docente'].queryset = Usuario.objects.filter(
             rol=Usuario.DOCENTE
         ).order_by('first_name', 'last_name', 'username')
-        
+
     def clean_grupo(self):
         grupo = self.cleaned_data['grupo'].strip().upper()
         return grupo

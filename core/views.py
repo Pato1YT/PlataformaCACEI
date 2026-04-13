@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from functools import wraps
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 #charco
 from django.contrib.auth import update_session_auth_hash
 
@@ -118,25 +118,57 @@ def eliminar_atributo(request, pk):
 
 @login_required
 def lista_materias(request):
-    materias = Materia.objects.all().order_by('semestre', 'clave')
-    return render(request, 'materias/lista_materias.html', {'materias': materias})
+    periodo_id = request.session.get('periodo_seleccionado_id')
+    periodo_seleccionado = Periodo.objects.filter(pk=periodo_id).first()
+
+    if not periodo_seleccionado:
+        periodo_seleccionado = Periodo.objects.filter(es_activo=True).first()
+
+    materias = Materia.objects.none()
+    if periodo_seleccionado:
+        materias = Materia.objects.filter(
+            periodo=periodo_seleccionado
+        ).order_by('semestre', 'clave')
+
+    return render(request, 'materias/lista_materias.html', {
+        'materias': materias,
+        'periodo_seleccionado': periodo_seleccionado,
+    })
 
 
 @login_required
 @solo_admin
 def crear_materia(request):
+    periodo_id = request.session.get('periodo_seleccionado_id')
+    periodo_seleccionado = Periodo.objects.filter(pk=periodo_id).first()
+
+    if not periodo_seleccionado:
+        periodo_seleccionado = Periodo.objects.filter(es_activo=True).first()
+
+    if not periodo_seleccionado:
+        messages.error(request, 'Debes seleccionar o activar un periodo antes de crear una materia.')
+        return redirect('core:lista_materias')
+
     if request.method == 'POST':
-        form = MateriaForm(request.POST)
+        form = MateriaForm(request.POST, periodo=periodo_seleccionado)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Materia creada correctamente.')
-            return redirect('core:lista_materias')
+            materia = form.save(commit=False)
+            materia.periodo = periodo_seleccionado
+            try:
+                materia.full_clean()
+                materia.save()
+                form.save_m2m()
+                messages.success(request, 'Materia creada correctamente.')
+                return redirect('core:lista_materias')
+            except ValidationError as e:
+                form.add_error(None, e)
     else:
-        form = MateriaForm()
+        form = MateriaForm(periodo=periodo_seleccionado)
 
     return render(request, 'materias/form_materia.html', {
         'form': form,
         'titulo': 'Crear materia',
+        'periodo_seleccionado': periodo_seleccionado,
     })
 
 
@@ -146,17 +178,18 @@ def editar_materia(request, pk):
     materia = get_object_or_404(Materia, pk=pk)
 
     if request.method == 'POST':
-        form = MateriaForm(request.POST, instance=materia)
+        form = MateriaForm(request.POST, instance=materia, periodo=materia.periodo)
         if form.is_valid():
             form.save()
             messages.success(request, 'Materia actualizada correctamente.')
             return redirect('core:lista_materias')
     else:
-        form = MateriaForm(instance=materia)
+        form = MateriaForm(instance=materia, periodo=materia.periodo)
 
     return render(request, 'materias/form_materia.html', {
         'form': form,
         'titulo': 'Editar materia',
+        'periodo_seleccionado': materia.periodo,
     })
 
 
@@ -177,19 +210,35 @@ def eliminar_materia(request, pk):
 @login_required
 def dashboard(request):
     periodos = Periodo.objects.all().order_by('-fecha_inicio')
-    
-    # Si mandan un periodo_id por GET lo usamos, si no el activo
+
     periodo_id = request.GET.get('periodo_id')
+
     if periodo_id:
         periodo_activo = Periodo.objects.filter(pk=periodo_id).first()
+        if periodo_activo:
+            request.session['periodo_seleccionado_id'] = periodo_activo.id
     else:
-        periodo_activo = Periodo.objects.filter(es_activo=True).first()
+        periodo_id_sesion = request.session.get('periodo_seleccionado_id')
+        if periodo_id_sesion:
+            periodo_activo = Periodo.objects.filter(pk=periodo_id_sesion).first()
+        else:
+            periodo_activo = Periodo.objects.filter(es_activo=True).first()
+            if periodo_activo:
+                request.session['periodo_seleccionado_id'] = periodo_activo.id
 
     cursos = Curso.objects.none()
     if periodo_activo:
-        cursos = Curso.objects.filter(periodo=periodo_activo).select_related(
-            'materia', 'docente', 'periodo'
-        ).order_by('materia__semestre', 'materia__clave', 'grupo')
+        cursos = Curso.objects.filter(
+            materia__periodo=periodo_activo
+        ).select_related(
+            'materia',
+            'materia__periodo',
+            'docente'
+        ).order_by(
+            'materia__semestre',
+            'materia__clave',
+            'grupo'
+        )
 
         if request.user.rol == Usuario.DOCENTE:
             cursos = cursos.filter(docente=request.user)
@@ -441,44 +490,60 @@ def aviso_privacidad(request):
 @login_required
 @solo_admin
 def lista_cursos(request):
-    periodo_activo = Periodo.objects.filter(es_activo=True).first()
+    periodo_id = request.session.get('periodo_seleccionado_id')
+    periodo_seleccionado = Periodo.objects.filter(pk=periodo_id).first()
+
+    if not periodo_seleccionado:
+        periodo_seleccionado = Periodo.objects.filter(es_activo=True).first()
 
     cursos = Curso.objects.none()
-    if periodo_activo:
-        cursos = Curso.objects.filter(periodo=periodo_activo).select_related(
-            'materia', 'docente', 'periodo'
-        ).order_by('materia__semestre', 'materia__clave', 'grupo')
+    if periodo_seleccionado:
+        cursos = Curso.objects.filter(
+            materia__periodo=periodo_seleccionado
+        ).select_related(
+            'materia',
+            'materia__periodo',
+            'docente'
+        ).order_by(
+            'materia__semestre',
+            'materia__clave',
+            'grupo'
+        )
 
     return render(request, 'cursos/lista_cursos.html', {
         'cursos': cursos,
-        'periodo_activo': periodo_activo,
+        'periodo_activo': periodo_seleccionado,
     })
 
 
 @login_required
 @solo_admin
 def crear_curso(request):
-    periodo_activo = Periodo.objects.filter(es_activo=True).first()
+    periodo_id = request.session.get('periodo_seleccionado_id')
+    periodo_seleccionado = Periodo.objects.filter(pk=periodo_id).first()
 
-    if not periodo_activo:
-        messages.error(request, 'No hay un periodo activo. Debes activar un periodo antes de crear cursos.')
+    if not periodo_seleccionado:
+        periodo_seleccionado = Periodo.objects.filter(es_activo=True).first()
+
+    if not periodo_seleccionado:
+        messages.error(request, 'No hay un periodo seleccionado o activo. Debes seleccionar un periodo antes de crear cursos.')
         return redirect('core:lista_cursos')
 
     if request.method == 'POST':
-        form = CursoForm(request.POST)
+        form = CursoForm(request.POST, periodo=periodo_seleccionado)
         if form.is_valid():
             curso = form.save(commit=False)
-            curso.periodo = periodo_activo
+            curso.full_clean()
             curso.save()
             messages.success(request, 'Curso creado correctamente.')
             return redirect('core:lista_cursos')
     else:
-        form = CursoForm(initial={'grupo': 'A'})
+        form = CursoForm(periodo=periodo_seleccionado, initial={'grupo': 'A'})
 
     return render(request, 'cursos/form_curso.html', {
         'form': form,
         'titulo': 'Crear curso',
-        'periodo_activo': periodo_activo,
+        'periodo_activo': periodo_seleccionado,
     })
 
 
@@ -486,20 +551,23 @@ def crear_curso(request):
 @solo_admin
 def editar_curso(request, pk):
     curso = get_object_or_404(Curso, pk=pk)
+    periodo_seleccionado = curso.materia.periodo
 
     if request.method == 'POST':
-        form = CursoForm(request.POST, instance=curso)
+        form = CursoForm(request.POST, instance=curso, periodo=periodo_seleccionado)
         if form.is_valid():
-            form.save()
+            curso = form.save(commit=False)
+            curso.full_clean()
+            curso.save()
             messages.success(request, 'Curso actualizado correctamente.')
             return redirect('core:lista_cursos')
     else:
-        form = CursoForm(instance=curso)
+        form = CursoForm(instance=curso, periodo=periodo_seleccionado)
 
     return render(request, 'cursos/form_curso.html', {
         'form': form,
         'titulo': 'Editar curso',
-        'periodo_activo': curso.periodo,
+        'periodo_activo': periodo_seleccionado,
         'curso': curso,
     })
 
