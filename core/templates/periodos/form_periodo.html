@@ -54,6 +54,14 @@
                 {% endif %}
             </div>
 
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Tipo de oferta</label>
+                {{ form.tipo_oferta }}
+                {% if form.tipo_oferta.errors %}
+                    <span class="perfil-card__error">{{ form.tipo_oferta.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
             <div class="perfil-card__field" style="grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 10px;">
                 {{ form.es_activo }}
                 <label class="perfil-card__label" style="margin: 0;">Es activo</label>
@@ -72,7 +80,7 @@
     <button type="submit" class="course-card__button" style="max-width: 160px;">
         Guardar
     </button>
-    <a href="{% url 'core:lista_cursos' %}" class="perfil-card__cancelar">
+    <a href="{% url 'core:lista_periodos' %}" class="perfil-card__cancelar">
         Cancelar
     </a>
 </div>

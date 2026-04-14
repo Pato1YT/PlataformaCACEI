@@ -1,32 +1,102 @@
 import re
 import pandas as pd
 from unidecode import unidecode
+import calendar
+from datetime import date
 
 
 class ImportadorCursosError(Exception):
     pass
 
 
+MESES_PERIODO = {
+    'enero': (1, 'ENE'), 'febrero': (2, 'FEB'), 'marzo': (3, 'MAR'),
+    'abril': (4, 'ABR'), 'mayo': (5, 'MAY'), 'junio': (6, 'JUN'),
+    'julio': (7, 'JUL'), 'agosto': (8, 'AGO'), 'septiembre': (9, 'SEP'),
+    'octubre': (10, 'OCT'), 'noviembre': (11, 'NOV'), 'diciembre': (12, 'DIC'),
+}
+
+
 def obtener_semestres_validos(periodo):
     nombre = (periodo.nombre or '').upper()
 
-    # Enero - Agosto -> pares
-    if 'ENERO' in nombre and 'AGOSTO' in nombre:
-        return [2, 4, 6, 8]
+    meses_enero = ['ENERO', 'ENE']
+    meses_agosto = ['AGOSTO', 'AGO']
 
-    # Agosto - Enero -> impares
-    if 'AGOSTO' in nombre and 'ENERO' in nombre:
-        return [1, 3, 5, 7]
+    tiene_enero = any(m in nombre for m in meses_enero)
+    tiene_agosto = any(m in nombre for m in meses_agosto)
 
-    # fallback por si el nombre no trae esas palabras completas
-    if 'ENE' in nombre and 'AGO' in nombre:
-        # si empieza con ENE, asumimos Enero-Agosto
-        if nombre.index('ENE') < nombre.index('AGO'):
+    if tiene_enero and tiene_agosto:
+        pos_enero = min((nombre.index(m) for m in meses_enero if m in nombre), default=9999)
+        pos_agosto = min((nombre.index(m) for m in meses_agosto if m in nombre), default=9999)
+        if pos_enero < pos_agosto:
             return [2, 4, 6, 8]
         return [1, 3, 5, 7]
 
-    # por defecto, impares
+    if tiene_enero and not tiene_agosto:
+        return [2, 4, 6, 8]
+
+    if tiene_agosto and not tiene_enero:
+        return [1, 3, 5, 7]
+
+    if hasattr(periodo, 'fecha_inicio') and periodo.fecha_inicio:
+        mes = periodo.fecha_inicio.month
+        if mes == 1:
+            return [2, 4, 6, 8]
+        if mes == 8:
+            return [1, 3, 5, 7]
+
     return [1, 3, 5, 7]
+
+
+def parsear_periodo_desde_excel(archivo_excel, nombre_hoja):
+    """
+    Lee la columna 'Periodo' del Excel y extrae las fechas para generar
+    automáticamente el código y nombre del periodo.
+    Ejemplo: 'Enero 2026 - Junio 2026' -> codigo='ENE26JUN26'
+    Retorna un dict con codigo, nombre, fecha_inicio, fecha_fin o None.
+    """
+    try:
+        df = pd.read_excel(archivo_excel, sheet_name=nombre_hoja)
+    except Exception:
+        return None
+
+    if 'Periodo' not in df.columns:
+        return None
+
+    for valor in df['Periodo'].dropna():
+        texto = str(valor).strip().lower()
+        patron = r'(\w+)\s+(\d{4})\s*[-–]\s*(\w+)\s+(\d{4})'
+        m = re.search(patron, texto)
+        if not m:
+            continue
+
+        mes_inicio_str, anio_inicio, mes_fin_str, anio_fin = m.groups()
+
+        if mes_inicio_str not in MESES_PERIODO or mes_fin_str not in MESES_PERIODO:
+            continue
+
+        num_inicio, abr_inicio = MESES_PERIODO[mes_inicio_str]
+        num_fin, abr_fin = MESES_PERIODO[mes_fin_str]
+
+        year_inicio = int(anio_inicio)
+        year_fin = int(anio_fin)
+
+        codigo = f'{abr_inicio}{str(year_inicio)[2:]}{abr_fin}{str(year_fin)[2:]}'
+        nombre = f'{abr_inicio} {year_inicio} - {abr_fin} {year_fin}'
+
+        fecha_inicio = date(year_inicio, num_inicio, 1)
+        ultimo_dia = calendar.monthrange(year_fin, num_fin)[1]
+        fecha_fin = date(year_fin, num_fin, ultimo_dia)
+
+        return {
+            'codigo': codigo,
+            'nombre': nombre,
+            'fecha_inicio': fecha_inicio,
+            'fecha_fin': fecha_fin,
+        }
+
+    return None
 
 
 def convertir_semestre_a_numero(valor):
@@ -50,28 +120,21 @@ def normalizar_clave(valor):
 
     texto = str(valor).strip().upper()
 
-    # distintos guiones raros -> guion normal
     texto = (
         texto.replace('–', '-')
              .replace('—', '-')
              .replace('−', '-')
              .replace('‐', '-')
-             .replace('-', '-')
+             .replace('\u002d', '-')
              .replace('﹣', '-')
              .replace('－', '-')
     )
 
-    # caracteres basura frecuentes
     texto = texto.replace('￾', '-')
-    texto = texto.replace('�', '-')
+    texto = texto.replace('', '-')
 
-    # quitar espacios alrededor del guion
     texto = re.sub(r'\s*-\s*', '-', texto)
-
-    # si no trae guion pero parece clave tipo ACC0906 -> ACC-0906
     texto = re.sub(r'^([A-Z]+)\s*([0-9]{4})$', r'\1-\2', texto)
-
-    # limpiar caracteres extraños dejando letras, numeros y guion
     texto = re.sub(r'[^A-Z0-9-]', '', texto)
 
     return texto
@@ -89,7 +152,6 @@ def normalizar_nombre_docente(valor):
     texto = texto.replace('\n', ' ')
     texto = re.sub(r'\s+', ' ', texto).strip()
 
-    # quitar títulos comunes al inicio
     patrones = [
         r'^\s*ing\.?\s+',
         r'^\s*lic\.?\s+',
@@ -134,7 +196,6 @@ def normalizar_columnas(df):
 def preparar_dataframe_cursos(df):
     df = normalizar_columnas(df)
 
-    # quitar columnas totalmente vacías
     df = df.dropna(axis=1, how='all')
 
     rename_map = {}
@@ -158,23 +219,51 @@ def preparar_dataframe_cursos(df):
         if columna not in df.columns:
             raise ImportadorCursosError(f"No se encontró la columna requerida: {columna}")
 
-    # rellenar agrupaciones visuales del excel
+    # Detectar grupos por semestre: cada vez que 'semestre' tiene valor explícito
+    # comienza un nuevo bloque. El valor de 'periodo' del marcador del bloque
+    # determina si esas materias corresponden al periodo actual (fecha real) o no (0 o None).
+    df['grupo_semestre'] = df['semestre'].notna().cumsum()
+
+    if 'periodo' in df.columns:
+        primer_periodo_por_grupo = df.groupby('grupo_semestre')['periodo'].first()
+        df['periodo_grupo'] = df['grupo_semestre'].map(primer_periodo_por_grupo)
+    else:
+        df['periodo_grupo'] = None
+
+    # Rellenar agrupaciones visuales
     df['semestre'] = df['semestre'].ffill()
     df['docente'] = df['docente'].ffill()
 
-    # limpiar texto base
+    # Limpiar texto
     df['clave'] = df['clave'].apply(normalizar_clave)
     df['materia'] = df['materia'].astype(str).str.strip()
     df['docente'] = df['docente'].apply(normalizar_nombre_docente)
 
-    # convertir semestre
+    # Convertir semestre a número
     df['semestre_num'] = df['semestre'].apply(convertir_semestre_a_numero)
 
-    # filtrar filas basura
+    # Filtrar filas basura
     df = df[
         (df['clave'] != '') &
         (df['clave'].str.lower() != 'nan')
     ].copy()
+
+    # Filtrar SOLO los bloques cuyo marcador de periodo es una fecha real.
+    # Bloques con None o con 0 son del semestre contrario y se excluyen.
+    meses_validos = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ]
+
+    def periodo_grupo_es_valido(val):
+        if val is None:
+            return False
+        s = str(val).strip().lower()
+        if s in ('', 'nan', '0', 'none'):
+            return False
+        return any(mes in s for mes in meses_validos)
+
+    df = df[df['periodo_grupo'].apply(periodo_grupo_es_valido)].copy()
 
     return df
 
@@ -186,10 +275,8 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         raise ImportadorCursosError(f"No se pudo leer la hoja '{nombre_hoja}': {str(e)}")
 
     df = preparar_dataframe_cursos(df)
-
     semestres_validos = obtener_semestres_validos(periodo)
 
-    # catálogos normalizados
     materias_por_clave = {}
     for materia in materias_queryset:
         materias_por_clave[normalizar_clave(materia.clave)] = materia
@@ -214,7 +301,6 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         docente_encontrado = None
         materia_encontrada = materias_por_clave.get(clave)
 
-        # buscar docente por nombre normalizado
         docente_normalizado = normalizar_nombre_para_match(docente_excel)
         if docente_normalizado:
             for item in docentes_normalizados:
@@ -237,15 +323,16 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         elif not docente_encontrado:
             estado = 'Docente no encontrado'
         else:
-            existe = cursos_queryset.filter(
+            curso_existente = cursos_queryset.filter(
                 materia=materia_encontrada,
-                periodo=periodo,
-                docente=docente_encontrado,
                 grupo='A'
-            ).exists()
+            ).first()
 
-            if existe:
-                estado = 'Curso ya existe'
+            if curso_existente:
+                if curso_existente.docente_id == docente_encontrado.id:
+                    estado = 'Curso ya existe'
+                else:
+                    estado = 'Listo para actualizar'
             else:
                 estado = 'Listo para crear'
 
