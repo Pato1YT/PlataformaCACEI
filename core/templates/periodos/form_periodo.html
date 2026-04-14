@@ -54,6 +54,14 @@
                 {% endif %}
             </div>
 
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Tipo de oferta</label>
+                {{ form.tipo_oferta }}
+                {% if form.tipo_oferta.errors %}
+                    <span class="perfil-card__error">{{ form.tipo_oferta.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
             <div class="perfil-card__field" style="grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 10px;">
                 {{ form.es_activo }}
                 <label class="perfil-card__label" style="margin: 0;">Es activo</label>

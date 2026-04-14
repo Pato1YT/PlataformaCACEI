@@ -275,7 +275,6 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         raise ImportadorCursosError(f"No se pudo leer la hoja '{nombre_hoja}': {str(e)}")
 
     df = preparar_dataframe_cursos(df)
-
     semestres_validos = obtener_semestres_validos(periodo)
 
     materias_por_clave = {}
@@ -324,15 +323,16 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         elif not docente_encontrado:
             estado = 'Docente no encontrado'
         else:
-            existe = cursos_queryset.filter(
+            curso_existente = cursos_queryset.filter(
                 materia=materia_encontrada,
-                periodo=periodo,
-                docente=docente_encontrado,
                 grupo='A'
-            ).exists()
+            ).first()
 
-            if existe:
-                estado = 'Curso ya existe'
+            if curso_existente:
+                if curso_existente.docente_id == docente_encontrado.id:
+                    estado = 'Curso ya existe'
+                else:
+                    estado = 'Listo para actualizar'
             else:
                 estado = 'Listo para crear'
 

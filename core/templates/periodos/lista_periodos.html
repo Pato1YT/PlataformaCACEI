@@ -25,6 +25,7 @@
                     <th>Nombre</th>
                     <th>Inicio</th>
                     <th>Fin</th>
+                    <th>Tipo de Oferta</th>
                     <th>Activo</th>
                     <th>Acciones</th>
                 </tr>
@@ -36,6 +37,7 @@
                     <td>{{ periodo.nombre }}</td>
                     <td>{{ periodo.fecha_inicio }}</td>
                     <td>{{ periodo.fecha_fin }}</td>
+                    <td>{{ periodo.tipo_oferta }}</td>
                     <td>
                         {% if periodo.es_activo %}
                             <span style="color:#16a34a; font-weight:700;">
