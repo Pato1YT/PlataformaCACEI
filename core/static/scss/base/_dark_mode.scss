@@ -187,4 +187,63 @@ body.dark-mode {
       box-shadow: 0 0 0 2px rgba(0, 163, 255, 0.2);
     }
   }
+
+  // Contraseña temporal — span de puntos y texto
+  // Contraseña temporal — span de puntos y texto
+  .password-span {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #475569;
+  }
+
+  // Icono del ojo en contraseña
+  .data-table tbody td button {
+    color: #94a3b8;
+  }
+
+  // Icono calendario en inputs de fecha
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+
+  // Tarjeta perfil-card — textos en modo oscuro (confirmar eliminar, etc.)
+  .perfil-card {
+    background-color: #1e293b;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+
+    p {
+      color: #e2e8f0;
+    }
+
+    strong {
+      color: #ffffff;
+    }
+
+    .perfil-card__nombre {
+      color: #e2e8f0;
+    }
+
+    .perfil-card__rol {
+      background-color: #0c3652;
+      color: #7dd3fc;
+    }
+
+    .perfil-card__cancelar {
+      background-color: #3b1212;
+      color: #fca5a5;
+
+      &:hover { background-color: #4f1a1a; }
+    }
+  }
+
+  // Aviso periodo detectado en importar cursos
+  .periodo-detectado-aviso {
+    background: #2d2208 !important;
+    border-left-color: #d97706 !important;
+    color: #fcd34d !important;
+
+    strong {
+      color: #fde68a !important;
+    }
+  }
 }
