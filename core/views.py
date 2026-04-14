@@ -543,15 +543,14 @@ def lista_cursos(request):
 @login_required
 @solo_admin
 def crear_curso(request):
-    # Usar el periodo seleccionado en el dashboard si viene por GET, si no el activo
-    periodo_id = request.GET.get('periodo_id') or request.POST.get('periodo_id')
-    if periodo_id:
-        periodo_activo = Periodo.objects.filter(pk=periodo_id).first()
-    else:
-        periodo_activo = Periodo.objects.filter(es_activo=True).first()
+    periodo_id = request.session.get('periodo_seleccionado_id')
+    periodo_seleccionado = Periodo.objects.filter(pk=periodo_id).first()
 
-    if not periodo_activo:
-        messages.error(request, 'No hay ningún periodo disponible para crear cursos.')
+    if not periodo_seleccionado:
+        periodo_seleccionado = Periodo.objects.filter(es_activo=True).first()
+
+    if not periodo_seleccionado:
+        messages.error(request, 'No hay ningún periodo seleccionado o activo para crear cursos.')
         return redirect('core:lista_periodos')
 
     if request.method == 'POST':
@@ -561,7 +560,7 @@ def crear_curso(request):
             curso.full_clean()
             curso.save()
             messages.success(request, 'Curso creado correctamente.')
-            return redirect('core:lista_periodos')
+            return redirect('core:lista_cursos')
     else:
         form = CursoForm(periodo=periodo_seleccionado, initial={'grupo': 'A'})
 
@@ -570,7 +569,6 @@ def crear_curso(request):
         'titulo': 'Crear curso',
         'periodo_activo': periodo_seleccionado,
     })
-
 
 @login_required
 @solo_admin
@@ -845,10 +843,6 @@ def importar_cursos(request):
 
     periodo_activo_bd = Periodo.objects.filter(es_activo=True).first()
 
-    materias_periodo = Materia.objects.filter(periodo=periodo)
-    docentes = Usuario.objects.filter(rol=Usuario.DOCENTE)
-    cursos_periodo = Curso.objects.filter(materia__periodo=periodo)
-
     if request.method == 'POST':
         accion = request.POST.get('accion')
 
@@ -903,15 +897,13 @@ def importar_cursos(request):
             # Detectar periodo desde el Excel
             periodo_detectado = parsear_periodo_desde_excel(ruta_archivo, hoja_seleccionada)
 
-            # El periodo del Excel SIEMPRE manda. Buscarlo en BD para comparar cursos correctamente.
             if periodo_detectado:
                 codigo = periodo_detectado['codigo']
                 periodo_en_bd = Periodo.objects.filter(codigo=codigo).first()
+
                 if periodo_en_bd:
-                    # Ya existe: comparar cursos contra ese periodo específico
                     periodo_para_analisis = periodo_en_bd
                 else:
-                    # No existe aún: objeto sin guardar para el análisis
                     periodo_para_analisis = Periodo(
                         codigo=codigo,
                         nombre=periodo_detectado['nombre'],
@@ -920,7 +912,6 @@ def importar_cursos(request):
                         es_activo=False,
                     )
             elif periodo_activo_bd:
-                # Sin detección: usar el periodo activo
                 periodo_para_analisis = periodo_activo_bd
             else:
                 messages.error(request, 'No se pudo detectar el periodo desde el Excel y no hay periodo activo.')
@@ -929,19 +920,25 @@ def importar_cursos(request):
                     'archivo_temporal': archivo_temporal,
                 })
 
+            materias_periodo = Materia.objects.filter(periodo=periodo_para_analisis)
+            docentes = Usuario.objects.filter(rol=Usuario.DOCENTE)
+            cursos_periodo = Curso.objects.filter(materia__periodo=periodo_para_analisis)
+
             try:
                 hojas = obtener_hojas_excel_cursos(ruta_archivo)
                 preview_data = analizar_hoja_cursos(
                     ruta_archivo,
                     hoja_seleccionada,
                     periodo_para_analisis,
-                    Materia.objects.all(),
-                    Usuario.objects.filter(rol=Usuario.DOCENTE),
-                    Curso.objects.all(),
+                    materias_periodo,
+                    docentes,
+                    cursos_periodo,
                 )
+
                 resumen = {
                     'total': len(preview_data),
                     'listo_para_crear': sum(1 for fila in preview_data if fila['estado'] == 'Listo para crear'),
+                    'listo_para_actualizar': sum(1 for fila in preview_data if fila['estado'] == 'Listo para actualizar'),
                     'curso_ya_existe': sum(1 for fila in preview_data if fila['estado'] == 'Curso ya existe'),
                     'docente_no_encontrado': sum(1 for fila in preview_data if fila['estado'] == 'Docente no encontrado'),
                     'materia_no_encontrada': sum(1 for fila in preview_data if fila['estado'] == 'Materia no encontrada'),
@@ -953,6 +950,7 @@ def importar_cursos(request):
                     fila for fila in preview_data
                     if fila['estado'] in [
                         'Listo para crear',
+                        'Listo para actualizar',
                         'Curso ya existe',
                         'Docente no encontrado',
                         'Materia no encontrada',
@@ -991,23 +989,21 @@ def importar_cursos(request):
                 messages.error(request, 'El archivo temporal ya no existe. Vuelve a cargar el Excel.')
                 return redirect('core:importar_cursos')
 
-            # Resolver el periodo a usar para guardar los cursos
             periodo_detectado = parsear_periodo_desde_excel(ruta_archivo, hoja_seleccionada)
 
             if periodo_detectado:
                 codigo = periodo_detectado['codigo']
                 periodo_existente = Periodo.objects.filter(codigo=codigo).first()
+
                 if periodo_existente:
-                    # Ya existe: usarlo directamente
                     periodo_para_guardar = periodo_existente
                 else:
-                    # No existe: crearlo y determinar si debe ser activo
-                    # Es activo solo si su fecha_inicio es mayor a todos los periodos existentes
                     periodo_mas_reciente = Periodo.objects.order_by('-fecha_inicio').first()
                     es_el_mas_reciente = (
                         not periodo_mas_reciente or
                         periodo_detectado['fecha_inicio'] >= periodo_mas_reciente.fecha_inicio
                     )
+
                     if es_el_mas_reciente:
                         Periodo.objects.filter(es_activo=True).update(es_activo=False)
 
@@ -1025,14 +1021,18 @@ def importar_cursos(request):
                 messages.error(request, 'No se pudo detectar ni encontrar un periodo para importar los cursos.')
                 return redirect('core:importar_cursos')
 
+            materias_periodo = Materia.objects.filter(periodo=periodo_para_guardar)
+            docentes = Usuario.objects.filter(rol=Usuario.DOCENTE)
+            cursos_periodo = Curso.objects.filter(materia__periodo=periodo_para_guardar)
+
             try:
                 preview_data = analizar_hoja_cursos(
                     ruta_archivo,
                     hoja_seleccionada,
                     periodo_para_guardar,
-                    Materia.objects.all(),
-                    Usuario.objects.filter(rol=Usuario.DOCENTE),
-                    Curso.objects.all(),
+                    materias_periodo,
+                    docentes,
+                    cursos_periodo,
                 )
             except ImportadorCursosError as e:
                 messages.error(request, str(e))
@@ -1043,12 +1043,19 @@ def importar_cursos(request):
             omitidos = 0
 
             for fila in preview_data:
-                if fila['estado'] not in ['Listo para crear', 'Curso ya existe']:
+                if fila['estado'] not in ['Listo para crear', 'Listo para actualizar', 'Curso ya existe']:
                     omitidos += 1
                     continue
 
-                materia = Materia.objects.filter(id=fila['materia_id'], periodo=periodo).first()
-                docente = Usuario.objects.filter(id=fila['docente_id'], rol=Usuario.DOCENTE).first()
+                materia = Materia.objects.filter(
+                    id=fila['materia_id'],
+                    periodo=periodo_para_guardar
+                ).first()
+
+                docente = Usuario.objects.filter(
+                    id=fila['docente_id'],
+                    rol=Usuario.DOCENTE
+                ).first()
 
                 if not materia or not docente:
                     omitidos += 1
@@ -1056,8 +1063,6 @@ def importar_cursos(request):
 
                 curso, created = Curso.objects.update_or_create(
                     materia=materia,
-                    periodo=periodo_para_guardar,
-                    docente=docente,
                     grupo='A',
                     defaults={
                         'docente': docente,
