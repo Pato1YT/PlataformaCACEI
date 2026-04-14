@@ -8,24 +8,8 @@ class ImportadorCursosError(Exception):
 
 
 def obtener_semestres_validos(periodo):
-    nombre = (periodo.nombre or '').upper()
-
-    # Enero - Agosto -> pares
-    if 'ENERO' in nombre and 'AGOSTO' in nombre:
+    if periodo.tipo_oferta == 'PAR':
         return [2, 4, 6, 8]
-
-    # Agosto - Enero -> impares
-    if 'AGOSTO' in nombre and 'ENERO' in nombre:
-        return [1, 3, 5, 7]
-
-    # fallback por si el nombre no trae esas palabras completas
-    if 'ENE' in nombre and 'AGO' in nombre:
-        # si empieza con ENE, asumimos Enero-Agosto
-        if nombre.index('ENE') < nombre.index('AGO'):
-            return [2, 4, 6, 8]
-        return [1, 3, 5, 7]
-
-    # por defecto, impares
     return [1, 3, 5, 7]
 
 
@@ -50,28 +34,20 @@ def normalizar_clave(valor):
 
     texto = str(valor).strip().upper()
 
-    # distintos guiones raros -> guion normal
     texto = (
         texto.replace('–', '-')
              .replace('—', '-')
              .replace('−', '-')
              .replace('‐', '-')
-             .replace('-', '-')
              .replace('﹣', '-')
              .replace('－', '-')
     )
 
-    # caracteres basura frecuentes
     texto = texto.replace('￾', '-')
     texto = texto.replace('�', '-')
 
-    # quitar espacios alrededor del guion
     texto = re.sub(r'\s*-\s*', '-', texto)
-
-    # si no trae guion pero parece clave tipo ACC0906 -> ACC-0906
     texto = re.sub(r'^([A-Z]+)\s*([0-9]{4})$', r'\1-\2', texto)
-
-    # limpiar caracteres extraños dejando letras, numeros y guion
     texto = re.sub(r'[^A-Z0-9-]', '', texto)
 
     return texto
@@ -89,7 +65,6 @@ def normalizar_nombre_docente(valor):
     texto = texto.replace('\n', ' ')
     texto = re.sub(r'\s+', ' ', texto).strip()
 
-    # quitar títulos comunes al inicio
     patrones = [
         r'^\s*ing\.?\s+',
         r'^\s*lic\.?\s+',
@@ -133,8 +108,6 @@ def normalizar_columnas(df):
 
 def preparar_dataframe_cursos(df):
     df = normalizar_columnas(df)
-
-    # quitar columnas totalmente vacías
     df = df.dropna(axis=1, how='all')
 
     rename_map = {}
@@ -158,19 +131,15 @@ def preparar_dataframe_cursos(df):
         if columna not in df.columns:
             raise ImportadorCursosError(f"No se encontró la columna requerida: {columna}")
 
-    # rellenar agrupaciones visuales del excel
     df['semestre'] = df['semestre'].ffill()
     df['docente'] = df['docente'].ffill()
 
-    # limpiar texto base
     df['clave'] = df['clave'].apply(normalizar_clave)
     df['materia'] = df['materia'].astype(str).str.strip()
     df['docente'] = df['docente'].apply(normalizar_nombre_docente)
 
-    # convertir semestre
     df['semestre_num'] = df['semestre'].apply(convertir_semestre_a_numero)
 
-    # filtrar filas basura
     df = df[
         (df['clave'] != '') &
         (df['clave'].str.lower() != 'nan')
@@ -186,10 +155,8 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         raise ImportadorCursosError(f"No se pudo leer la hoja '{nombre_hoja}': {str(e)}")
 
     df = preparar_dataframe_cursos(df)
-
     semestres_validos = obtener_semestres_validos(periodo)
 
-    # catálogos normalizados
     materias_por_clave = {}
     for materia in materias_queryset:
         materias_por_clave[normalizar_clave(materia.clave)] = materia
@@ -214,7 +181,6 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         docente_encontrado = None
         materia_encontrada = materias_por_clave.get(clave)
 
-        # buscar docente por nombre normalizado
         docente_normalizado = normalizar_nombre_para_match(docente_excel)
         if docente_normalizado:
             for item in docentes_normalizados:
@@ -237,15 +203,16 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         elif not docente_encontrado:
             estado = 'Docente no encontrado'
         else:
-            existe = cursos_queryset.filter(
+            curso_existente = cursos_queryset.filter(
                 materia=materia_encontrada,
-                periodo=periodo,
-                docente=docente_encontrado,
                 grupo='A'
-            ).exists()
+            ).first()
 
-            if existe:
-                estado = 'Curso ya existe'
+            if curso_existente:
+                if curso_existente.docente_id == docente_encontrado.id:
+                    estado = 'Curso ya existe'
+                else:
+                    estado = 'Listo para actualizar'
             else:
                 estado = 'Listo para crear'
 
@@ -262,8 +229,3 @@ def analizar_hoja_cursos(archivo_excel, nombre_hoja, periodo, materias_queryset,
         })
 
     return preview_data
-
-def obtener_semestres_validos(periodo):
-    if periodo.tipo_oferta == 'PAR':
-        return [2, 4, 6, 8]
-    return [1, 3, 5, 7]
