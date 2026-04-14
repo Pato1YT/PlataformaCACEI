@@ -35,7 +35,9 @@ from .utils.importador_cursos import (
     ImportadorCursosError,
     obtener_hojas_excel_cursos,
     analizar_hoja_cursos,
+    parsear_periodo_desde_excel,
 )
+
 def solo_admin(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
@@ -45,15 +47,6 @@ def solo_admin(view_func):
             raise PermissionDenied  # 403
         return view_func(request, *args, **kwargs)
     return _wrapped
-
-
-#@login_required
-#def dashboard(request):
-    #"""
-    #Vista principal del sistema.
-    #Aquí luego pondremos estadísticas, resúmenes, etc.
-    #"""
-    #return render(request, 'core/dashboard.html', {'materias': materias})
 
 
 @login_required
@@ -110,8 +103,8 @@ def eliminar_atributo(request, pk):
     return render(request, 'atributos/confirmar_eliminar.html', {
         'atributo': atributo
     })
-    
-    
+
+
 # =========================
 # MATERIAS (RETÍCULA)
 # =========================
@@ -206,11 +199,13 @@ def eliminar_materia(request, pk):
     return render(request, 'materias/confirmar_eliminar.html', {
         'materia': materia,
     })
-    
+
+
 @login_required
 def dashboard(request):
     periodos = Periodo.objects.all().order_by('-fecha_inicio')
 
+    # Si mandan un periodo_id por GET lo usamos, si no el activo
     periodo_id = request.GET.get('periodo_id')
 
     if periodo_id:
@@ -249,15 +244,6 @@ def dashboard(request):
         'periodos': periodos,
     })
 
-def solo_admin(view_func):
-    @wraps(view_func)
-    def _wrapped(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect('core:login')
-        if request.user.rol != Usuario.ADMINISTRADOR:
-            raise PermissionDenied  # 403
-        return view_func(request, *args, **kwargs)
-    return _wrapped
 
 @login_required
 @solo_admin
@@ -419,6 +405,7 @@ def importar_materias(request):
         'periodo_seleccionado': periodo_seleccionado,
     })
 
+
 @solo_admin
 def lista_usuarios(request):
     usuarios = Usuario.objects.filter(rol=Usuario.DOCENTE).order_by('-created_at')
@@ -438,12 +425,8 @@ def crear_usuario_docente(request):
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
 
-            # 1) Generamos una contraseña temporal segura
             password_temporal = Usuario.objects.make_random_password()
 
-            # 2) Creamos el usuario como DOCENTE
-          # 2) Creamos el usuario como DOCENTE
-          # 2) Creamos el usuario como DOCENTE
             usuario = Usuario.objects.create_user(
                 username=username,
                 email=email,
@@ -464,12 +447,7 @@ def crear_usuario_docente(request):
     return render(request, 'usuarios/form_docente.html', {
         'form': form,
         'titulo': 'Crear docente',
-    }) 
-
-
-
-
-
+    })
 
 
 @solo_admin
@@ -500,8 +478,9 @@ def eliminar_usuario_docente(request, pk):
     return render(request, 'usuarios/confirmar_eliminar.html', {
         'usuario': usuario,
     })
-    
-    #charco 
+
+
+#charco
 @login_required
 def editar_perfil(request):
     if request.method == 'POST':
@@ -522,13 +501,16 @@ def editar_perfil(request):
 
     return render(request, 'core/perfil.html', {'form': form})
 
+
 #charco
 def aviso_privacidad(request):
     return render(request, 'core/aviso_privacidad.html')
 
 
+# =========================
+# CURSOS Y PERIODOS
+# =========================
 
-# PARA LOS CURSOS (PERIODO)
 @login_required
 @solo_admin
 def lista_cursos(request):
@@ -561,15 +543,16 @@ def lista_cursos(request):
 @login_required
 @solo_admin
 def crear_curso(request):
-    periodo_id = request.session.get('periodo_seleccionado_id')
-    periodo_seleccionado = Periodo.objects.filter(pk=periodo_id).first()
+    # Usar el periodo seleccionado en el dashboard si viene por GET, si no el activo
+    periodo_id = request.GET.get('periodo_id') or request.POST.get('periodo_id')
+    if periodo_id:
+        periodo_activo = Periodo.objects.filter(pk=periodo_id).first()
+    else:
+        periodo_activo = Periodo.objects.filter(es_activo=True).first()
 
-    if not periodo_seleccionado:
-        periodo_seleccionado = Periodo.objects.filter(es_activo=True).first()
-
-    if not periodo_seleccionado:
-        messages.error(request, 'No hay un periodo seleccionado o activo. Debes seleccionar un periodo antes de crear cursos.')
-        return redirect('core:lista_cursos')
+    if not periodo_activo:
+        messages.error(request, 'No hay ningún periodo disponible para crear cursos.')
+        return redirect('core:lista_periodos')
 
     if request.method == 'POST':
         form = CursoForm(request.POST, periodo=periodo_seleccionado)
@@ -578,7 +561,7 @@ def crear_curso(request):
             curso.full_clean()
             curso.save()
             messages.success(request, 'Curso creado correctamente.')
-            return redirect('core:lista_cursos')
+            return redirect('core:lista_periodos')
     else:
         form = CursoForm(periodo=periodo_seleccionado, initial={'grupo': 'A'})
 
@@ -628,6 +611,7 @@ def eliminar_curso(request, pk):
         'curso': curso,
     })
 
+
 @login_required
 @solo_admin
 def crear_periodo(request):
@@ -648,6 +632,7 @@ def crear_periodo(request):
         'titulo': 'Agregar Periodo',
     })
 
+
 @login_required
 @solo_admin
 def lista_periodos(request):
@@ -656,39 +641,23 @@ def lista_periodos(request):
         'periodos': periodos,
     })
 
+
 @login_required
 @solo_admin
 def eliminar_periodo(request, pk):
     periodo = get_object_or_404(Periodo, pk=pk)
+    cursos_asociados = periodo.cursos.count()
 
     if request.method == 'POST':
+        periodo.cursos.all().delete()
         periodo.delete()
-        messages.success(request, f'Periodo "{periodo.nombre}" eliminado correctamente.')
+        messages.success(request, f'Periodo "{periodo.nombre}" y sus {cursos_asociados} curso(s) eliminados correctamente.')
         return redirect('core:lista_periodos')
 
     return render(request, 'periodos/confirmar_eliminar.html', {
         'periodo': periodo,
+        'cursos_asociados': cursos_asociados,
     })
-
-#@login_required
-#@solo_admin
-#def editar_periodo(request, pk):
-    #periodo = get_object_or_404(Periodo, pk=pk)
-
-    #if request.method == 'POST':
-        #form = PeriodoForm(request.POST, instance=periodo)
-        #if form.is_valid():
-            #form.save()
-            #messages.success(request, f'Periodo "{periodo.nombre}" actualizado correctamente.')
-            #return redirect('core:lista_cursos')
-    #else:
-        #form = PeriodoForm(instance=periodo)
-
-   # return render(request, 'periodos/form_periodo.html', {
-       # 'form': form,
-        #'titulo': 'Editar Periodo',
-        #'periodo': periodo,
-   # })
 
 
 @login_required
@@ -720,7 +689,8 @@ def editar_periodo(request, pk):
         'titulo': 'Editar Periodo',
         'periodo': periodo,
     })
-    
+
+
 @solo_admin
 def importar_docentes(request):
     hojas = []
@@ -779,14 +749,12 @@ def importar_docentes(request):
                 hojas = obtener_hojas_excel_docentes(ruta_archivo)
                 preview_data = analizar_hoja_docentes(ruta_archivo, hoja_seleccionada)
 
-                # marcar estado previo
                 for fila in preview_data:
                     existe = Usuario.objects.filter(
                         rol=Usuario.DOCENTE,
                         first_name__iexact=fila['first_name'],
                         last_name__iexact=fila['last_name'],
                     ).exists()
-
                     fila['estado'] = 'Ya existe' if existe else 'Nuevo'
 
                 messages.success(request, f'Se detectaron {len(preview_data)} docentes únicos.')
@@ -866,22 +834,16 @@ def importar_docentes(request):
 
     return render(request, 'usuarios/importar_docentes.html')
 
+
 @solo_admin
 def importar_cursos(request):
     hojas = []
     archivo_temporal = None
     hoja_seleccionada = None
     preview_data = []
+    periodo_detectado = None
 
-    periodo_id = request.session.get('periodo_seleccionado_id')
-    periodo = Periodo.objects.filter(pk=periodo_id).first()
-
-    if not periodo:
-        periodo = Periodo.objects.filter(es_activo=True).first()
-
-    if not periodo:
-        messages.error(request, "No hay un periodo seleccionado o activo.")
-        return redirect('core:lista_cursos')
+    periodo_activo_bd = Periodo.objects.filter(es_activo=True).first()
 
     materias_periodo = Materia.objects.filter(periodo=periodo)
     docentes = Usuario.objects.filter(rol=Usuario.DOCENTE)
@@ -897,13 +859,13 @@ def importar_cursos(request):
             if not archivo:
                 messages.error(request, 'Debes seleccionar un archivo Excel.')
                 return render(request, 'cursos/importar_cursos.html', {
-                    'periodo_activo': periodo,
+                    'periodo_activo': periodo_activo_bd,
                 })
 
             if not archivo.name.endswith(('.xlsx', '.xls')):
                 messages.error(request, 'El archivo debe ser Excel (.xlsx o .xls).')
                 return render(request, 'cursos/importar_cursos.html', {
-                    'periodo_activo': periodo,
+                    'periodo_activo': periodo_activo_bd,
                 })
 
             carpeta_temp = os.path.join(settings.MEDIA_ROOT, 'temp_imports')
@@ -924,7 +886,7 @@ def importar_cursos(request):
             return render(request, 'cursos/importar_cursos.html', {
                 'hojas': hojas,
                 'archivo_temporal': archivo_temporal,
-                'periodo_activo': periodo,
+                'periodo_activo': periodo_activo_bd,
             })
 
         # PASO 2: analizar hoja
@@ -938,17 +900,45 @@ def importar_cursos(request):
 
             ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
 
+            # Detectar periodo desde el Excel
+            periodo_detectado = parsear_periodo_desde_excel(ruta_archivo, hoja_seleccionada)
+
+            # El periodo del Excel SIEMPRE manda. Buscarlo en BD para comparar cursos correctamente.
+            if periodo_detectado:
+                codigo = periodo_detectado['codigo']
+                periodo_en_bd = Periodo.objects.filter(codigo=codigo).first()
+                if periodo_en_bd:
+                    # Ya existe: comparar cursos contra ese periodo específico
+                    periodo_para_analisis = periodo_en_bd
+                else:
+                    # No existe aún: objeto sin guardar para el análisis
+                    periodo_para_analisis = Periodo(
+                        codigo=codigo,
+                        nombre=periodo_detectado['nombre'],
+                        fecha_inicio=periodo_detectado['fecha_inicio'],
+                        fecha_fin=periodo_detectado['fecha_fin'],
+                        es_activo=False,
+                    )
+            elif periodo_activo_bd:
+                # Sin detección: usar el periodo activo
+                periodo_para_analisis = periodo_activo_bd
+            else:
+                messages.error(request, 'No se pudo detectar el periodo desde el Excel y no hay periodo activo.')
+                return render(request, 'cursos/importar_cursos.html', {
+                    'hojas': hojas,
+                    'archivo_temporal': archivo_temporal,
+                })
+
             try:
                 hojas = obtener_hojas_excel_cursos(ruta_archivo)
                 preview_data = analizar_hoja_cursos(
                     ruta_archivo,
                     hoja_seleccionada,
-                    periodo,
-                    materias_periodo,
-                    docentes,
-                    cursos_periodo,
+                    periodo_para_analisis,
+                    Materia.objects.all(),
+                    Usuario.objects.filter(rol=Usuario.DOCENTE),
+                    Curso.objects.all(),
                 )
-
                 resumen = {
                     'total': len(preview_data),
                     'listo_para_crear': sum(1 for fila in preview_data if fila['estado'] == 'Listo para crear'),
@@ -981,7 +971,8 @@ def importar_cursos(request):
                 'archivo_temporal': archivo_temporal,
                 'hoja_seleccionada': hoja_seleccionada,
                 'preview_data': preview_data_filtrada,
-                'periodo_activo': periodo,
+                'periodo_activo': periodo_para_analisis,
+                'periodo_detectado': periodo_detectado,
                 'resumen': resumen,
             })
 
@@ -1000,14 +991,48 @@ def importar_cursos(request):
                 messages.error(request, 'El archivo temporal ya no existe. Vuelve a cargar el Excel.')
                 return redirect('core:importar_cursos')
 
+            # Resolver el periodo a usar para guardar los cursos
+            periodo_detectado = parsear_periodo_desde_excel(ruta_archivo, hoja_seleccionada)
+
+            if periodo_detectado:
+                codigo = periodo_detectado['codigo']
+                periodo_existente = Periodo.objects.filter(codigo=codigo).first()
+                if periodo_existente:
+                    # Ya existe: usarlo directamente
+                    periodo_para_guardar = periodo_existente
+                else:
+                    # No existe: crearlo y determinar si debe ser activo
+                    # Es activo solo si su fecha_inicio es mayor a todos los periodos existentes
+                    periodo_mas_reciente = Periodo.objects.order_by('-fecha_inicio').first()
+                    es_el_mas_reciente = (
+                        not periodo_mas_reciente or
+                        periodo_detectado['fecha_inicio'] >= periodo_mas_reciente.fecha_inicio
+                    )
+                    if es_el_mas_reciente:
+                        Periodo.objects.filter(es_activo=True).update(es_activo=False)
+
+                    periodo_para_guardar = Periodo.objects.create(
+                        codigo=codigo,
+                        nombre=periodo_detectado['nombre'],
+                        fecha_inicio=periodo_detectado['fecha_inicio'],
+                        fecha_fin=periodo_detectado['fecha_fin'],
+                        es_activo=es_el_mas_reciente,
+                    )
+                    messages.success(request, f'Periodo "{periodo_para_guardar.nombre}" creado automáticamente.')
+            elif periodo_activo_bd:
+                periodo_para_guardar = periodo_activo_bd
+            else:
+                messages.error(request, 'No se pudo detectar ni encontrar un periodo para importar los cursos.')
+                return redirect('core:importar_cursos')
+
             try:
                 preview_data = analizar_hoja_cursos(
                     ruta_archivo,
                     hoja_seleccionada,
-                    periodo,
-                    materias_periodo,
-                    docentes,
-                    cursos_periodo,
+                    periodo_para_guardar,
+                    Materia.objects.all(),
+                    Usuario.objects.filter(rol=Usuario.DOCENTE),
+                    Curso.objects.all(),
                 )
             except ImportadorCursosError as e:
                 messages.error(request, str(e))
@@ -1031,6 +1056,8 @@ def importar_cursos(request):
 
                 curso, created = Curso.objects.update_or_create(
                     materia=materia,
+                    periodo=periodo_para_guardar,
+                    docente=docente,
                     grupo='A',
                     defaults={
                         'docente': docente,
@@ -1049,8 +1076,8 @@ def importar_cursos(request):
                 request,
                 f'Importación completada. Cursos creados: {creados}. Cursos actualizados: {actualizados}. Filas omitidas: {omitidos}.'
             )
-            return redirect('core:lista_cursos')
+            return redirect('core:lista_periodos')
 
     return render(request, 'cursos/importar_cursos.html', {
-        'periodo_activo': periodo,
+        'periodo_activo': periodo_activo_bd,
     })

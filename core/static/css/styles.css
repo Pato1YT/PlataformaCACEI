@@ -1719,5 +1719,48 @@ body.dark-mode textarea:focus {
   border-color: #00a3ff;
   box-shadow: 0 0 0 2px rgba(0, 163, 255, 0.2);
 }
+body.dark-mode .password-span {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border: 1px solid #475569;
+}
+body.dark-mode .data-table tbody td button {
+  color: #94a3b8;
+}
+body.dark-mode input[type=date]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+body.dark-mode .perfil-card {
+  background-color: #1e293b;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+body.dark-mode .perfil-card p {
+  color: #e2e8f0;
+}
+body.dark-mode .perfil-card strong {
+  color: #ffffff;
+}
+body.dark-mode .perfil-card .perfil-card__nombre {
+  color: #e2e8f0;
+}
+body.dark-mode .perfil-card .perfil-card__rol {
+  background-color: #0c3652;
+  color: #7dd3fc;
+}
+body.dark-mode .perfil-card .perfil-card__cancelar {
+  background-color: #3b1212;
+  color: #fca5a5;
+}
+body.dark-mode .perfil-card .perfil-card__cancelar:hover {
+  background-color: #4f1a1a;
+}
+body.dark-mode .periodo-detectado-aviso {
+  background: #2d2208 !important;
+  border-left-color: #d97706 !important;
+  color: #fcd34d !important;
+}
+body.dark-mode .periodo-detectado-aviso strong {
+  color: #fde68a !important;
+}
 
 /*# sourceMappingURL=styles.css.map */
