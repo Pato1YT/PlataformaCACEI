@@ -830,6 +830,15 @@ def importar_docentes(request):
                     'password_temporal': password_temporal,
                 })
 
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+
+            messages.success(
+                request,
+                f'Importación completada. Docentes creados: {creados}. Omitidos (ya existían): {omitidos}.'
+            )
+            return redirect('core:lista_usuarios')
+
     return render(request, 'usuarios/importar_docentes.html')
 
 
