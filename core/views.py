@@ -237,6 +237,10 @@ def dashboard(request):
 
         if request.user.rol == Usuario.DOCENTE:
             cursos = cursos.filter(docente=request.user)
+            
+    
+    for p in periodos:
+        print(p.codigo, p.fecha_inicio, p.fecha_fin)
 
     return render(request, 'core/dashboard.html', {
         'cursos': cursos,
