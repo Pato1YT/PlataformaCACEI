@@ -42,8 +42,9 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
 
    <div class="app-header__right">
-    <a href="{% url 'core:dashboard' %}" class="app-header__dark-btn" title="Inicio">
-        <i class="fa-solid fa-house"></i>
+    <a href="{% url 'core:dashboard' %}" class="app-header__dark-btn" title="Inicio" style="text-decoration:none;">
+    <i class="fa-solid fa-house"></i>
+</a>
     <a href="{% url 'core:logout' %}" class="app-header__dark-btn" title="Cerrar sesión" style="text-decoration:none;">
     <i class="fa-solid fa-power-off"></i>
 </a>
