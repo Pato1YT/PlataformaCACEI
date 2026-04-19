@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Se'si Eskani{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo_eskani.png' %}">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
@@ -40,24 +41,29 @@ document.addEventListener('DOMContentLoaded', function () {
         <span class="app-header__title">{% block page_title %}{% endblock %}</span>
     </div>
 
-    <div class="app-header__right">
-        <button id="darkModeToggle" class="app-header__dark-btn" title="Modo oscuro">
-            <i id="darkModeIcon" class="fa-solid fa-moon"></i>
-        </button>
-        <a href="{% url 'core:perfil' %}" style="text-decoration:none; color:inherit;">
-            <div class="app-header__user-wrapper">
-                <div class="app-header__avatar">
-                    {{ user.get_full_name|first|default:user.username|first }}
-                </div>
-                <div class="app-header__user-text">
-                    <span class="app-header__user-name">
-                        {{ user.get_full_name|default:user.username }}
-                    </span>
-                    <span class="app-header__user-role">{{ user.get_rol_display }}</span>
-                </div>
+   <div class="app-header__right">
+    <a href="{% url 'core:dashboard' %}" class="app-header__dark-btn" title="Inicio">
+        <i class="fa-solid fa-house"></i>
+    <a href="{% url 'core:logout' %}" class="app-header__dark-btn" title="Cerrar sesión" style="text-decoration:none;">
+    <i class="fa-solid fa-power-off"></i>
+</a>
+    <button id="darkModeToggle" class="app-header__dark-btn" title="Modo oscuro">
+        <i id="darkModeIcon" class="fa-solid fa-moon"></i>
+    </button>
+    <a href="{% url 'core:perfil' %}" style="text-decoration:none; color:inherit;">
+        <div class="app-header__user-wrapper">
+            <div class="app-header__avatar">
+                {{ user.get_full_name|first|default:user.username|first }}
             </div>
-        </a>
-    </div>
+            <div class="app-header__user-text">
+                <span class="app-header__user-name">
+                    {{ user.get_full_name|default:user.username }}
+                </span>
+                <span class="app-header__user-role">{{ user.get_rol_display }}</span>
+            </div>
+        </div>
+    </a>
+</div>
 </header>
 
 <div id="sideMenu" class="side-menu">
