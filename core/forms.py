@@ -1,19 +1,31 @@
-from django import forms
-from .models import AtributoEgreso, Materia, Usuario, Curso, Periodo
-#charco
-from django.contrib.auth.password_validation import validate_password
+# =============================================================================
+# IMPORTS
+# =============================================================================
 
+from django import forms
+from django.contrib.auth.password_validation import validate_password  # noqa: F401 — disponible para uso futuro
+
+from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario
+
+
+# =============================================================================
+# ATRIBUTOS DE EGRESO
+# =============================================================================
 
 class AtributoEgresoForm(forms.ModelForm):
     class Meta:
         model = AtributoEgreso
         fields = ['codigo', 'nombre', 'descripcion']
         widgets = {
-            'codigo': forms.TextInput(attrs={'class': 'form-control'}),
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'codigo':      forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre':      forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
+
+# =============================================================================
+# MATERIAS
+# =============================================================================
 
 class MateriaForm(forms.ModelForm):
     def __init__(self, *args, periodo=None, **kwargs):
@@ -24,13 +36,9 @@ class MateriaForm(forms.ModelForm):
         model = Materia
         fields = ['clave', 'nombre', 'semestre', 'es_especialidad']
         widgets = {
-            'clave': forms.TextInput(attrs={'class': 'form-control'}),
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'semestre': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': 1,
-                'max': 8,
-            }),
+            'clave':          forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre':         forms.TextInput(attrs={'class': 'form-control'}),
+            'semestre':       forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 8}),
             'es_especialidad': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
@@ -49,34 +57,39 @@ class MateriaForm(forms.ModelForm):
 
         return semestre
 
+
+# =============================================================================
+# USUARIOS / DOCENTES
+# =============================================================================
+
 class CrearDocenteForm(forms.ModelForm):
     class Meta:
         model = Usuario
         fields = ['username', 'first_name', 'last_name', 'email']
         labels = {
-            'username': 'Usuario',
+            'username':   'Usuario',
             'first_name': 'Nombre(s)',
-            'last_name': 'Apellidos',
-            'email': 'Correo electrónico',
+            'last_name':  'Apellidos',
+            'email':      'Correo electrónico',
         }
         widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'username':   forms.TextInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'last_name':  forms.TextInput(attrs={'class': 'form-control'}),
+            'email':      forms.EmailInput(attrs={'class': 'form-control'}),
         }
-        
-        #charco
+
+
 class EditarPerfilForm(forms.ModelForm):
     password1 = forms.CharField(
         label='Nueva contraseña',
         required=False,
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
     )
     password2 = forms.CharField(
         label='Confirmar contraseña',
         required=False,
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
     )
 
     class Meta:
@@ -84,7 +97,7 @@ class EditarPerfilForm(forms.ModelForm):
         fields = ['username', 'email']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'email':    forms.EmailInput(attrs={'class': 'form-control'}),
         }
 
     def clean(self):
@@ -95,8 +108,12 @@ class EditarPerfilForm(forms.ModelForm):
             if p1 != p2:
                 raise forms.ValidationError('Las contraseñas no coinciden.')
         return cleaned_data
-    
-    
+
+
+# =============================================================================
+# CURSOS
+# =============================================================================
+
 class CursoForm(forms.ModelForm):
     class Meta:
         model = Curso
@@ -104,12 +121,12 @@ class CursoForm(forms.ModelForm):
         labels = {
             'materia': 'Materia',
             'docente': 'Docente',
-            'grupo': 'Grupo',
+            'grupo':   'Grupo',
         }
         widgets = {
             'materia': forms.Select(attrs={'class': 'form-control'}),
             'docente': forms.Select(attrs={'class': 'form-control'}),
-            'grupo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. A'}),
+            'grupo':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. A'}),
         }
 
     def __init__(self, *args, periodo=None, **kwargs):
@@ -130,27 +147,31 @@ class CursoForm(forms.ModelForm):
     def clean_grupo(self):
         grupo = self.cleaned_data['grupo'].strip().upper()
         return grupo
-        
-        
+
+
+# =============================================================================
+# PERIODOS
+# =============================================================================
+
 class PeriodoForm(forms.ModelForm):
     class Meta:
         model = Periodo
         fields = ['codigo', 'nombre', 'fecha_inicio', 'fecha_fin', 'tipo_oferta', 'es_activo']
         labels = {
-            'codigo': 'Codigo',
-            'nombre': 'Nombre',
+            'codigo':      'Codigo',
+            'nombre':      'Nombre',
             'fecha_inicio': 'Fecha inicio',
-            'fecha_fin': 'Fecha fin',
-            'tipo_oferta' : 'Tipo oferta',
-            'es_activo': 'Es activo',
+            'fecha_fin':   'Fecha fin',
+            'tipo_oferta': 'Tipo oferta',
+            'es_activo':   'Es activo',
         }
         widgets = {
-            'codigo': forms.TextInput(attrs={'class': 'form-control'}),
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'codigo':      forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre':      forms.TextInput(attrs={'class': 'form-control'}),
             'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
-            'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
+            'fecha_fin':   forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
             'tipo_oferta': forms.Select(attrs={'class': 'form-control'}),
-            'es_activo': forms.CheckboxInput(),
+            'es_activo':   forms.CheckboxInput(),
         }
 
     def clean_codigo(self):
@@ -164,11 +185,11 @@ class PeriodoForm(forms.ModelForm):
         if not nombre.replace(' ', '').replace('-', '').isalnum():
             raise forms.ValidationError('El nombre solo puede contener letras, números, espacios y guiones.')
         return nombre
-    
+
     def clean(self):
         cleaned_data = super().clean()
         fecha_inicio = cleaned_data.get('fecha_inicio')
-        fecha_fin = cleaned_data.get('fecha_fin')
+        fecha_fin    = cleaned_data.get('fecha_fin')
 
         if fecha_inicio and fecha_fin:
             if fecha_inicio > fecha_fin:
@@ -176,8 +197,6 @@ class PeriodoForm(forms.ModelForm):
 
         es_activo = cleaned_data.get('es_activo')
         if es_activo:
-            from .models import Periodo
-
             # Validar que solo haya un periodo activo
             qs = Periodo.objects.filter(es_activo=True)
             if self.instance and self.instance.pk:

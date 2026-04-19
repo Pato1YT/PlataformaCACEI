@@ -219,17 +219,6 @@ def preparar_dataframe_cursos(df):
         if columna not in df.columns:
             raise ImportadorCursosError(f"No se encontró la columna requerida: {columna}")
 
-    # Detectar grupos por semestre: cada vez que 'semestre' tiene valor explícito
-    # comienza un nuevo bloque. El valor de 'periodo' del marcador del bloque
-    # determina si esas materias corresponden al periodo actual (fecha real) o no (0 o None).
-    df['grupo_semestre'] = df['semestre'].notna().cumsum()
-
-    if 'periodo' in df.columns:
-        primer_periodo_por_grupo = df.groupby('grupo_semestre')['periodo'].first()
-        df['periodo_grupo'] = df['grupo_semestre'].map(primer_periodo_por_grupo)
-    else:
-        df['periodo_grupo'] = None
-
     # Rellenar agrupaciones visuales
     df['semestre'] = df['semestre'].ffill()
     df['docente'] = df['docente'].ffill()
@@ -247,23 +236,6 @@ def preparar_dataframe_cursos(df):
         (df['clave'] != '') &
         (df['clave'].str.lower() != 'nan')
     ].copy()
-
-    # Filtrar SOLO los bloques cuyo marcador de periodo es una fecha real.
-    # Bloques con None o con 0 son del semestre contrario y se excluyen.
-    meses_validos = [
-        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-    ]
-
-    def periodo_grupo_es_valido(val):
-        if val is None:
-            return False
-        s = str(val).strip().lower()
-        if s in ('', 'nan', '0', 'none'):
-            return False
-        return any(mes in s for mes in meses_validos)
-
-    df = df[df['periodo_grupo'].apply(periodo_grupo_es_valido)].copy()
 
     return df
 
