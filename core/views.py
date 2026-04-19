@@ -644,10 +644,10 @@ def lista_periodos(request):
 @solo_admin
 def eliminar_periodo(request, pk):
     periodo = get_object_or_404(Periodo, pk=pk)
-    cursos_asociados = periodo.cursos.count()
+    cursos_asociados = Curso.objects.filter(materia__periodo=periodo).count()
 
     if request.method == 'POST':
-        periodo.cursos.all().delete()
+        Curso.objects.filter(materia__periodo=periodo).delete()
         periodo.delete()
         messages.success(request, f'Periodo "{periodo.nombre}" y sus {cursos_asociados} curso(s) eliminados correctamente.')
         return redirect('core:lista_periodos')
