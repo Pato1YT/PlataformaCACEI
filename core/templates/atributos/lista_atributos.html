@@ -9,6 +9,9 @@
             <h2 class="dashboard__title">Atributos de egreso</h2>
             <p class="dashboard__subtitle">Gestión de atributos de egreso del programa.</p>
         </div>
+        <a href="{% url 'core:importar_atributo_word' %}" class="course-card__button" style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block; background-color:#163ca3;">
+            Importar atributo
+        </a>
         <a href="{% url 'core:crear_atributo' %}" class="course-card__button" style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block;">
             Nuevo atributo
         </a>
@@ -33,6 +36,7 @@
                     <td class="data-table__actions">
                         <a href="{% url 'core:editar_atributo' atributo.pk %}" class="data-table__btn data-table__btn--edit">Editar</a>
                         <a href="{% url 'core:eliminar_atributo' atributo.pk %}" class="data-table__btn data-table__btn--delete">Eliminar</a>
+                        <a href="{% url 'core:ver_tabla_atributo' atributo.pk %}" class="data-table__btn" style="background-color:#e0f2fe; color:#0369a1;">Ver tabla</a>
                     </td>
                 </tr>
                 {% empty %}

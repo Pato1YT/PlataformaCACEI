@@ -1,0 +1,77 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Importar atributo desde Word - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Importar atributo desde Word</h2>
+            <p class="dashboard__subtitle">Carga un archivo .docx para extraer el atributo, criterios e indicadores.</p>
+        </div>
+    </div>
+
+    <div class="table-wrapper" style="padding: 24px;">
+        <!-- PASO 1 -->
+        <h3 style="margin-bottom:12px;">Paso 1 — Selecciona el archivo</h3>
+        <form method="post" enctype="multipart/form-data" style="margin-bottom: 24px;">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="subir_archivo">
+            <input type="file" name="archivo_word" accept=".docx" required>
+            <button type="submit" class="course-card__button" style="margin-left:10px;">
+                Cargar archivo
+            </button>
+        </form>
+
+        {% if archivo_temporal and not preview_data %}
+            <!-- PASO 2 -->
+            <h3 style="margin-bottom:12px;">Paso 2 — Analizar documento</h3>
+            <form method="post" style="margin-bottom: 24px;">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="analizar_documento">
+                <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
+                <button type="submit" class="course-card__button" style="background-color:#16a34a;">
+                    Analizar documento
+                </button>
+            </form>
+        {% endif %}
+
+        {% if preview_data %}
+            <!-- PASO 3 -->
+            <h3 style="margin-bottom:12px;">Vista previa</h3>
+
+            <div style="margin-bottom:20px; padding:16px; background:#f8fafc; border-radius:12px;">
+                <p><strong>Atributo:</strong> {{ preview_data.atributo.codigo }}</p>
+                <p><strong>Descripción:</strong> {{ preview_data.atributo.nombre }}</p>
+            </div>
+
+            {% for criterio in preview_data.criterios %}
+                <div style="margin-bottom:20px; padding:16px; background:#f8fafc; border-radius:12px;">
+                    <p><strong>{{ criterio.codigo }}</strong>: {{ criterio.descripcion }}</p>
+
+                    {% if criterio.indicadores %}
+                        <ul style="margin-top:10px;">
+                            {% for indicador in criterio.indicadores %}
+                                <li>
+                                    <strong>{{ indicador.codigo }}</strong>: {{ indicador.descripcion }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p style="color:#64748b;">Sin indicadores detectados.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="guardar_importacion">
+                <input type="hidden" name="archivo_temporal" value="{{ archivo_temporal }}">
+                <button type="submit" class="course-card__button">
+                    Confirmar e importar
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

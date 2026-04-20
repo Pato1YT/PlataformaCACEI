@@ -15,9 +15,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import get_object_or_404, redirect, render
+from django.db.models.deletion import ProtectedError
 
 # Modelos
-from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario
+from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador
 
 # Formularios
 from .forms import (
@@ -27,6 +28,8 @@ from .forms import (
     EditarPerfilForm,
     MateriaForm,
     PeriodoForm,
+    CriterioDesempenoForm,
+    IndicadorForm
 )
 
 # Utilidades — importadores Excel
@@ -45,6 +48,12 @@ from .utils.importador_materias import (
     ImportadorMateriasError,
     analizar_hoja_excel,
     obtener_hojas_excel,
+)
+
+# Utilidades — importadores Word
+from .utils.importador_atributos_word import (
+    analizar_documento_atributo_word,
+    ImportadorAtributosWordError,
 )
 
 
@@ -191,14 +200,305 @@ def eliminar_atributo(request, pk):
     atributo = get_object_or_404(AtributoEgreso, pk=pk)
 
     if request.method == 'POST':
-        atributo.delete()
-        messages.success(request, 'Atributo de egreso eliminado correctamente.')
+        try:
+            atributo.delete()
+            messages.success(request, 'Atributo de egreso eliminado correctamente.')
+        except ProtectedError:
+            messages.error(
+                request,
+                'No se puede eliminar este atributo porque tiene criterios de desempeño e indicadores relacionados.'
+            )
         return redirect('core:lista_atributos')
 
     return render(request, 'atributos/confirmar_eliminar.html', {
         'atributo': atributo
     })
 
+
+@login_required
+@solo_admin
+def importar_atributo_word(request):
+    archivo_temporal = None
+    preview_data = None
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        # PASO 1: subir archivo
+        if accion == 'subir_archivo':
+            archivo = request.FILES.get('archivo_word')
+
+            if not archivo:
+                messages.error(request, 'Debes seleccionar un archivo Word.')
+                return render(request, 'atributos/importar_atributo_word.html')
+
+            if not archivo.name.endswith('.docx'):
+                messages.error(request, 'El archivo debe ser Word (.docx).')
+                return render(request, 'atributos/importar_atributo_word.html')
+
+            carpeta_temp = os.path.join(settings.MEDIA_ROOT, 'temp_imports')
+            os.makedirs(carpeta_temp, exist_ok=True)
+
+            fs = FileSystemStorage(location=carpeta_temp)
+            nombre_archivo = fs.save(archivo.name, archivo)
+            archivo_temporal = nombre_archivo
+
+            messages.success(request, 'Archivo cargado correctamente. Ahora analiza el documento.')
+
+            return render(request, 'atributos/importar_atributo_word.html', {
+                'archivo_temporal': archivo_temporal,
+            })
+
+        # PASO 2: analizar documento
+        elif accion == 'analizar_documento':
+            archivo_temporal = request.POST.get('archivo_temporal')
+
+            if not archivo_temporal:
+                messages.error(request, 'No se encontró el archivo temporal.')
+                return redirect('core:importar_atributo_word')
+
+            ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
+
+            if not os.path.exists(ruta_archivo):
+                messages.error(request, 'El archivo temporal ya no existe. Vuelve a cargar el documento.')
+                return redirect('core:importar_atributo_word')
+
+            try:
+                preview_data = analizar_documento_atributo_word(ruta_archivo)
+                messages.success(request, 'Documento analizado correctamente.')
+            except ImportadorAtributosWordError as e:
+                messages.error(request, str(e))
+                return redirect('core:importar_atributo_word')
+
+            return render(request, 'atributos/importar_atributo_word.html', {
+                'archivo_temporal': archivo_temporal,
+                'preview_data': preview_data,
+            })
+
+        # PASO 3: guardar en BD
+        elif accion == 'guardar_importacion':
+            archivo_temporal = request.POST.get('archivo_temporal')
+
+            if not archivo_temporal:
+                messages.error(request, 'No se encontró el archivo temporal.')
+                return redirect('core:importar_atributo_word')
+
+            ruta_archivo = os.path.join(settings.MEDIA_ROOT, 'temp_imports', archivo_temporal)
+
+            if not os.path.exists(ruta_archivo):
+                messages.error(request, 'El archivo temporal ya no existe. Vuelve a cargar el documento.')
+                return redirect('core:importar_atributo_word')
+
+            try:
+                preview_data = analizar_documento_atributo_word(ruta_archivo)
+            except ImportadorAtributosWordError as e:
+                messages.error(request, str(e))
+                return redirect('core:importar_atributo_word')
+
+            atributo_data = preview_data['atributo']
+
+            atributo, _ = AtributoEgreso.objects.update_or_create(
+                codigo=atributo_data['codigo'],
+                defaults={
+                    'nombre': "Atributo de Egreso "+atributo_data['codigo'],
+                    'descripcion': atributo_data['nombre'],
+                }
+            )
+
+            for criterio_data in preview_data['criterios']:
+                criterio, _ = CriterioDesempeno.objects.update_or_create(
+                    atributo_egreso=atributo,
+                    codigo=criterio_data['codigo'],
+                    defaults={
+                        'descripcion': criterio_data['descripcion'],
+                    }
+                )
+
+                for indicador_data in criterio_data['indicadores']:
+                    Indicador.objects.update_or_create(
+                        criterio=criterio,
+                        codigo=indicador_data['codigo'],
+                        defaults={
+                            'descripcion': indicador_data['descripcion'],
+                        }
+                    )
+
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+
+            messages.success(request, f'Atributo {atributo.codigo} importado correctamente.')
+            return redirect('core:lista_atributos')
+
+    return render(request, 'atributos/importar_atributo_word.html')
+
+
+@login_required
+def ver_tabla_atributo(request, pk):
+    atributo = get_object_or_404(
+        AtributoEgreso.objects.prefetch_related(
+            'criterios__indicadores'
+        ),
+        pk=pk
+    )
+
+    criterios = atributo.criterios.all().order_by('codigo')
+
+    return render(request, 'atributos/tabla_atributo.html', {
+        'atributo': atributo,
+        'criterios': criterios,
+    })
+    
+
+# =============================================================================
+# CRITERIOS DE DESEMPENO
+# =============================================================================
+
+@login_required
+@solo_admin
+def crear_criterio_desempeno(request, atributo_pk):
+    atributo = get_object_or_404(AtributoEgreso, pk=atributo_pk)
+
+    if request.method == 'POST':
+        form = CriterioDesempenoForm(request.POST)
+        if form.is_valid():
+            criterio = form.save(commit=False)
+            criterio.atributo_egreso = atributo
+            criterio.save()
+            messages.success(request, 'Criterio de desempeño creado correctamente.')
+            return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+    else:
+        form = CriterioDesempenoForm()
+
+    return render(request, 'atributos/form_criterio.html', {
+        'form': form,
+        'titulo': 'Nuevo criterio de desempeño',
+        'atributo': atributo,
+    })
+
+
+@login_required
+@solo_admin
+def editar_criterio_desempeno(request, pk):
+    criterio = get_object_or_404(CriterioDesempeno, pk=pk)
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        form = CriterioDesempenoForm(request.POST, instance=criterio)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Criterio de desempeño actualizado correctamente.')
+            return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+    else:
+        form = CriterioDesempenoForm(instance=criterio)
+
+    return render(request, 'atributos/form_criterio.html', {
+        'form': form,
+        'titulo': 'Editar criterio de desempeño',
+        'atributo': atributo,
+        'criterio': criterio,
+    })
+
+
+@login_required
+@solo_admin
+def eliminar_criterio_desempeno(request, pk):
+    criterio = get_object_or_404(CriterioDesempeno, pk=pk)
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        try:
+            criterio.delete()
+            messages.success(request, 'Criterio de desempeño eliminado correctamente.')
+        except ProtectedError:
+            messages.error(
+                request,
+                'No se puede eliminar este criterio porque tiene indicadores relacionados.'
+            )
+        return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+
+    return render(request, 'atributos/confirmar_eliminar_criterio.html', {
+        'criterio': criterio,
+        'atributo': atributo,
+    })
+
+
+# =============================================================================
+# INDICADORES
+# =============================================================================
+
+@login_required
+@solo_admin
+def crear_indicador(request, criterio_pk):
+    criterio = get_object_or_404(CriterioDesempeno, pk=criterio_pk)
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        form = IndicadorForm(request.POST)
+        if form.is_valid():
+            indicador = form.save(commit=False)
+            indicador.criterio = criterio
+            indicador.save()
+            messages.success(request, 'Indicador creado correctamente.')
+            return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+    else:
+        form = IndicadorForm()
+
+    return render(request, 'atributos/form_indicador.html', {
+        'form': form,
+        'titulo': 'Nuevo indicador',
+        'atributo': atributo,
+        'criterio': criterio,
+    })
+
+
+@login_required
+@solo_admin
+def editar_indicador(request, pk):
+    indicador = get_object_or_404(Indicador, pk=pk)
+    criterio = indicador.criterio
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        form = IndicadorForm(request.POST, instance=indicador)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Indicador actualizado correctamente.')
+            return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+    else:
+        form = IndicadorForm(instance=indicador)
+
+    return render(request, 'atributos/form_indicador.html', {
+        'form': form,
+        'titulo': 'Editar indicador',
+        'atributo': atributo,
+        'criterio': criterio,
+        'indicador': indicador,
+    })
+
+
+@login_required
+@solo_admin
+def eliminar_indicador(request, pk):
+    indicador = get_object_or_404(Indicador, pk=pk)
+    criterio = indicador.criterio
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        try:
+            indicador.delete()
+            messages.success(request, 'Indicador eliminado correctamente.')
+        except ProtectedError:
+            messages.error(
+                request,
+                'No se puede eliminar este indicador porque tiene información relacionada.'
+            )
+        return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+
+    return render(request, 'atributos/confirmar_eliminar_indicador.html', {
+        'indicador': indicador,
+        'criterio': criterio,
+        'atributo': atributo,
+    })
 
 # =============================================================================
 # MATERIAS (RETÍCULA)
