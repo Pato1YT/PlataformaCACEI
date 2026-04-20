@@ -7,7 +7,10 @@ from .models import (
     Evidencia,
     ReporteNivelLogro,
     Periodo,
-    Curso
+    Curso,
+    CriterioDesempeno,
+    Indicador,
+    
 )
 
 # Register your models here.
@@ -26,3 +29,5 @@ admin.site.register(Evidencia)
 admin.site.register(ReporteNivelLogro)
 admin.site.register(Periodo)
 admin.site.register(Curso)
+admin.site.register(CriterioDesempeno)
+admin.site.register(Indicador)

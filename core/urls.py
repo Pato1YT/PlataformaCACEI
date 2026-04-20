@@ -48,10 +48,12 @@ urlpatterns = [
     # -------------------------------------------------------------------------
     # Atributos de egreso
     # -------------------------------------------------------------------------
-    path('atributos/',                      views.lista_atributos,   name='lista_atributos'),
-    path('atributos/nuevo/',                views.crear_atributo,    name='crear_atributo'),
-    path('atributos/<int:pk>/editar/',      views.editar_atributo,   name='editar_atributo'),
-    path('atributos/<int:pk>/eliminar/',    views.eliminar_atributo, name='eliminar_atributo'),
+    path('atributos/',                      views.lista_atributos,        name='lista_atributos'),
+    path('atributos/nuevo/',                views.crear_atributo,         name='crear_atributo'),
+    path('atributos/<int:pk>/editar/',      views.editar_atributo,        name='editar_atributo'),
+    path('atributos/<int:pk>/eliminar/',    views.eliminar_atributo,      name='eliminar_atributo'),
+    path('atributos/importar-word/',        views.importar_atributo_word, name='importar_atributo_word'),
+    path('atributos/<int:pk>/tabla/',       views.ver_tabla_atributo,     name='ver_tabla_atributo'),
 
     # -------------------------------------------------------------------------
     # Materias
