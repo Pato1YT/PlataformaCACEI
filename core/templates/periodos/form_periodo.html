@@ -22,14 +22,33 @@
 
         <div class="perfil-card__grid" style="grid-template-columns: 1fr 1fr;">
 
+            <!-- FECHAS en la misma fila -->
             <div class="perfil-card__field">
-                <label class="perfil-card__label">Codigo</label>
+                <label class="perfil-card__label">Fecha de inicio</label>
+                {{ form.fecha_inicio }}
+                {% if form.fecha_inicio.errors %}
+                    <span class="perfil-card__error">{{ form.fecha_inicio.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Fecha de fin</label>
+                {{ form.fecha_fin }}
+                {% if form.fecha_fin.errors %}
+                    <span class="perfil-card__error">{{ form.fecha_fin.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <!-- CÓDIGO (solo lectura) -->
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Código</label>
                 {{ form.codigo }}
                 {% if form.codigo.errors %}
                     <span class="perfil-card__error">{{ form.codigo.errors|join:", " }}</span>
                 {% endif %}
             </div>
 
+            <!-- NOMBRE (solo lectura) -->
             <div class="perfil-card__field">
                 <label class="perfil-card__label">Nombre</label>
                 {{ form.nombre }}
@@ -38,23 +57,8 @@
                 {% endif %}
             </div>
 
-            <div class="perfil-card__field">
-                <label class="perfil-card__label">Fecha inicio</label>
-                {{ form.fecha_inicio }}
-                {% if form.fecha_inicio.errors %}
-                    <span class="perfil-card__error">{{ form.fecha_inicio.errors|join:", " }}</span>
-                {% endif %}
-            </div>
-
-            <div class="perfil-card__field">
-                <label class="perfil-card__label">Fecha fin</label>
-                {{ form.fecha_fin }}
-                {% if form.fecha_fin.errors %}
-                    <span class="perfil-card__error">{{ form.fecha_fin.errors|join:", " }}</span>
-                {% endif %}
-            </div>
-
-            <div class="perfil-card__field">
+            <!-- TIPO DE OFERTA (solo lectura) -->
+            <div class="perfil-card__field" style="grid-column: 1 / -1;">
                 <label class="perfil-card__label">Tipo de oferta</label>
                 {{ form.tipo_oferta }}
                 {% if form.tipo_oferta.errors %}
@@ -62,6 +66,16 @@
                 {% endif %}
             </div>
 
+            <!-- SEMESTRES -->
+            <div id="bloque-semestres" class="perfil-card__field" style="grid-column: 1 / -1; display: none;">
+                <label class="perfil-card__label">
+                    <i class="fa-solid fa-graduation-cap" style="margin-right:5px; color:#0284c7;"></i>
+                    Semestres que se cursarán
+                </label>
+                <div id="semestres-chips" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;"></div>
+            </div>
+
+            <!-- ES ACTIVO -->
             <div class="perfil-card__field" style="grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 10px;">
                 {{ form.es_activo }}
                 <label class="perfil-card__label" style="margin: 0;">Es activo</label>
@@ -77,13 +91,176 @@
         {% endif %}
 
         <div class="perfil-card__actions">
-    <button type="submit" class="course-card__button" style="max-width: 160px;">
-        Guardar
-    </button>
-    <a href="{% url 'core:lista_periodos' %}" class="perfil-card__cancelar">
-        Cancelar
-    </a>
-</div>
+            <button type="submit" class="course-card__button" style="max-width: 160px;">
+                Guardar
+            </button>
+            <a href="{% url 'core:lista_periodos' %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
     </form>
 </div>
+
+<script>
+(function () {
+    const fechaInicioEl   = document.getElementById('id_fecha_inicio');
+    const fechaFinEl      = document.getElementById('id_fecha_fin');
+    const codigoEl        = document.getElementById('id_codigo');
+    const nombreEl        = document.getElementById('id_nombre');
+    const tipoOfertaEl    = document.getElementById('id_tipo_oferta');
+    const bloqueSemestres = document.getElementById('bloque-semestres');
+    const semestresChips  = document.getElementById('semestres-chips');
+
+    const CHIP_COLORES = ['#0284c7','#16a34a','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#65a30d'];
+
+    const MESES_ABREV = ['','ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+    const MESES_NOMBRE = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+    // ── Bloquear edición manual ──────────────────────────────────────────────
+    codigoEl.setAttribute('readonly', true);
+    codigoEl.style.cssText += ';background:#f1f5f9;cursor:not-allowed;color:#64748b;';
+
+    nombreEl.setAttribute('readonly', true);
+    nombreEl.style.cssText += ';background:#f1f5f9;cursor:not-allowed;color:#64748b;';
+
+    tipoOfertaEl.setAttribute('disabled', true);
+    tipoOfertaEl.style.cssText += ';background:#f1f5f9;cursor:not-allowed;color:#64748b;';
+
+    // Hidden para que el tipo de oferta se envíe aunque el select esté disabled
+    var hiddenTipo = document.createElement('input');
+    hiddenTipo.type = 'hidden';
+    hiddenTipo.name = tipoOfertaEl.name;
+    hiddenTipo.id   = 'hidden_tipo_oferta';
+    tipoOfertaEl.parentNode.appendChild(hiddenTipo);
+
+    // ── Parsear fecha ────────────────────────────────────────────────────────
+    function parsear(fechaStr) {
+        if (!fechaStr) return null;
+        var p = fechaStr.split('-');
+        return { anio: parseInt(p[0], 10), mes: parseInt(p[1], 10), dia: parseInt(p[2], 10) };
+    }
+
+    // ── Determinar tipo de oferta según los meses involucrados ───────────────
+    // PAR  → el periodo cae mayoritariamente en meses 1-6
+    // IMPAR → el periodo cae mayoritariamente en meses 7-12
+    // Se decide por el mes de INICIO (criterio principal)
+    function tipoOferta(mesInicio) {
+        return mesInicio <= 6 ? 'PAR' : 'IMPAR';
+    }
+
+    function semestresParaTipo(tipo) {
+        return tipo === 'PAR' ? [2, 4, 6, 8] : [1, 3, 5, 7];
+    }
+
+    // ── Construir código y nombre dinámicamente ──────────────────────────────
+    function calcular(fi, ff) {
+        // fi y ff son objetos {anio, mes, dia}
+        var tipo    = tipoOferta(fi.mes);
+        var ai      = String(fi.anio).slice(-2);
+        var af      = String(ff.anio).slice(-2);
+        var codigo  = MESES_ABREV[fi.mes] + ai + MESES_ABREV[ff.mes] + af;
+        var nombre  = MESES_NOMBRE[fi.mes] + ' - ' + MESES_NOMBRE[ff.mes] + ' ' + ff.anio;
+
+        return {
+            codigo    : codigo,
+            nombre    : nombre,
+            tipoOferta: tipo,
+            semestres : semestresParaTipo(tipo),
+        };
+    }
+
+    // ── Fecha de fin por defecto según mes de inicio ─────────────────────────
+    function fechaFinDefault(fi) {
+        if (fi.mes <= 6) {
+            // Periodo de enero-junio → fin en junio del mismo año
+            return fi.anio + '-06-30';
+        } else {
+            // Periodo agosto-diciembre → fin en diciembre del mismo año
+            return fi.anio + '-12-31';
+        }
+    }
+
+    // ── Aplicar al formulario ────────────────────────────────────────────────
+    function aplicar(info) {
+        codigoEl.value  = info.codigo;
+        nombreEl.value  = info.nombre;
+
+        for (var i = 0; i < tipoOfertaEl.options.length; i++) {
+            tipoOfertaEl.options[i].selected = (tipoOfertaEl.options[i].value === info.tipoOferta);
+        }
+        hiddenTipo.value = info.tipoOferta;
+
+        mostrarSemestres(info.semestres);
+        bloqueSemestres.style.display = 'block';
+    }
+
+    function mostrarSemestres(semestres) {
+        semestresChips.innerHTML = '';
+        semestres.forEach(function(num, i) {
+            var chip = document.createElement('span');
+            chip.textContent = num + '\u00b0 semestre';
+            chip.style.cssText = [
+                'display:inline-flex',
+                'align-items:center',
+                'background:' + CHIP_COLORES[i % CHIP_COLORES.length],
+                'color:#fff',
+                'border-radius:999px',
+                'padding:4px 14px',
+                'font-size:12px',
+                'font-weight:700',
+                'letter-spacing:.3px'
+            ].join(';');
+            semestresChips.appendChild(chip);
+        });
+    }
+
+    // ── Al cambiar FECHA INICIO ──────────────────────────────────────────────
+    fechaInicioEl.addEventListener('change', function () {
+        var fi = parsear(fechaInicioEl.value);
+        if (!fi) return;
+
+        // Poner fecha de fin por defecto según el mes de inicio
+        var finDefault = fechaFinDefault(fi);
+        fechaFinEl.value = finDefault;
+
+        // Recalcular con inicio y nuevo fin
+        var ff = parsear(finDefault);
+        aplicar(calcular(fi, ff));
+    });
+
+    // ── Al cambiar FECHA FIN ─────────────────────────────────────────────────
+    fechaFinEl.addEventListener('change', function () {
+        var fi = parsear(fechaInicioEl.value);
+        var ff = parsear(fechaFinEl.value);
+        if (!fi || !ff) return;
+
+        // Validar que fin no sea antes que inicio
+        var dInicio = new Date(fi.anio, fi.mes - 1, fi.dia);
+        var dFin    = new Date(ff.anio, ff.mes - 1, ff.dia);
+
+        if (dFin < dInicio) {
+            // Revertir la fecha de fin al default y avisar
+            var finDefault = fechaFinDefault(fi);
+            fechaFinEl.value = finDefault;
+            ff = parsear(finDefault);
+            alert('La fecha de fin no puede ser anterior a la fecha de inicio. Se ha restaurado la fecha de fin automática.');
+        }
+
+        aplicar(calcular(fi, ff));
+    });
+
+    // ── Al cargar (edición o error de validación) ────────────────────────────
+    if (fechaInicioEl.value && fechaFinEl.value) {
+        var fi = parsear(fechaInicioEl.value);
+        var ff = parsear(fechaFinEl.value);
+        if (fi && ff) aplicar(calcular(fi, ff));
+    } else if (fechaInicioEl.value) {
+        var fi = parsear(fechaInicioEl.value);
+        var finDefault = fechaFinDefault(fi);
+        fechaFinEl.value = finDefault;
+        aplicar(calcular(fi, parsear(finDefault)));
+    }
+
+})();
+</script>
 {% endblock %}
