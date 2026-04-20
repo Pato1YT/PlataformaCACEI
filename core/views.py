@@ -28,6 +28,8 @@ from .forms import (
     EditarPerfilForm,
     MateriaForm,
     PeriodoForm,
+    CriterioDesempenoForm,
+    IndicadorForm
 )
 
 # Utilidades — importadores Excel
@@ -346,6 +348,157 @@ def ver_tabla_atributo(request, pk):
         'criterios': criterios,
     })
     
+
+# =============================================================================
+# CRITERIOS DE DESEMPENO
+# =============================================================================
+
+@login_required
+@solo_admin
+def crear_criterio_desempeno(request, atributo_pk):
+    atributo = get_object_or_404(AtributoEgreso, pk=atributo_pk)
+
+    if request.method == 'POST':
+        form = CriterioDesempenoForm(request.POST)
+        if form.is_valid():
+            criterio = form.save(commit=False)
+            criterio.atributo_egreso = atributo
+            criterio.save()
+            messages.success(request, 'Criterio de desempeño creado correctamente.')
+            return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+    else:
+        form = CriterioDesempenoForm()
+
+    return render(request, 'atributos/form_criterio.html', {
+        'form': form,
+        'titulo': 'Nuevo criterio de desempeño',
+        'atributo': atributo,
+    })
+
+
+@login_required
+@solo_admin
+def editar_criterio_desempeno(request, pk):
+    criterio = get_object_or_404(CriterioDesempeno, pk=pk)
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        form = CriterioDesempenoForm(request.POST, instance=criterio)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Criterio de desempeño actualizado correctamente.')
+            return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+    else:
+        form = CriterioDesempenoForm(instance=criterio)
+
+    return render(request, 'atributos/form_criterio.html', {
+        'form': form,
+        'titulo': 'Editar criterio de desempeño',
+        'atributo': atributo,
+        'criterio': criterio,
+    })
+
+
+@login_required
+@solo_admin
+def eliminar_criterio_desempeno(request, pk):
+    criterio = get_object_or_404(CriterioDesempeno, pk=pk)
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        try:
+            criterio.delete()
+            messages.success(request, 'Criterio de desempeño eliminado correctamente.')
+        except ProtectedError:
+            messages.error(
+                request,
+                'No se puede eliminar este criterio porque tiene indicadores relacionados.'
+            )
+        return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+
+    return render(request, 'atributos/confirmar_eliminar_criterio.html', {
+        'criterio': criterio,
+        'atributo': atributo,
+    })
+
+
+# =============================================================================
+# INDICADORES
+# =============================================================================
+
+@login_required
+@solo_admin
+def crear_indicador(request, criterio_pk):
+    criterio = get_object_or_404(CriterioDesempeno, pk=criterio_pk)
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        form = IndicadorForm(request.POST)
+        if form.is_valid():
+            indicador = form.save(commit=False)
+            indicador.criterio = criterio
+            indicador.save()
+            messages.success(request, 'Indicador creado correctamente.')
+            return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+    else:
+        form = IndicadorForm()
+
+    return render(request, 'atributos/form_indicador.html', {
+        'form': form,
+        'titulo': 'Nuevo indicador',
+        'atributo': atributo,
+        'criterio': criterio,
+    })
+
+
+@login_required
+@solo_admin
+def editar_indicador(request, pk):
+    indicador = get_object_or_404(Indicador, pk=pk)
+    criterio = indicador.criterio
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        form = IndicadorForm(request.POST, instance=indicador)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Indicador actualizado correctamente.')
+            return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+    else:
+        form = IndicadorForm(instance=indicador)
+
+    return render(request, 'atributos/form_indicador.html', {
+        'form': form,
+        'titulo': 'Editar indicador',
+        'atributo': atributo,
+        'criterio': criterio,
+        'indicador': indicador,
+    })
+
+
+@login_required
+@solo_admin
+def eliminar_indicador(request, pk):
+    indicador = get_object_or_404(Indicador, pk=pk)
+    criterio = indicador.criterio
+    atributo = criterio.atributo_egreso
+
+    if request.method == 'POST':
+        try:
+            indicador.delete()
+            messages.success(request, 'Indicador eliminado correctamente.')
+        except ProtectedError:
+            messages.error(
+                request,
+                'No se puede eliminar este indicador porque tiene información relacionada.'
+            )
+        return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+
+    return render(request, 'atributos/confirmar_eliminar_indicador.html', {
+        'indicador': indicador,
+        'criterio': criterio,
+        'atributo': atributo,
+    })
 
 # =============================================================================
 # MATERIAS (RETÍCULA)

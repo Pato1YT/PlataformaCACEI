@@ -35,8 +35,8 @@ urlpatterns = [
     # -------------------------------------------------------------------------
     # General
     # -------------------------------------------------------------------------
-    path('',                  views.dashboard,      name='dashboard'),
-    path('perfil/',           views.editar_perfil,  name='perfil'),
+    path('',                  views.dashboard,        name='dashboard'),
+    path('perfil/',           views.editar_perfil,    name='perfil'),
     path('aviso-privacidad/', views.aviso_privacidad, name='aviso_privacidad'),
 
     # -------------------------------------------------------------------------
@@ -48,12 +48,29 @@ urlpatterns = [
     # -------------------------------------------------------------------------
     # Atributos de egreso
     # -------------------------------------------------------------------------
-    path('atributos/',                      views.lista_atributos,        name='lista_atributos'),
-    path('atributos/nuevo/',                views.crear_atributo,         name='crear_atributo'),
-    path('atributos/<int:pk>/editar/',      views.editar_atributo,        name='editar_atributo'),
-    path('atributos/<int:pk>/eliminar/',    views.eliminar_atributo,      name='eliminar_atributo'),
-    path('atributos/importar-word/',        views.importar_atributo_word, name='importar_atributo_word'),
-    path('atributos/<int:pk>/tabla/',       views.ver_tabla_atributo,     name='ver_tabla_atributo'),
+    path('atributos/',                                   views.lista_atributos,          name='lista_atributos'),
+    path('atributos/nuevo/',                             views.crear_atributo,           name='crear_atributo'),
+    path('atributos/<int:pk>/editar/',                   views.editar_atributo,          name='editar_atributo'),
+    path('atributos/<int:pk>/eliminar/',                 views.eliminar_atributo,        name='eliminar_atributo'),
+    path('atributos/importar-word/',                     views.importar_atributo_word,   name='importar_atributo_word'),
+    path('atributos/<int:pk>/tabla/',                    views.ver_tabla_atributo,       name='ver_tabla_atributo'),
+    path('atributos/<int:pk>/tabla/',                    views.ver_tabla_atributo,       name='ver_tabla_atributo'),
+    path('atributos/<int:atributo_pk>/criterios/nuevo/', views.crear_criterio_desempeno, name='crear_criterio_desempeno'),
+    
+    # -------------------------------------------------------------------------
+    # Criterios de desempeno
+    # -------------------------------------------------------------------------
+    path('atributos/<int:atributo_pk>/criterios/nuevo/',   views.crear_criterio_desempeno,    name='crear_criterio_desempeno'),
+    path('criterios/<int:pk>/editar/',                     views.editar_criterio_desempeno,   name='editar_criterio_desempeno'),
+    path('criterios/<int:pk>/eliminar/',                   views.eliminar_criterio_desempeno, name='eliminar_criterio_desempeno'),
+    path('criterios/<int:criterio_pk>/indicadores/nuevo/', views.crear_indicador,             name='crear_indicador'),
+    
+    # -------------------------------------------------------------------------
+    # Indicadores
+    # -------------------------------------------------------------------------
+    path('criterios/<int:criterio_pk>/indicadores/nuevo/', views.crear_indicador,    name='crear_indicador'),
+    path('indicadores/<int:pk>/editar/',                   views.editar_indicador,   name='editar_indicador'),
+    path('indicadores/<int:pk>/eliminar/',                 views.eliminar_indicador, name='eliminar_indicador'),
 
     # -------------------------------------------------------------------------
     # Materias

@@ -5,7 +5,7 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password  # noqa: F401 — disponible para uso futuro
 
-from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario
+from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador
 
 
 # =============================================================================
@@ -211,3 +211,31 @@ class PeriodoForm(forms.ModelForm):
                     raise forms.ValidationError('Solo se puede activar el periodo más reciente.')
 
         return cleaned_data
+
+
+# =============================================================================
+# CRITERIOS DE DESEMPENO
+# =============================================================================
+
+class CriterioDesempenoForm(forms.ModelForm):
+    class Meta:
+        model = CriterioDesempeno
+        fields = ['codigo', 'descripcion']
+        widgets = {
+            'codigo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. CD1'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+
+# =============================================================================
+# INDIDCADORES
+# =============================================================================
+
+class IndicadorForm(forms.ModelForm):
+    class Meta:
+        model = Indicador
+        fields = ['codigo', 'descripcion']
+        widgets = {
+            'codigo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. I1'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
