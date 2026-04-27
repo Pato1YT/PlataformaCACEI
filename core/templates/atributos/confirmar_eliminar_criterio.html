@@ -3,42 +3,41 @@
 {% block title %}Eliminar criterio - Se'si Eskani{% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <div class="dashboard__header">
+<div class="perfil-card" style="max-width: 540px;">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar" style="background-color:#dc2626;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:24px;"></i>
+        </div>
         <div>
-            <h2 class="dashboard__title">Eliminar criterio de desempeño</h2>
-            <p class="dashboard__subtitle">
-                Atributo: <strong>{{ atributo.codigo }} - {{ atributo.nombre }}</strong>
-            </p>
+            <h2 class="perfil-card__nombre">Eliminar criterio de desempeño</h2>
+            <span class="perfil-card__rol" style="background:#fee2e2; color:#dc2626;">Acción irreversible</span>
         </div>
     </div>
 
-    <div class="table-wrapper" style="padding: 24px; max-width: 900px;">
-        <p style="font-size:16px; margin-bottom:20px;">
-            ¿Seguro que deseas eliminar el criterio
-            <strong>{{ criterio.codigo }}</strong>?
+    <div style="background:#fef2f2; border-left:4px solid #dc2626; border-radius:8px; padding:14px 18px; margin-bottom:20px; font-size:14px;">
+        <p style="margin:0 0 6px 0; color:#64748b; font-size:12px; font-weight:600; text-transform:uppercase;">Criterio a eliminar</p>
+        <p style="margin:0; font-weight:700; color:#0f172a;">
+            <span class="course-card__code" style="background:#fee2e2; color:#dc2626; margin-right:8px;">{{ criterio.codigo }}</span>
         </p>
-
-        <div style="padding:16px; background:#f8fafc; border-radius:12px; margin-bottom:20px;">
-            <p style="margin:0;"><strong>Descripción:</strong> {{ criterio.descripcion }}</p>
-        </div>
-
-        <form method="post">
-            {% csrf_token %}
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button type="submit"
-                        class="course-card__button"
-                        style="max-width:220px; background-color:#dc2626;">
-                    Eliminar
-                </button>
-
-                <a href="{% url 'core:ver_tabla_atributo' atributo.pk %}"
-                   class="course-card__button"
-                   style="max-width:220px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
-                    Cancelar
-                </a>
-            </div>
-        </form>
+        <p style="margin:8px 0 0 0; color:#374151; font-size:13px;">{{ criterio.descripcion }}</p>
+        <p style="margin:8px 0 0 0; font-size:12px; color:#64748b;">
+            Atributo: <strong>{{ atributo.codigo }} — {{ atributo.nombre }}</strong>
+        </p>
     </div>
+
+    <p style="font-size:14px; color:#64748b; margin-bottom:20px;">
+        Esta acción eliminará también todos los <strong>indicadores</strong> asociados a este criterio. No se puede deshacer.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width:180px; background-color:#dc2626;">
+                <i class="fa-solid fa-trash"></i> Sí, eliminar
+            </button>
+            <a href="{% url 'core:ver_tabla_atributo' atributo.pk %}" class="perfil-card__cancelar">Cancelar</a>
+        </div>
+    </form>
 </div>
 {% endblock %}
