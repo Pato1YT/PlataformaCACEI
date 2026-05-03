@@ -6,37 +6,50 @@
 <div class="dashboard">
     <div class="dashboard__header">
         <div>
-            <h2 class="dashboard__title">Atributos de egreso</h2>
+            <h2 class="dashboard__title">Atributos de Egreso</h2>
             <p class="dashboard__subtitle">Gestión de atributos de egreso del programa.</p>
         </div>
-        <a href="{% url 'core:importar_atributo_word' %}" class="course-card__button" style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block; background-color:#163ca3;">
-            Importar atributo
-        </a>
-        <a href="{% url 'core:crear_atributo' %}" class="course-card__button" style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block;">
-            Nuevo atributo
-        </a>
+        {% if request.user.rol == 'ADMINISTRADOR' %}
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <a href="{% url 'core:importar_atributo_word' %}"
+               class="course-card__button"
+               style="width:190px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#163ca3;">
+                <i class="fa-solid fa-file-import"></i> Importar atributo
+            </a>
+            <a href="{% url 'core:crear_atributo' %}"
+               class="course-card__button"
+               style="width:180px; text-align:center; text-decoration:none; display:inline-block; font-weight:700;">
+                <i class="fa-solid fa-square-plus"></i> Nuevo atributo
+            </a>
+        </div>
+        {% endif %}
     </div>
 
     <div class="table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
+                    <th style="width:80px;">Código</th>
+                    <th style="width:200px;">Nombre</th>
                     <th>Descripción</th>
-                    <th>Acciones</th>
+                    <th style="width:200px;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for atributo in atributos %}
                 <tr>
                     <td><span class="course-card__code">{{ atributo.codigo }}</span></td>
-                    <td>{{ atributo.nombre }}</td>
-                    <td>{{ atributo.descripcion }}</td>
+                    <td style="font-weight:600;">{{ atributo.nombre }}</td>
+                    <td style="color:#64748b; font-size:13px;">{{ atributo.descripcion|truncatechars:100 }}</td>
                     <td class="data-table__actions">
+                        <a href="{% url 'core:ver_tabla_atributo' atributo.pk %}"
+                           class="data-table__btn"
+                           style="background-color:#0284c7; color:#fff; white-space:nowrap;">Ver tabla</a>
+
+                        {% if request.user.rol == 'ADMINISTRADOR' %}
                         <a href="{% url 'core:editar_atributo' atributo.pk %}" class="data-table__btn data-table__btn--edit">Editar</a>
                         <a href="{% url 'core:eliminar_atributo' atributo.pk %}" class="data-table__btn data-table__btn--delete">Eliminar</a>
-                        <a href="{% url 'core:ver_tabla_atributo' atributo.pk %}" class="data-table__btn" style="background-color:#e0f2fe; color:#0369a1;">Ver tabla</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
