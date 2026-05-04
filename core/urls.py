@@ -106,13 +106,20 @@ urlpatterns = [
     path('cursos/importar/',                views.importar_cursos, name='importar_cursos'),  # antes de <pk>
     path('cursos/<int:pk>/editar/',         views.editar_curso,    name='editar_curso'),
     path('cursos/<int:pk>/eliminar/',       views.eliminar_curso,  name='eliminar_curso'),
-    
+    path('cursos/<int:pk>/detalle/',        views.detalle_curso,   name='detalle_curso'),
     
     # -------------------------------------------------------------------------
     # MateriaAtributoEgreso
     # -------------------------------------------------------------------------
     path('materias/<int:materia_pk>/atributos/', views.gestionar_atributos_materia, name='gestionar_atributos_materia'),
     path('materia-atributo/<int:pk>/eliminar/',  views.eliminar_atributo_materia,   name='eliminar_atributo_materia'),
-    path('materia-atributo/<int:pk>/editar/',    views.editar_atributo_materia,     name='editar_atributo_materia')
+    path('materia-atributo/<int:pk>/editar/',    views.editar_atributo_materia,     name='editar_atributo_materia'),
+    path('materias/<int:materia_pk>/indicadores/', views.gestionar_indicadores_materia, name='gestionar_indicadores_materia'),
+    path('materia-indicador/<int:pk>/eliminar/', views.eliminar_indicador_materia, name='eliminar_indicador_materia'),
+    
+    # -------------------------------------------------------------------------
+    # Evidencias - Reporte de Nivel de Logro
+    # -------------------------------------------------------------------------
+    path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/evaluacion/', views.evaluacion_indicador, name='evaluacion_indicador'),
 
 ]

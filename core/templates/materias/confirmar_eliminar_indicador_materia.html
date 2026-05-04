@@ -1,0 +1,38 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Eliminar indicador de materia - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Eliminar indicador de materia</h2>
+            <p class="dashboard__subtitle">{{ materia.clave }} - {{ materia.nombre }}</p>
+        </div>
+    </div>
+
+    <div class="table-wrapper" style="padding:24px; max-width:900px;">
+        <p>¿Seguro que deseas quitar este indicador de la materia?</p>
+
+        <div style="padding:16px; background:#f8fafc; border-radius:12px; margin-bottom:20px;">
+            <p><strong>Atributo:</strong> {{ relacion.indicador.criterio.atributo_egreso.codigo }}</p>
+            <p><strong>Criterio:</strong> {{ relacion.indicador.criterio.codigo }}</p>
+            <p><strong>Indicador:</strong> {{ relacion.indicador.codigo }}</p>
+            <p><strong>Descripción:</strong> {{ relacion.indicador.descripcion }}</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="course-card__button" style="max-width:200px; background-color:#dc2626;">
+                Eliminar
+            </button>
+
+            <a href="{% url 'core:gestionar_indicadores_materia' materia.pk %}"
+               class="course-card__button"
+               style="max-width:200px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
+                Cancelar
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

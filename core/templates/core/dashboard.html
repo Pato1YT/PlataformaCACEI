@@ -107,9 +107,11 @@
                         {{ curso.docente.get_full_name|default:curso.docente.username }}
                     </div>
 
-                    <button class="course-card__button">
+                    <a href="{% url 'core:detalle_curso' curso.pk %}"
+                        class="course-card__button"
+                        style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
                         <i class="fa-solid fa-eye" style="margin-right:5px;"></i>Ver detalles
-                    </button>
+                    </a>
                 </div>
             </article>
         {% empty %}

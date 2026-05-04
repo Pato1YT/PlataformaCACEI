@@ -5,7 +5,7 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password  # noqa: F401 — disponible para uso futuro
 
-from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador, MateriaAtributoEgreso
+from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador, MateriaAtributoEgreso, ResultadoIndicador, EvidenciaIndicador
 
 
 # =============================================================================
@@ -261,4 +261,40 @@ class MateriaAtributoEgresoNivelForm(forms.ModelForm):
         fields = ['nivel_aporte']
         widgets = {
             'nivel_aporte': forms.Select(attrs={'class': 'form-control'}),
+        }
+        
+        
+# =============================================================================
+# EVIDENCIAS - REPORTE DE NIVEL DE LOGRO
+# =============================================================================   
+    
+class ResultadoIndicadorForm(forms.ModelForm):
+    class Meta:
+        model = ResultadoIndicador
+        fields = [
+            'instrumento_evaluacion',
+            'alumnos_evaluados',
+            'porcentaje_meta',
+            'porcentaje_obtenido',
+            'argumentacion',
+            'acciones_mejora',
+        ]
+        widgets = {
+            'instrumento_evaluacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'alumnos_evaluados': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'porcentaje_meta': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': 0, 'max': 100}),
+            'porcentaje_obtenido': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': 0, 'max': 100}),
+            'argumentacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'acciones_mejora': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+
+class EvidenciaIndicadorForm(forms.ModelForm):
+    class Meta:
+        model = EvidenciaIndicador
+        fields = ['tipo_archivo', 'titulo', 'archivo']
+        widgets = {
+            'tipo_archivo': forms.Select(attrs={'class': 'form-control'}),
+            'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Título opcional'}),
+            'archivo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }

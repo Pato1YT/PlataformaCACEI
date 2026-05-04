@@ -1,0 +1,142 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Evaluación del indicador - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">
+                {{ curso.materia.nombre }} · {{ indicador.codigo }}
+            </h2>
+            <p class="dashboard__subtitle">
+                {{ curso.materia.clave }} · Grupo {{ curso.grupo }} · {{ curso.materia.periodo.nombre }}
+            </p>
+        </div>
+
+        <a href="{% url 'core:detalle_curso' curso.pk %}"
+           class="course-card__button"
+           style="max-width:180px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
+            Volver
+        </a>
+    </div>
+
+    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
+        <h3 style="margin-bottom:12px;">Descripción del indicador</h3>
+
+        <p><strong>Atributo:</strong> {{ indicador.criterio.atributo_egreso.codigo }} - {{ indicador.criterio.atributo_egreso.descripcion }}</p>
+        <p><strong>Criterio:</strong> {{ indicador.criterio.codigo }} - {{ indicador.criterio.descripcion }}</p>
+        <p><strong>Indicador:</strong> {{ indicador.codigo }} - {{ indicador.descripcion }}</p>
+    </div>
+
+    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
+        <h3 style="margin-bottom:16px;">Reporte de nivel de logro</h3>
+
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="guardar_resultado">
+
+            <div style="display:grid; gap:16px;">
+                <div>
+                    <label>Instrumento de evaluación</label>
+                    {{ resultado_form.instrumento_evaluacion }}
+                </div>
+
+                <div>
+                    <label>Alumnos evaluados</label>
+                    {{ resultado_form.alumnos_evaluados }}
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div>
+                        <label>Meta propuesta (%)</label>
+                        {{ resultado_form.porcentaje_meta }}
+                    </div>
+
+                    <div>
+                        <label>Resultado obtenido (%)</label>
+                        {{ resultado_form.porcentaje_obtenido }}
+                    </div>
+                </div>
+
+                <div>
+                    <label>Argumentación</label>
+                    {{ resultado_form.argumentacion }}
+                </div>
+
+                <div>
+                    <label>Acciones de mejora propuestas</label>
+                    {{ resultado_form.acciones_mejora }}
+                </div>
+            </div>
+
+            <button type="submit" class="course-card__button" style="margin-top:20px; max-width:220px;">
+                Guardar resultado
+            </button>
+        </form>
+    </div>
+
+    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
+        <h3 style="margin-bottom:16px;">Subir evidencia</h3>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="subir_evidencia">
+
+            <div style="display:grid; grid-template-columns:220px 1fr 1fr auto; gap:12px; align-items:end;">
+                <div>
+                    <label>Tipo</label>
+                    {{ evidencia_form.tipo_archivo }}
+                </div>
+
+                <div>
+                    <label>Título</label>
+                    {{ evidencia_form.titulo }}
+                </div>
+
+                <div>
+                    <label>Archivo</label>
+                    {{ evidencia_form.archivo }}
+                </div>
+
+                <button type="submit" class="course-card__button" style="max-width:180px;">
+                    Subir
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Título</th>
+                    <th>Archivo</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for evidencia in evidencias %}
+                    <tr>
+                        <td>{{ evidencia.get_tipo_archivo_display }}</td>
+                        <td>{{ evidencia.titulo|default:"-" }}</td>
+                        <td>
+                            <a href="{{ evidencia.archivo.url }}" target="_blank">
+                                Ver archivo
+                            </a>
+                        </td>
+                        <td>{{ evidencia.fecha_subida|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="data-table__empty">
+                            Todavía no hay evidencias cargadas para este indicador.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

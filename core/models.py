@@ -210,62 +210,43 @@ class Indicador(models.Model):
 
 # PARA RESULTADOS DEL INDICADOR
 class ResultadoIndicador(models.Model):
-    NIVEL_LOGRO = [
-        ('I', 'Inicial'),
-        ('M', 'Medio'),
-        ('A', 'Avanzado'),
-    ]
+    curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='resultados_indicadores')
+    indicador = models.ForeignKey(Indicador, on_delete=models.PROTECT, related_name='resultados')
 
-    curso = models.ForeignKey(
-        Curso,
-        on_delete=models.CASCADE,
-        related_name='resultados_indicadores',
-    )
-    indicador = models.ForeignKey(
-        Indicador,
-        on_delete=models.PROTECT,
-        related_name='resultados',
-    )
-    nivel = models.CharField(max_length=1, choices=NIVEL_LOGRO)
-    comentario = models.TextField(blank=True)
-    fecha_evaluacion = models.DateTimeField()
-    usuario = models.ForeignKey(
-        Usuario,
-        on_delete=models.PROTECT,
-        related_name='evaluaciones_registradas',
-    )
+    instrumento_evaluacion = models.TextField()
+    alumnos_evaluados = models.PositiveIntegerField()
+    porcentaje_meta = models.DecimalField(max_digits=5, decimal_places=2)
+    porcentaje_obtenido = models.DecimalField(max_digits=5, decimal_places=2)
+
+    argumentacion = models.TextField(blank=True)
+    acciones_mejora = models.TextField(blank=True)
+
+    usuario = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='evaluaciones_registradas')
+    fecha_evaluacion = models.DateTimeField(auto_now_add=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Resultado de indicador"
-        verbose_name_plural = "Resultados de indicadores"
         unique_together = ('curso', 'indicador')
 
-    def __str__(self):
-        return f"{self.curso} - {self.indicador.codigo} ({self.get_nivel_display()})"
-    
-    def clean(self):
-        if self.usuario and self.usuario.rol not in [Usuario.DOCENTE, Usuario.ADMINISTRADOR]:
-            raise ValidationError("Solo un docente o un administrador pueden registrar resultados de indicadores.")
 
-        if self.usuario and self.curso:
-            if self.usuario.rol == Usuario.DOCENTE and self.curso.docente_id != self.usuario.id:
-                raise ValidationError("El docente que registra el resultado debe ser el docente asignado al curso.")
+class MateriaIndicador(models.Model):
+    materia = models.ForeignKey(
+        Materia,
+        on_delete=models.CASCADE,
+        related_name='indicadores_asignados'
+    )
+    indicador = models.ForeignKey(
+        Indicador,
+        on_delete=models.PROTECT,
+        related_name='materias_asignadas'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
-        if self.curso and self.indicador:
-            atributo_indicador = self.indicador.criterio.atributo_egreso
+    class Meta:
+        unique_together = ('materia', 'indicador')
 
-            existe_relacion = MateriaAtributoEgreso.objects.filter(
-                materia=self.curso.materia,
-                atributo_egreso=atributo_indicador
-            ).exists()
-
-            if not existe_relacion:
-                raise ValidationError(
-                    "El indicador seleccionado no corresponde a un atributo de egreso ligado a la materia del curso."
-                )
-    
         
 class MateriaAtributoEgreso(models.Model):
     NIVEL_APORTE = [
@@ -297,43 +278,21 @@ def ruta_evidencia(instance, filename):
     return f"evidencias/curso_{instance.curso.id}/{filename}"
 
 
-class Evidencia(models.Model):
-    curso = models.ForeignKey(
-        'Curso',
-        on_delete=models.CASCADE,
-        related_name="evidencias"
-    )
+class EvidenciaIndicador(models.Model):
+    TIPO_ARCHIVO = [
+        ('INSTRUMENTO', 'Instrumento de evaluación'),
+        ('EVIDENCIA', 'Evidencia del estudiante'),
+        ('REPORTE', 'Reporte de resultados'),
+    ]
 
-    titulo = models.CharField(max_length=255)
-    archivo = models.FileField(upload_to=ruta_evidencia)
+    curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='evidencias_indicadores')
+    indicador = models.ForeignKey(Indicador, on_delete=models.PROTECT, related_name='evidencias')
+
+    tipo_archivo = models.CharField(max_length=30, choices=TIPO_ARCHIVO)
+    archivo = models.FileField(upload_to='evidencias/indicadores/')
+    titulo = models.CharField(max_length=255, blank=True)
+
     fecha_subida = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Evidencia"
-        verbose_name_plural = "Evidencias"
-
-    def __str__(self):
-        return self.titulo
-
-
-# =========================
-# REPORTE DE NIVEL DE LOGRO
-# =========================
-
-class ReporteNivelLogro(models.Model):
-    materia_atributo = models.OneToOneField(
-        MateriaAtributoEgreso,
-        on_delete=models.CASCADE,
-        related_name="reporte_nivel_logro"
-    )
-    porcentaje_meta = models.DecimalField(max_digits=5, decimal_places=2)
-    porcentaje_obtenido = models.DecimalField(max_digits=5, decimal_places=2)
-    comentarios = models.TextField(blank=True, null=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Reporte de nivel de logro"
-        verbose_name_plural = "Reportes de nivel de logro"
-
-    def __str__(self):
-        return f"Reporte - {self.materia_atributo.materia.clave} - {self.materia_atributo.atributo_egreso.codigo}"
+        unique_together = ('curso', 'indicador', 'tipo_archivo')
