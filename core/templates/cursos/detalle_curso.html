@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="dashboard">
+
     <div class="dashboard__header">
         <div>
             <h2 class="dashboard__title">{{ curso.materia.nombre }}</h2>
@@ -11,60 +12,84 @@
                 {{ curso.materia.clave }} · Grupo {{ curso.grupo }} · {{ curso.materia.periodo.nombre }}
             </p>
         </div>
-
-        <a href="{% url 'core:dashboard' %}" class="course-card__button"
-           style="max-width:180px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
-            Volver
+        <a href="{% url 'core:dashboard' %}"
+           class="course-card__button"
+           style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
+            <i class="fa-solid fa-arrow-left"></i> Volver
         </a>
     </div>
 
-    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
-        <h3 style="margin-bottom:16px;">Información del curso</h3>
-
-        <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:16px;">
-            <div><strong>Materia:</strong><br>{{ curso.materia.nombre }}</div>
-            <div><strong>Clave:</strong><br>{{ curso.materia.clave }}</div>
-            <div><strong>Docente:</strong><br>{{ curso.docente.get_full_name|default:curso.docente.username }}</div>
-            <div><strong>Grupo:</strong><br>{{ curso.grupo }}</div>
-            <div><strong>Semestre:</strong><br>{{ curso.materia.semestre }}</div>
-            <div><strong>Periodo:</strong><br>{{ curso.materia.periodo.nombre }}</div>
+    <!-- Info del curso -->
+    <div class="table-wrapper" style="padding:20px 24px; margin-bottom:24px;">
+        <p class="perfil-card__section-title" style="margin-bottom:16px;">Información del curso</p>
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:14px 32px;">
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Materia</span>
+                <p style="margin:4px 0 0 0; font-weight:600; font-size:14px;">{{ curso.materia.nombre }}</p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Clave</span>
+                <p style="margin:4px 0 0 0;"><span class="course-card__code">{{ curso.materia.clave }}</span></p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Docente</span>
+                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.docente.get_full_name|default:curso.docente.username }}</p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Grupo</span>
+                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.grupo }}</p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Semestre</span>
+                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.materia.semestre }}</p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Periodo</span>
+                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.materia.periodo.nombre }}</p>
+            </div>
         </div>
     </div>
 
-    <div class="table-wrapper" style="margin-top:24px;">
+    <!-- Tabla de indicadores -->
+    <div class="table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Atributo</th>
-                    <th>Nivel de aporte</th>
-                    <th>Criterio</th>
-                    <th>Indicador</th>
+                    <th style="width:80px;">Atributo</th>
+                    <th style="width:120px;">Nivel de aporte</th>
+                    <th style="width:80px;">Criterio</th>
+                    <th style="width:80px;">Indicador</th>
                     <th>Descripción</th>
-                    <th>Acciones</th>
+                    <th style="width:100px;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for relacion in indicadores_materia %}
                 <tr>
                     <td>
-                        <span class="course-card__code">
-                            {{ relacion.indicador.criterio.atributo_egreso.codigo }}
-                        </span>
+                        <span class="course-card__code">{{ relacion.indicador.criterio.atributo_egreso.codigo }}</span>
                     </td>
                     <td>
                         {% for rel_atributo in relaciones_atributos %}
                             {% if rel_atributo.atributo_egreso_id == relacion.indicador.criterio.atributo_egreso_id %}
-                                {{ rel_atributo.get_nivel_aporte_display }}
+                                {% if rel_atributo.nivel_aporte == 'A' %}
+                                    <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700;">Avanzado</span>
+                                {% elif rel_atributo.nivel_aporte == 'M' %}
+                                    <span style="background:#fef9c3; color:#ca8a04; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700;">Medio</span>
+                                {% else %}
+                                    <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700;">Inicial</span>
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
                     </td>
-                    <td>{{ relacion.indicador.criterio.codigo }}</td>
-                    <td>{{ relacion.indicador.codigo }}</td>
-                    <td>{{ relacion.indicador.descripcion }}</td>
+                    <td><span class="course-card__code" style="background:#f0f9ff; color:#0284c7;">{{ relacion.indicador.criterio.codigo }}</span></td>
+                    <td><span class="course-card__code" style="background:#f0fdf4; color:#16a34a;">{{ relacion.indicador.codigo }}</span></td>
+                    <td style="font-size:13px; color:#374151;">{{ relacion.indicador.descripcion }}</td>
                     <td class="data-table__actions">
                         <a href="{% url 'core:evaluacion_indicador' curso.pk relacion.indicador.pk %}"
-                           class="data-table__btn data-table__btn--edit">
-                            Evaluar
+                           class="data-table__btn"
+                           style="background-color:#0284c7; color:#fff; white-space:nowrap;">
+                            <i class="fa-solid fa-pen-to-square"></i> Evaluar
                         </a>
                     </td>
                 </tr>

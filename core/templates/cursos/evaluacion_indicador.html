@@ -4,139 +4,152 @@
 
 {% block content %}
 <div class="dashboard">
+
     <div class="dashboard__header">
         <div>
             <h2 class="dashboard__title">
-                {{ curso.materia.nombre }} · {{ indicador.codigo }}
+                {{ curso.materia.nombre }}
+                <span class="course-card__code" style="font-size:14px; margin-left:8px;">{{ indicador.codigo }}</span>
             </h2>
             <p class="dashboard__subtitle">
                 {{ curso.materia.clave }} · Grupo {{ curso.grupo }} · {{ curso.materia.periodo.nombre }}
             </p>
         </div>
-
         <a href="{% url 'core:detalle_curso' curso.pk %}"
            class="course-card__button"
-           style="max-width:180px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
-            Volver
+           style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
+            <i class="fa-solid fa-arrow-left"></i> Volver
         </a>
     </div>
 
-    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
-        <h3 style="margin-bottom:12px;">Descripción del indicador</h3>
-
-        <p><strong>Atributo:</strong> {{ indicador.criterio.atributo_egreso.codigo }} - {{ indicador.criterio.atributo_egreso.descripcion }}</p>
-        <p><strong>Criterio:</strong> {{ indicador.criterio.codigo }} - {{ indicador.criterio.descripcion }}</p>
-        <p><strong>Indicador:</strong> {{ indicador.codigo }} - {{ indicador.descripcion }}</p>
+    <!-- Info del indicador -->
+    <div style="background:#f0f9ff; border-left:4px solid #0284c7; border-radius:8px; padding:14px 18px; margin-bottom:24px; font-size:13px;">
+        <p style="margin:0 0 6px 0; font-size:11px; font-weight:600; color:#0284c7; text-transform:uppercase; letter-spacing:.5px;">Indicador evaluado</p>
+        <p style="margin:0 0 4px 0;">
+            <span class="course-card__code" style="margin-right:6px;">{{ indicador.criterio.atributo_egreso.codigo }}</span>
+            <span style="color:#64748b; font-size:12px;">{{ indicador.criterio.atributo_egreso.descripcion|truncatechars:80 }}</span>
+        </p>
+        <p style="margin:4px 0;">
+            <span class="course-card__code" style="background:#f0f9ff; color:#0284c7; margin-right:6px;">{{ indicador.criterio.codigo }}</span>
+            <span style="color:#64748b; font-size:12px;">{{ indicador.criterio.descripcion|truncatechars:80 }}</span>
+        </p>
+        <p style="margin:4px 0 0 0;">
+            <span class="course-card__code" style="background:#f0fdf4; color:#16a34a; margin-right:6px;">{{ indicador.codigo }}</span>
+            <span style="color:#374151; font-size:13px;">{{ indicador.descripcion }}</span>
+        </p>
     </div>
 
-    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
-        <h3 style="margin-bottom:16px;">Reporte de nivel de logro</h3>
+    <!-- Reporte de nivel de logro -->
+    <div class="table-wrapper" style="padding:20px 24px; margin-bottom:24px;">
+        <p class="perfil-card__section-title" style="margin-bottom:16px;">Reporte de nivel de logro</p>
 
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="accion" value="guardar_resultado">
 
-            <div style="display:grid; gap:16px;">
-                <div>
-                    <label>Instrumento de evaluación</label>
+            <div style="display:grid; gap:16px; max-width:700px;">
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Instrumento de evaluación</label>
                     {{ resultado_form.instrumento_evaluacion }}
                 </div>
-
-                <div>
-                    <label>Alumnos evaluados</label>
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Alumnos evaluados</label>
                     {{ resultado_form.alumnos_evaluados }}
                 </div>
-
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                    <div>
-                        <label>Meta propuesta (%)</label>
+                    <div class="perfil-card__field">
+                        <label class="perfil-card__label">Meta propuesta (%)</label>
                         {{ resultado_form.porcentaje_meta }}
                     </div>
-
-                    <div>
-                        <label>Resultado obtenido (%)</label>
+                    <div class="perfil-card__field">
+                        <label class="perfil-card__label">Resultado obtenido (%)</label>
                         {{ resultado_form.porcentaje_obtenido }}
                     </div>
                 </div>
-
-                <div>
-                    <label>Argumentación</label>
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Argumentación</label>
                     {{ resultado_form.argumentacion }}
                 </div>
-
-                <div>
-                    <label>Acciones de mejora propuestas</label>
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Acciones de mejora propuestas</label>
                     {{ resultado_form.acciones_mejora }}
                 </div>
             </div>
 
-            <button type="submit" class="course-card__button" style="margin-top:20px; max-width:220px;">
-                Guardar resultado
-            </button>
-        </form>
-    </div>
-
-    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
-        <h3 style="margin-bottom:16px;">Subir evidencia</h3>
-
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="subir_evidencia">
-
-            <div style="display:grid; grid-template-columns:220px 1fr 1fr auto; gap:12px; align-items:end;">
-                <div>
-                    <label>Tipo</label>
-                    {{ evidencia_form.tipo_archivo }}
-                </div>
-
-                <div>
-                    <label>Título</label>
-                    {{ evidencia_form.titulo }}
-                </div>
-
-                <div>
-                    <label>Archivo</label>
-                    {{ evidencia_form.archivo }}
-                </div>
-
-                <button type="submit" class="course-card__button" style="max-width:180px;">
-                    Subir
+            <div style="margin-top:20px;">
+                <button type="submit" class="course-card__button" style="max-width:200px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar resultado
                 </button>
             </div>
         </form>
     </div>
 
+    <!-- Subir evidencia -->
+    <div class="table-wrapper" style="padding:20px 24px; margin-bottom:24px;">
+        <p class="perfil-card__section-title" style="margin-bottom:16px;">Subir evidencia</p>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="subir_evidencia">
+
+            <div style="display:grid; grid-template-columns:200px 1fr 1fr; gap:12px; align-items:end; max-width:800px;">
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Tipo</label>
+                    {{ evidencia_form.tipo_archivo }}
+                </div>
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Título</label>
+                    {{ evidencia_form.titulo }}
+                </div>
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Archivo</label>
+                    {{ evidencia_form.archivo }}
+                </div>
+            </div>
+
+            <div style="margin-top:12px;">
+                <button type="submit" class="course-card__button" style="max-width:160px;">
+                    <i class="fa-solid fa-upload"></i> Subir
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de evidencias subidas -->
     <div class="table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
                     <th>Tipo</th>
                     <th>Título</th>
-                    <th>Archivo</th>
-                    <th>Fecha</th>
+                    <th style="width:120px;">Archivo</th>
+                    <th style="width:140px;">Fecha</th>
                 </tr>
             </thead>
             <tbody>
                 {% for evidencia in evidencias %}
-                    <tr>
-                        <td>{{ evidencia.get_tipo_archivo_display }}</td>
-                        <td>{{ evidencia.titulo|default:"-" }}</td>
-                        <td>
-                            <a href="{{ evidencia.archivo.url }}" target="_blank">
-                                Ver archivo
-                            </a>
-                        </td>
-                        <td>{{ evidencia.fecha_subida|date:"d/m/Y H:i" }}</td>
-                    </tr>
+                <tr>
+                    <td>{{ evidencia.get_tipo_archivo_display }}</td>
+                    <td style="color:#64748b; font-size:13px;">{{ evidencia.titulo|default:"—" }}</td>
+                    <td>
+                        <a href="{{ evidencia.archivo.url }}" target="_blank"
+                           class="data-table__btn"
+                           style="background-color:#0284c7; color:#fff; white-space:nowrap;">
+                            <i class="fa-solid fa-eye"></i> Ver
+                        </a>
+                    </td>
+                    <td style="font-size:12px; color:#64748b;">{{ evidencia.fecha_subida|date:"d/m/Y H:i" }}</td>
+                </tr>
                 {% empty %}
-                    <tr>
-                        <td colspan="4" class="data-table__empty">
-                            Todavía no hay evidencias cargadas para este indicador.
-                        </td>
-                    </tr>
+                <tr>
+                    <td colspan="4" class="data-table__empty">
+                        Todavía no hay evidencias cargadas para este indicador.
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
 </div>
 {% endblock %}
