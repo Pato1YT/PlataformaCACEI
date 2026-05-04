@@ -3,36 +3,45 @@
 {% block title %}Eliminar indicador de materia - Se'si Eskani{% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <div class="dashboard__header">
+<div class="perfil-card" style="max-width:540px;">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar" style="background-color:#dc2626;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:24px;"></i>
+        </div>
         <div>
-            <h2 class="dashboard__title">Eliminar indicador de materia</h2>
-            <p class="dashboard__subtitle">{{ materia.clave }} - {{ materia.nombre }}</p>
+            <h2 class="perfil-card__nombre">Eliminar indicador de materia</h2>
+            <span class="perfil-card__rol" style="background:#fee2e2; color:#dc2626;">Acción irreversible</span>
         </div>
     </div>
 
-    <div class="table-wrapper" style="padding:24px; max-width:900px;">
-        <p>¿Seguro que deseas quitar este indicador de la materia?</p>
+    <div style="background:#fef2f2; border-left:4px solid #dc2626; border-radius:8px; padding:14px 18px; margin-bottom:20px;">
+        <p style="margin:0 0 8px 0; color:#64748b; font-size:12px; font-weight:600; text-transform:uppercase;">Indicador a quitar</p>
+        <p style="margin:0 0 4px 0;">
+            <span class="course-card__code" style="background:#fee2e2; color:#dc2626; margin-right:6px;">{{ relacion.indicador.criterio.atributo_egreso.codigo }}</span>
+            <span class="course-card__code" style="background:#f0f9ff; color:#0284c7; margin-right:6px;">{{ relacion.indicador.criterio.codigo }}</span>
+            <span class="course-card__code" style="background:#f0fdf4; color:#16a34a;">{{ relacion.indicador.codigo }}</span>
+        </p>
+        <p style="margin:8px 0 0 0; color:#374151; font-size:13px;">{{ relacion.indicador.descripcion }}</p>
+        <p style="margin:8px 0 0 0; font-size:12px; color:#64748b;">
+            Materia: <strong>{{ materia.clave }} — {{ materia.nombre }}</strong>
+        </p>
+    </div>
 
-        <div style="padding:16px; background:#f8fafc; border-radius:12px; margin-bottom:20px;">
-            <p><strong>Atributo:</strong> {{ relacion.indicador.criterio.atributo_egreso.codigo }}</p>
-            <p><strong>Criterio:</strong> {{ relacion.indicador.criterio.codigo }}</p>
-            <p><strong>Indicador:</strong> {{ relacion.indicador.codigo }}</p>
-            <p><strong>Descripción:</strong> {{ relacion.indicador.descripcion }}</p>
-        </div>
+    <p style="font-size:14px; color:#64748b; margin-bottom:20px;">
+        Esta acción no se puede deshacer.
+    </p>
 
-        <form method="post">
-            {% csrf_token %}
-            <button type="submit" class="course-card__button" style="max-width:200px; background-color:#dc2626;">
-                Eliminar
+    <form method="post">
+        {% csrf_token %}
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width:180px; background-color:#dc2626;">
+                <i class="fa-solid fa-trash"></i> Sí, eliminar
             </button>
-
-            <a href="{% url 'core:gestionar_indicadores_materia' materia.pk %}"
-               class="course-card__button"
-               style="max-width:200px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
+            <a href="{% url 'core:gestionar_indicadores_materia' materia.pk %}" class="perfil-card__cancelar">
                 Cancelar
             </a>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 {% endblock %}
