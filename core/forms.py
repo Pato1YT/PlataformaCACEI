@@ -5,7 +5,7 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password  # noqa: F401 — disponible para uso futuro
 
-from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador
+from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador, MateriaAtributoEgreso
 
 
 # =============================================================================
@@ -238,4 +238,27 @@ class IndicadorForm(forms.ModelForm):
         widgets = {
             'codigo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. I1'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+        
+        
+# =============================================================================
+# MATERIA -> ATRIBUTO(S) DE EGRESO
+# =============================================================================
+
+class MateriaAtributoEgresoForm(forms.ModelForm):
+    class Meta:
+        model = MateriaAtributoEgreso
+        fields = ['atributo_egreso', 'nivel_aporte']
+        widgets = {
+            'atributo_egreso': forms.Select(attrs={'class': 'form-control'}),
+            'nivel_aporte': forms.Select(attrs={'class': 'form-control'}),
+        }
+        
+
+class MateriaAtributoEgresoNivelForm(forms.ModelForm):
+    class Meta:
+        model = MateriaAtributoEgreso
+        fields = ['nivel_aporte']
+        widgets = {
+            'nivel_aporte': forms.Select(attrs={'class': 'form-control'}),
         }

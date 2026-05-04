@@ -1,0 +1,92 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Atributos de materia - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">{{ materia.clave }} - {{ materia.nombre }}</h2>
+            <p class="dashboard__subtitle">
+                Gestionar atributos de egreso asociados a esta materia.
+            </p>
+        </div>
+
+        <a href="{% url 'core:lista_materias' %}"
+           class="course-card__button"
+           style="max-width:180px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
+            Volver
+        </a>
+    </div>
+
+    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
+        <h3 style="margin-bottom:16px;">Asignar atributo</h3>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div style="display:grid; grid-template-columns: 1fr 220px auto; gap:12px; align-items:end;">
+                <div>
+                    <label style="display:block; margin-bottom:6px; font-weight:600;">Atributo de egreso</label>
+                    {{ form.atributo_egreso }}
+                    {{ form.atributo_egreso.errors }}
+                </div>
+
+                <div>
+                    <label style="display:block; margin-bottom:6px; font-weight:600;">Nivel de aporte</label>
+                    {{ form.nivel_aporte }}
+                    {{ form.nivel_aporte.errors }}
+                </div>
+
+                <button type="submit" class="course-card__button" style="max-width:180px;">
+                    Asignar
+                </button>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div style="color:#dc2626; margin-top:12px;">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Atributo</th>
+                    <th>Nivel de aporte</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for relacion in relaciones %}
+                <tr>
+                    <td><span class="course-card__code">{{ relacion.atributo_egreso.codigo }}</span></td>
+                    <td>{{ relacion.atributo_egreso.nombre }}</td>
+                    <td>{{ relacion.get_nivel_aporte_display }}</td>
+                    <td class="data-table__actions">
+                        <a href="{% url 'core:editar_atributo_materia' relacion.pk %}"
+                            class="data-table__btn data-table__btn--edit">
+                            Editar nivel
+                        </a>
+                        <a href="{% url 'core:eliminar_atributo_materia' relacion.pk %}"
+                           class="data-table__btn data-table__btn--delete">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="data-table__empty">
+                        Esta materia no tiene atributos asociados todavía.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

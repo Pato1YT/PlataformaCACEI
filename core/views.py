@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models.deletion import ProtectedError
 
 # Modelos
-from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador
+from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador, MateriaAtributoEgreso 
 
 # Formularios
 from .forms import (
@@ -29,7 +29,9 @@ from .forms import (
     MateriaForm,
     PeriodoForm,
     CriterioDesempenoForm,
-    IndicadorForm
+    IndicadorForm,
+    MateriaAtributoEgresoForm,
+    MateriaAtributoEgresoNivelForm
 )
 
 # Utilidades — importadores Excel
@@ -1375,4 +1377,91 @@ def importar_cursos(request):
 
     return render(request, 'cursos/importar_cursos.html', {
         'periodo_activo': periodo_seleccionado,
+    })
+    
+    
+# =============================================================================
+# MATERIAATRIBUTOEGRESO
+# =============================================================================
+
+@login_required
+@solo_admin
+def gestionar_atributos_materia(request, materia_pk):
+    materia = get_object_or_404(Materia, pk=materia_pk)
+
+    relaciones = MateriaAtributoEgreso.objects.filter(
+        materia=materia
+    ).select_related('atributo_egreso').order_by('atributo_egreso__codigo')
+
+    if request.method == 'POST':
+        form = MateriaAtributoEgresoForm(request.POST)
+
+        if form.is_valid():
+            atributo_egreso = form.cleaned_data['atributo_egreso']
+
+            existe_relacion = MateriaAtributoEgreso.objects.filter(
+                materia=materia,
+                atributo_egreso=atributo_egreso
+            ).exists()
+
+            if existe_relacion:
+                messages.error(
+                    request,
+                    'Este atributo ya está asignado a esta materia. Si deseas cambiar el nivel, edita la relación existente.'
+                )
+                return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
+
+            relacion = form.save(commit=False)
+            relacion.materia = materia
+            relacion.save()
+
+            messages.success(request, 'Atributo asignado correctamente.')
+            return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
+    else:
+        form = MateriaAtributoEgresoForm()
+        
+    return render(request, 'materias/gestionar_atributos.html', {
+        'materia': materia,
+        'relaciones': relaciones,
+        'form': form,
+    })
+    
+
+@login_required
+@solo_admin
+def editar_atributo_materia(request, pk):
+    relacion = get_object_or_404(MateriaAtributoEgreso, pk=pk)
+    materia = relacion.materia
+
+    if request.method == 'POST':
+        form = MateriaAtributoEgresoNivelForm(request.POST, instance=relacion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Nivel de aporte actualizado correctamente.')
+            return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
+    else:
+        form = MateriaAtributoEgresoNivelForm(instance=relacion)
+
+    return render(request, 'materias/form_atributo_materia.html', {
+        'form': form,
+        'materia': materia,
+        'relacion': relacion,
+        'titulo': 'Editar nivel de aporte',
+    })
+
+
+@login_required
+@solo_admin
+def eliminar_atributo_materia(request, pk):
+    relacion = get_object_or_404(MateriaAtributoEgreso, pk=pk)
+    materia = relacion.materia
+
+    if request.method == 'POST':
+        relacion.delete()
+        messages.success(request, 'Relación materia-atributo eliminada correctamente.')
+        return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
+
+    return render(request, 'materias/confirmar_eliminar_atributo_materia.html', {
+        'relacion': relacion,
+        'materia': materia,
     })

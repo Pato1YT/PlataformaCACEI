@@ -1,0 +1,39 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Eliminar relación - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Eliminar atributo de materia</h2>
+            <p class="dashboard__subtitle">
+                {{ materia.clave }} - {{ materia.nombre }}
+            </p>
+        </div>
+    </div>
+
+    <div class="table-wrapper" style="padding:24px; max-width:900px;">
+        <p>
+            ¿Seguro que deseas eliminar la relación con
+            <strong>{{ relacion.atributo_egreso.codigo }} - {{ relacion.atributo_egreso.nombre }}</strong>?
+        </p>
+
+        <form method="post" style="margin-top:20px;">
+            {% csrf_token %}
+
+            <button type="submit"
+                    class="course-card__button"
+                    style="max-width:200px; background-color:#dc2626;">
+                Eliminar
+            </button>
+
+            <a href="{% url 'core:gestionar_atributos_materia' materia.pk %}"
+               class="course-card__button"
+               style="max-width:200px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
+                Cancelar
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

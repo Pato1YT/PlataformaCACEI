@@ -106,5 +106,13 @@ urlpatterns = [
     path('cursos/importar/',                views.importar_cursos, name='importar_cursos'),  # antes de <pk>
     path('cursos/<int:pk>/editar/',         views.editar_curso,    name='editar_curso'),
     path('cursos/<int:pk>/eliminar/',       views.eliminar_curso,  name='eliminar_curso'),
+    
+    
+    # -------------------------------------------------------------------------
+    # MateriaAtributoEgreso
+    # -------------------------------------------------------------------------
+    path('materias/<int:materia_pk>/atributos/', views.gestionar_atributos_materia, name='gestionar_atributos_materia'),
+    path('materia-atributo/<int:pk>/eliminar/',  views.eliminar_atributo_materia,   name='eliminar_atributo_materia'),
+    path('materia-atributo/<int:pk>/editar/',    views.editar_atributo_materia,     name='editar_atributo_materia')
 
 ]

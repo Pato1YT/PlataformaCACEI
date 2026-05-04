@@ -48,6 +48,11 @@
                     <td>{% if materia.es_especialidad %}Sí{% else %}No{% endif %}</td>
                     {% if request.user.rol == 'ADMINISTRADOR' %}
                     <td class="data-table__actions">
+                        <a href="{% url 'core:gestionar_atributos_materia' materia.pk %}"
+                            class="data-table__btn"
+                            style="background-color:#e0f2fe; color:#0369a1;">
+                            Atributos
+                        </a>
                         <a href="{% url 'core:editar_materia' materia.pk %}" class="data-table__btn data-table__btn--edit">Editar</a>
                         <a href="{% url 'core:eliminar_materia' materia.pk %}" class="data-table__btn data-table__btn--delete">Eliminar</a>
                     </td>
