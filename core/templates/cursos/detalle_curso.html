@@ -62,14 +62,14 @@
                     <th>Archivo requerido</th>
                     <th style="width:115px;">Estado</th>
                     <th style="width:70px;">Ver</th>
-                    <th style="width:130px;">Acciones</th>
+                    <th style="width:140px;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for bloque in indicadores_bloques %}
-
                     {% for archivo in bloque.archivos %}
-                    <tr style="{% if not forloop.last %}border-bottom: 1px solid #f1f5f9;{% else %}border-bottom: 3px solid #e2e8f0;{% endif %}">
+                    <tr style="{% if not forloop.last %}border-bottom:1px solid #f1f5f9;{% else %}border-bottom:3px solid #e2e8f0;{% endif %}">
+
                         {% if forloop.first %}
                         <td rowspan="{{ bloque.archivos|length }}"
                             style="vertical-align:middle; text-align:center; border-right:1px solid #e2e8f0;">
@@ -96,6 +96,7 @@
                         {% endif %}
 
                         <td style="font-size:13px; padding-top:14px; padding-bottom:14px;">{{ archivo.nombre }}</td>
+
                         <td style="padding-top:14px; padding-bottom:14px;">
                             {% if archivo.evidencia %}
                                 <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
@@ -107,6 +108,7 @@
                                 </span>
                             {% endif %}
                         </td>
+
                         <td style="padding-top:14px; padding-bottom:14px;">
                             {% if archivo.evidencia %}
                                 <a href="{{ archivo.evidencia.archivo.url }}" target="_blank"
@@ -118,22 +120,36 @@
                                 <span style="color:#94a3b8; font-size:12px;">—</span>
                             {% endif %}
                         </td>
+
                         <td class="data-table__actions" style="padding-top:14px; padding-bottom:14px;">
                             {% if archivo.tipo == 'REPORTE' %}
-                            <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
-                               class="data-table__btn data-table__btn--edit" style="white-space:nowrap;">
-                                {% if archivo.evidencia %}<i class="fa-solid fa-rotate"></i> Reemplazar{% else %}<i class="fa-solid fa-upload"></i> Subir{% endif %}
-                            </a>
+                                {% if archivo.evidencia %}
+                                <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
+                                   class="data-table__btn" style="white-space:nowrap; background-color:#d97706; color:#fff;">
+                                    <i class="fa-solid fa-rotate"></i> Reemplazar
+                                </a>
+                                {% else %}
+                                <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
+                                   class="data-table__btn data-table__btn--edit" style="white-space:nowrap;">
+                                    <i class="fa-solid fa-upload"></i> Subir
+                                </a>
+                                {% endif %}
                             {% else %}
-                            <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
-                               class="data-table__btn data-table__btn--edit" style="white-space:nowrap;">
-                                {% if archivo.evidencia %}<i class="fa-solid fa-rotate"></i> Reemplazar{% else %}<i class="fa-solid fa-upload"></i> Subir{% endif %}
-                            </a>
+                                {% if archivo.evidencia %}
+                                <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
+                                   class="data-table__btn" style="white-space:nowrap; background-color:#d97706; color:#fff;">
+                                    <i class="fa-solid fa-rotate"></i> Reemplazar
+                                </a>
+                                {% else %}
+                                <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
+                                   class="data-table__btn data-table__btn--edit" style="white-space:nowrap;">
+                                    <i class="fa-solid fa-upload"></i> Subir
+                                </a>
+                                {% endif %}
                             {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
-
                 {% empty %}
                 <tr>
                     <td colspan="8" class="data-table__empty">Esta materia no tiene indicadores específicos asignados.</td>
