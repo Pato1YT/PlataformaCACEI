@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="dashboard">
+
     <div class="dashboard__header">
         <div>
             <h2 class="dashboard__title">{{ curso.materia.nombre }}</h2>
@@ -11,111 +12,136 @@
                 {{ curso.materia.clave }} · Grupo {{ curso.grupo }} · {{ curso.materia.periodo.nombre }}
             </p>
         </div>
-
-        <a href="{% url 'core:dashboard' %}" class="course-card__button"
-            style="max-width:180px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
-            ← Volver
+        <a href="{% url 'core:dashboard' %}"
+           class="course-card__button"
+           style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
+            <i class="fa-solid fa-arrow-left"></i> Volver
         </a>
     </div>
 
-    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
-        <h3 style="margin-bottom:16px;">Información del curso</h3>
-
-        <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:16px;">
-            <div><strong>Materia:</strong><br>{{ curso.materia.nombre }}</div>
-            <div><strong>Clave:</strong><br><span class="course-card__code">{{ curso.materia.clave }}</span></div>
-            <div><strong>Docente:</strong><br>{{ curso.docente.get_full_name|default:curso.docente.username }}</div>
-            <div><strong>Grupo:</strong><br>{{ curso.grupo }}</div>
-            <div><strong>Semestre:</strong><br>{{ curso.materia.semestre }}</div>
-            <div><strong>Periodo:</strong><br>{{ curso.materia.periodo.nombre }}</div>
+    <!-- Info del curso -->
+    <div class="table-wrapper" style="padding:20px 24px; margin-bottom:24px;">
+        <p class="perfil-card__section-title" style="margin-bottom:16px;">Información del curso</p>
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:14px 32px;">
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Materia</span>
+                <p style="margin:4px 0 0 0; font-weight:600; font-size:14px;">{{ curso.materia.nombre }}</p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Clave</span>
+                <p style="margin:4px 0 0 0;"><span class="course-card__code">{{ curso.materia.clave }}</span></p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Docente</span>
+                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.docente.get_full_name|default:curso.docente.username }}</p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Grupo</span>
+                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.grupo }}</p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Semestre</span>
+                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.materia.semestre }}</p>
+            </div>
+            <div>
+                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Periodo</span>
+                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.materia.periodo.nombre }}</p>
+            </div>
         </div>
     </div>
 
-    {% for bloque in indicadores_bloques %}
-    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
-        <div style="margin-bottom:20px;">
-            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
-                <span class="course-card__code">{{ bloque.atributo.codigo }}</span>
-                <span class="course-card__code">{{ bloque.nivel_aporte }}</span>
-                <span class="course-card__code">{{ bloque.criterio.codigo }}</span>
-                <span class="course-card__code">{{ bloque.indicador.codigo }}</span>
-            </div>
-
-            <h3 style="margin-bottom:10px;">
-                {{ bloque.atributo.codigo }} - {{ bloque.atributo.nombre }}
-            </h3>
-
-            <p style="margin-bottom:10px;">
-                <strong>Atributo:</strong> {{ bloque.atributo.descripcion }}
-            </p>
-
-            <p style="margin-bottom:10px;">
-                <strong>{{ bloque.criterio.codigo }}:</strong> {{ bloque.criterio.descripcion }}
-            </p>
-
-            <p style="margin-bottom:0;">
-                <strong>{{ bloque.indicador.codigo }}:</strong> {{ bloque.indicador.descripcion }}
-            </p>
-        </div>
-
+    <!-- Tabla única -->
+    <div class="table-wrapper">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width:60px;">#</th>
+                    <th style="width:70px;">Atributo</th>
+                    <th style="width:100px;">Nivel</th>
+                    <th style="width:70px;">Criterio</th>
+                    <th style="width:70px;">Indicador</th>
                     <th>Archivo requerido</th>
-                    <th style="width:160px;">Estado</th>
-                    <th>Archivo</th>
-                    <th style="width:220px;">Acciones</th>
+                    <th style="width:115px;">Estado</th>
+                    <th style="width:70px;">Ver</th>
+                    <th style="width:130px;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for archivo in bloque.archivos %}
+                {% for bloque in indicadores_bloques %}
+
+                    {% for archivo in bloque.archivos %}
+                    <tr style="{% if not forloop.last %}border-bottom: 1px solid #f1f5f9;{% else %}border-bottom: 3px solid #e2e8f0;{% endif %}">
+                        {% if forloop.first %}
+                        <td rowspan="{{ bloque.archivos|length }}"
+                            style="vertical-align:middle; text-align:center; border-right:1px solid #e2e8f0;">
+                            <span class="course-card__code">{{ bloque.atributo.codigo }}</span>
+                        </td>
+                        <td rowspan="{{ bloque.archivos|length }}"
+                            style="vertical-align:middle; text-align:center; border-right:1px solid #e2e8f0;">
+                            {% if bloque.nivel_aporte == 'A' %}
+                                <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">Avanzado</span>
+                            {% elif bloque.nivel_aporte == 'M' %}
+                                <span style="background:#fef9c3; color:#ca8a04; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">Medio</span>
+                            {% else %}
+                                <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">Inicial</span>
+                            {% endif %}
+                        </td>
+                        <td rowspan="{{ bloque.archivos|length }}"
+                            style="vertical-align:middle; text-align:center; border-right:1px solid #e2e8f0;">
+                            <span class="course-card__code" style="background:#f0f9ff; color:#0284c7;">{{ bloque.criterio.codigo }}</span>
+                        </td>
+                        <td rowspan="{{ bloque.archivos|length }}"
+                            style="vertical-align:middle; text-align:center; border-right:1px solid #e2e8f0;">
+                            <span class="course-card__code" style="background:#f0fdf4; color:#16a34a;">{{ bloque.indicador.codigo }}</span>
+                        </td>
+                        {% endif %}
+
+                        <td style="font-size:13px; padding-top:14px; padding-bottom:14px;">{{ archivo.nombre }}</td>
+                        <td style="padding-top:14px; padding-bottom:14px;">
+                            {% if archivo.evidencia %}
+                                <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
+                                    <i class="fa-solid fa-check"></i> Cargado
+                                </span>
+                            {% else %}
+                                <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
+                                    <i class="fa-solid fa-clock"></i> Pendiente
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding-top:14px; padding-bottom:14px;">
+                            {% if archivo.evidencia %}
+                                <a href="{{ archivo.evidencia.archivo.url }}" target="_blank"
+                                   class="data-table__btn"
+                                   style="background-color:#0284c7; color:#fff; font-size:11px; padding:3px 10px; white-space:nowrap;">
+                                    <i class="fa-solid fa-eye"></i> Ver
+                                </a>
+                            {% else %}
+                                <span style="color:#94a3b8; font-size:12px;">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="data-table__actions" style="padding-top:14px; padding-bottom:14px;">
+                            {% if archivo.tipo == 'REPORTE' %}
+                            <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
+                               class="data-table__btn data-table__btn--edit" style="white-space:nowrap;">
+                                {% if archivo.evidencia %}<i class="fa-solid fa-rotate"></i> Reemplazar{% else %}<i class="fa-solid fa-upload"></i> Subir{% endif %}
+                            </a>
+                            {% else %}
+                            <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
+                               class="data-table__btn data-table__btn--edit" style="white-space:nowrap;">
+                                {% if archivo.evidencia %}<i class="fa-solid fa-rotate"></i> Reemplazar{% else %}<i class="fa-solid fa-upload"></i> Subir{% endif %}
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                {% empty %}
                 <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ archivo.nombre }}</td>
-
-                    <td>
-                        {% if archivo.evidencia %}
-                        <span style="color:#16a34a; font-weight:700;">Cargado</span>
-                        {% else %}
-                        <span style="color:#dc2626; font-weight:700;">Pendiente</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if archivo.evidencia %}
-                        <a href="{{ archivo.evidencia.archivo.url }}" target="_blank">
-                            {{ archivo.evidencia.titulo|default:"Ver archivo" }}
-                        </a>
-                        {% else %}
-                        <span style="color:#64748b;">Sin archivo</span>
-                        {% endif %}
-                    </td>
-
-                    <td class="data-table__actions">
-                        {% if archivo.tipo == 'REPORTE' %}
-                        <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
-                            class="data-table__btn data-table__btn--edit">
-                            {% if archivo.evidencia %}Reemplazar{% else %}Subir{% endif %}
-                        </a>
-                        {% else %}
-                        <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
-                            class="data-table__btn data-table__btn--edit">
-                            {% if archivo.evidencia %}Reemplazar{% else %}Subir{% endif %}
-                        </a>
-                        {% endif %}
-                    </td>
+                    <td colspan="8" class="data-table__empty">Esta materia no tiene indicadores específicos asignados.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    {% empty %}
-    <div class="table-wrapper" style="padding:24px;">
-        <p class="data-table__empty">
-            Esta materia no tiene indicadores específicos asignados.
-        </p>
-    </div>
-    {% endfor %}
+
 </div>
 {% endblock %}
