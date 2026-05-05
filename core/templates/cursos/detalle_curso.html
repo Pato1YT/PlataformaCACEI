@@ -4,7 +4,6 @@
 
 {% block content %}
 <div class="dashboard">
-
     <div class="dashboard__header">
         <div>
             <h2 class="dashboard__title">{{ curso.materia.nombre }}</h2>
@@ -12,96 +11,111 @@
                 {{ curso.materia.clave }} · Grupo {{ curso.grupo }} · {{ curso.materia.periodo.nombre }}
             </p>
         </div>
-        <a href="{% url 'core:dashboard' %}"
-           class="course-card__button"
-           style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
-            <i class="fa-solid fa-arrow-left"></i> Volver
+
+        <a href="{% url 'core:dashboard' %}" class="course-card__button"
+            style="max-width:180px; text-align:center; text-decoration:none; display:inline-block; background-color:#64748b;">
+            ← Volver
         </a>
     </div>
 
-    <!-- Info del curso -->
-    <div class="table-wrapper" style="padding:20px 24px; margin-bottom:24px;">
-        <p class="perfil-card__section-title" style="margin-bottom:16px;">Información del curso</p>
-        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:14px 32px;">
-            <div>
-                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Materia</span>
-                <p style="margin:4px 0 0 0; font-weight:600; font-size:14px;">{{ curso.materia.nombre }}</p>
-            </div>
-            <div>
-                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Clave</span>
-                <p style="margin:4px 0 0 0;"><span class="course-card__code">{{ curso.materia.clave }}</span></p>
-            </div>
-            <div>
-                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Docente</span>
-                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.docente.get_full_name|default:curso.docente.username }}</p>
-            </div>
-            <div>
-                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Grupo</span>
-                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.grupo }}</p>
-            </div>
-            <div>
-                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Semestre</span>
-                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.materia.semestre }}</p>
-            </div>
-            <div>
-                <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Periodo</span>
-                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.materia.periodo.nombre }}</p>
-            </div>
+    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
+        <h3 style="margin-bottom:16px;">Información del curso</h3>
+
+        <div style="display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:16px;">
+            <div><strong>Materia:</strong><br>{{ curso.materia.nombre }}</div>
+            <div><strong>Clave:</strong><br><span class="course-card__code">{{ curso.materia.clave }}</span></div>
+            <div><strong>Docente:</strong><br>{{ curso.docente.get_full_name|default:curso.docente.username }}</div>
+            <div><strong>Grupo:</strong><br>{{ curso.grupo }}</div>
+            <div><strong>Semestre:</strong><br>{{ curso.materia.semestre }}</div>
+            <div><strong>Periodo:</strong><br>{{ curso.materia.periodo.nombre }}</div>
         </div>
     </div>
 
-    <!-- Tabla de indicadores -->
-    <div class="table-wrapper">
+    {% for bloque in indicadores_bloques %}
+    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
+        <div style="margin-bottom:20px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                <span class="course-card__code">{{ bloque.atributo.codigo }}</span>
+                <span class="course-card__code">{{ bloque.nivel_aporte }}</span>
+                <span class="course-card__code">{{ bloque.criterio.codigo }}</span>
+                <span class="course-card__code">{{ bloque.indicador.codigo }}</span>
+            </div>
+
+            <h3 style="margin-bottom:10px;">
+                {{ bloque.atributo.codigo }} - {{ bloque.atributo.nombre }}
+            </h3>
+
+            <p style="margin-bottom:10px;">
+                <strong>Atributo:</strong> {{ bloque.atributo.descripcion }}
+            </p>
+
+            <p style="margin-bottom:10px;">
+                <strong>{{ bloque.criterio.codigo }}:</strong> {{ bloque.criterio.descripcion }}
+            </p>
+
+            <p style="margin-bottom:0;">
+                <strong>{{ bloque.indicador.codigo }}:</strong> {{ bloque.indicador.descripcion }}
+            </p>
+        </div>
+
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width:80px;">Atributo</th>
-                    <th style="width:120px;">Nivel de aporte</th>
-                    <th style="width:80px;">Criterio</th>
-                    <th style="width:80px;">Indicador</th>
-                    <th>Descripción</th>
-                    <th style="width:100px;">Acciones</th>
+                    <th style="width:60px;">#</th>
+                    <th>Archivo requerido</th>
+                    <th style="width:160px;">Estado</th>
+                    <th>Archivo</th>
+                    <th style="width:220px;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for relacion in indicadores_materia %}
+                {% for archivo in bloque.archivos %}
                 <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ archivo.nombre }}</td>
+
                     <td>
-                        <span class="course-card__code">{{ relacion.indicador.criterio.atributo_egreso.codigo }}</span>
+                        {% if archivo.evidencia %}
+                        <span style="color:#16a34a; font-weight:700;">Cargado</span>
+                        {% else %}
+                        <span style="color:#dc2626; font-weight:700;">Pendiente</span>
+                        {% endif %}
                     </td>
+
                     <td>
-                        {% for rel_atributo in relaciones_atributos %}
-                            {% if rel_atributo.atributo_egreso_id == relacion.indicador.criterio.atributo_egreso_id %}
-                                {% if rel_atributo.nivel_aporte == 'A' %}
-                                    <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700;">Avanzado</span>
-                                {% elif rel_atributo.nivel_aporte == 'M' %}
-                                    <span style="background:#fef9c3; color:#ca8a04; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700;">Medio</span>
-                                {% else %}
-                                    <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700;">Inicial</span>
-                                {% endif %}
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-                    <td><span class="course-card__code" style="background:#f0f9ff; color:#0284c7;">{{ relacion.indicador.criterio.codigo }}</span></td>
-                    <td><span class="course-card__code" style="background:#f0fdf4; color:#16a34a;">{{ relacion.indicador.codigo }}</span></td>
-                    <td style="font-size:13px; color:#374151;">{{ relacion.indicador.descripcion }}</td>
-                    <td class="data-table__actions">
-                        <a href="{% url 'core:evaluacion_indicador' curso.pk relacion.indicador.pk %}"
-                           class="data-table__btn"
-                           style="background-color:#0284c7; color:#fff; white-space:nowrap;">
-                            <i class="fa-solid fa-pen-to-square"></i> Evaluar
+                        {% if archivo.evidencia %}
+                        <a href="{{ archivo.evidencia.archivo.url }}" target="_blank">
+                            {{ archivo.evidencia.titulo|default:"Ver archivo" }}
                         </a>
+                        {% else %}
+                        <span style="color:#64748b;">Sin archivo</span>
+                        {% endif %}
                     </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="data-table__empty">
-                        Esta materia no tiene indicadores específicos asignados.
+
+                    <td class="data-table__actions">
+                        {% if archivo.tipo == 'REPORTE' %}
+                        <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
+                            class="data-table__btn data-table__btn--edit">
+                            {% if archivo.evidencia %}Reemplazar{% else %}Subir{% endif %}
+                        </a>
+                        {% else %}
+                        <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
+                            class="data-table__btn data-table__btn--edit">
+                            {% if archivo.evidencia %}Reemplazar{% else %}Subir{% endif %}
+                        </a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% empty %}
+    <div class="table-wrapper" style="padding:24px;">
+        <p class="data-table__empty">
+            Esta materia no tiene indicadores específicos asignados.
+        </p>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

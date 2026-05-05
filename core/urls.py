@@ -4,6 +4,8 @@
 
 from django.contrib.auth import views as auth_views
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 
 from . import views
 
@@ -120,6 +122,12 @@ urlpatterns = [
     # -------------------------------------------------------------------------
     # Evidencias - Reporte de Nivel de Logro
     # -------------------------------------------------------------------------
-    path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/evaluacion/', views.evaluacion_indicador, name='evaluacion_indicador'),
+    #path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/reporte/', views.editar_reporte_indicador, name='editar_reporte_indicador'),
+    path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/evidencias/<str:tipo_archivo>/subir/', views.subir_evidencia_indicador, name='subir_evidencia_indicador'),
+    path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/reporte/', views.subir_reporte_nivel_logro, name='subir_reporte_nivel_logro'),
+    
 
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

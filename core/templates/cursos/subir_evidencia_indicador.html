@@ -1,0 +1,79 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Subir evidencia - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">
+                {% if tipo_archivo == 'INSTRUMENTO' %}
+                Instrumento de evaluación
+                {% else %}
+                Evidencia del estudiante
+                {% endif %}
+            </h2>
+            <p class="dashboard__subtitle">
+                {{ curso.materia.clave }} · {{ curso.materia.nombre }} · Grupo {{ curso.grupo }}
+            </p>
+        </div>
+
+        <a href="{% url 'core:detalle_curso' curso.pk %}" class="course-card__button"
+            style="max-width:180px; text-align:center; text-decoration:none; background-color:#64748b;">
+            Volver
+        </a>
+    </div>
+
+    <div class="table-wrapper" style="padding:24px; margin-bottom:24px;">
+        <p><strong>Atributo:</strong> {{ indicador.criterio.atributo_egreso.codigo }}</p>
+        <p><strong>Criterio:</strong> {{ indicador.criterio.codigo }} - {{ indicador.criterio.descripcion }}</p>
+        <p><strong>Indicador:</strong> {{ indicador.codigo }} - {{ indicador.descripcion }}</p>
+    </div>
+
+    <div class="table-wrapper" style="padding:24px; max-width:900px;">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div style="display:grid; gap:16px;">
+                <div>
+                    <label style="display:block; margin-bottom:6px; font-weight:600;">Título</label>
+                    {{ form.titulo }}
+                    {{ form.titulo.errors }}
+                </div>
+
+                <div>
+                    <label style="display:block; margin-bottom:6px; font-weight:600;">Comentario</label>
+                    {{ form.comentario }}
+                    {{ form.comentario.errors }}
+                </div>
+
+                <div>
+                    <label style="display:block; margin-bottom:6px; font-weight:600;">Archivo</label>
+                    {{ form.archivo }}
+                    {{ form.archivo.errors }}
+                </div>
+            </div>
+
+            {% if evidencia and evidencia.archivo %}
+            <p style="margin-top:16px;">
+                Archivo actual:
+                <a href="{{ evidencia.archivo.url }}" target="_blank">
+                    {{ evidencia.archivo.name }}
+                </a>
+            </p>
+            {% endif %}
+
+            <div style="display:flex; gap:10px; margin-top:24px; flex-wrap:wrap;">
+                <button type="submit" class="course-card__button" style="max-width:220px;">
+                    Guardar archivo
+                </button>
+
+                <a href="{% url 'core:detalle_curso' curso.pk %}" class="course-card__button"
+                    style="max-width:220px; text-align:center; text-decoration:none; background-color:#64748b;">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

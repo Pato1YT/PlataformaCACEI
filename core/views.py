@@ -34,6 +34,7 @@ from .forms import (
     MateriaAtributoEgresoNivelForm,
     ResultadoIndicadorForm,
     EvidenciaIndicadorForm,
+    EvidenciaIndicadorSimpleForm
 )
 
 # Utilidades — importadores Excel
@@ -1395,9 +1396,12 @@ def detalle_curso(request, pk):
 
     relaciones_atributos = MateriaAtributoEgreso.objects.filter(
         materia=curso.materia
-    ).select_related(
-        'atributo_egreso'
-    ).order_by('atributo_egreso__codigo')
+    ).select_related('atributo_egreso')
+
+    niveles_por_atributo = {
+        rel.atributo_egreso_id: rel.get_nivel_aporte_display()
+        for rel in relaciones_atributos
+    }
 
     indicadores_materia = MateriaIndicador.objects.filter(
         materia=curso.materia
@@ -1411,10 +1415,48 @@ def detalle_curso(request, pk):
         'indicador__codigo'
     )
 
+    evidencias = EvidenciaIndicador.objects.filter(
+        curso=curso,
+        indicador__in=[rel.indicador for rel in indicadores_materia]
+    )
+
+    evidencias_map = {
+        (ev.indicador_id, ev.tipo_archivo): ev
+        for ev in evidencias
+    }
+
+    tipos_archivo = [
+        ('INSTRUMENTO', 'Instrumento de evaluación'),
+        ('EVIDENCIA', 'Evidencia del estudiante'),
+        ('REPORTE', 'Reporte de nivel de logro'),
+    ]
+
+    indicadores_bloques = []
+
+    for relacion in indicadores_materia:
+        indicador = relacion.indicador
+        criterio = indicador.criterio
+        atributo = criterio.atributo_egreso
+
+        archivos = []
+        for tipo, nombre in tipos_archivo:
+            archivos.append({
+                'tipo': tipo,
+                'nombre': nombre,
+                'evidencia': evidencias_map.get((indicador.id, tipo)),
+            })
+
+        indicadores_bloques.append({
+            'indicador': indicador,
+            'criterio': criterio,
+            'atributo': atributo,
+            'nivel_aporte': niveles_por_atributo.get(atributo.id, 'Sin nivel'),
+            'archivos': archivos,
+        })
+
     return render(request, 'cursos/detalle_curso.html', {
         'curso': curso,
-        'relaciones_atributos': relaciones_atributos,
-        'indicadores_materia': indicadores_materia,
+        'indicadores_bloques': indicadores_bloques,
     })
     
     
@@ -1680,3 +1722,113 @@ def evaluacion_indicador(request, curso_pk, indicador_pk):
         'evidencias': evidencias,
     })
 
+@login_required
+def subir_evidencia_indicador(request, curso_pk, indicador_pk, tipo_archivo):
+    curso = get_object_or_404(Curso, pk=curso_pk)
+    indicador = get_object_or_404(Indicador, pk=indicador_pk)
+
+    tipos_permitidos = ['INSTRUMENTO', 'EVIDENCIA']
+
+    if tipo_archivo not in tipos_permitidos:
+        messages.error(request, 'Tipo de archivo no válido para esta acción.')
+        return redirect('core:detalle_curso', pk=curso.pk)
+
+    if not MateriaIndicador.objects.filter(
+        materia=curso.materia,
+        indicador=indicador
+    ).exists():
+        messages.error(request, 'Este indicador no está asignado a la materia del curso.')
+        return redirect('core:detalle_curso', pk=curso.pk)
+
+    evidencia = EvidenciaIndicador.objects.filter(
+        curso=curso,
+        indicador=indicador,
+        tipo_archivo=tipo_archivo
+    ).first()
+
+    if request.method == 'POST':
+        form = EvidenciaIndicadorSimpleForm(
+            request.POST,
+            request.FILES,
+            instance=evidencia
+        )
+
+        if form.is_valid():
+            evidencia = form.save(commit=False)
+            evidencia.curso = curso
+            evidencia.indicador = indicador
+            evidencia.tipo_archivo = tipo_archivo
+            evidencia.save()
+
+            messages.success(request, 'Archivo guardado correctamente.')
+            return redirect('core:detalle_curso', pk=curso.pk)
+
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, error)
+
+    else:
+        form = EvidenciaIndicadorSimpleForm(instance=evidencia)
+
+    return render(request, 'cursos/subir_evidencia_indicador.html', {
+        'form': form,
+        'curso': curso,
+        'indicador': indicador,
+        'tipo_archivo': tipo_archivo,
+        'evidencia': evidencia,
+    })
+    
+
+@login_required
+def subir_reporte_nivel_logro(request, curso_pk, indicador_pk):
+    curso = get_object_or_404(
+        Curso.objects.select_related('materia', 'docente', 'materia__periodo'),
+        pk=curso_pk
+    )
+
+    indicador = get_object_or_404(
+        Indicador.objects.select_related(
+            'criterio',
+            'criterio__atributo_egreso'
+        ),
+        pk=indicador_pk
+    )
+
+    if not MateriaIndicador.objects.filter(
+        materia=curso.materia,
+        indicador=indicador
+    ).exists():
+        messages.error(request, 'Este indicador no está asignado a la materia del curso.')
+        return redirect('core:detalle_curso', pk=curso.pk)
+
+    resultado, _ = ResultadoIndicador.objects.get_or_create(
+        curso=curso,
+        indicador=indicador,
+        defaults={
+            'usuario': request.user,
+            'instrumento_evaluacion': '',
+            'alumnos_evaluados': 0,
+            'porcentaje_meta': 85,
+            'porcentaje_obtenido': 0,
+            'argumentacion': '',
+            'acciones_mejora': '',
+        }
+    )
+
+    if request.method == 'POST':
+        form = ResultadoIndicadorForm(request.POST, instance=resultado)
+        if form.is_valid():
+            resultado = form.save(commit=False)
+            resultado.usuario = request.user
+            resultado.save()
+            messages.success(request, 'Reporte de nivel de logro guardado correctamente.')
+            return redirect('core:detalle_curso', pk=curso.pk)
+    else:
+        form = ResultadoIndicadorForm(instance=resultado)
+
+    return render(request, 'cursos/subir_reporte_nivel_logro.html', {
+        'form': form,
+        'curso': curso,
+        'indicador': indicador,
+        'resultado': resultado,
+    })

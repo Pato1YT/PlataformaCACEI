@@ -282,7 +282,7 @@ class EvidenciaIndicador(models.Model):
     TIPO_ARCHIVO = [
         ('INSTRUMENTO', 'Instrumento de evaluación'),
         ('EVIDENCIA', 'Evidencia del estudiante'),
-        ('REPORTE', 'Reporte de resultados'),
+        ('REPORTE', 'Reporte de nivel de logro'),
     ]
 
     curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='evidencias_indicadores')
@@ -291,6 +291,7 @@ class EvidenciaIndicador(models.Model):
     tipo_archivo = models.CharField(max_length=30, choices=TIPO_ARCHIVO)
     archivo = models.FileField(upload_to='evidencias/indicadores/')
     titulo = models.CharField(max_length=255, blank=True)
+    comentario = models.TextField(blank=True)
 
     fecha_subida = models.DateTimeField(auto_now_add=True)
 

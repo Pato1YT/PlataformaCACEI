@@ -298,3 +298,43 @@ class EvidenciaIndicadorForm(forms.ModelForm):
             'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Título opcional'}),
             'archivo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
+        
+        
+class EvidenciaIndicadorSimpleForm(forms.ModelForm):
+    class Meta:
+        model = EvidenciaIndicador
+        fields = ['titulo', 'comentario', 'archivo']
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Título opcional'
+            }),
+            'comentario': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Comentario opcional sobre el archivo'
+            }),
+                'archivo': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'application/pdf,.pdf'
+            }),
+        }
+        
+    def clean_archivo(self):
+        archivo = self.cleaned_data.get('archivo')
+
+        if archivo:
+            # Validar extensión
+            if not archivo.name.lower().endswith('.pdf'):
+                raise forms.ValidationError('Solo se permiten archivos PDF.')
+
+            if archivo.content_type != 'application/pdf':
+                raise forms.ValidationError('El archivo debe ser un PDF válido.')
+
+        
+            max_size = 5 * 1024 * 1024  # 5MB
+
+            if archivo.size > max_size:
+                raise forms.ValidationError('El archivo no debe superar los 5MB.')
+
+        return archivo
