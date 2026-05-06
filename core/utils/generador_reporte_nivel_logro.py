@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.files import File
 from docxtpl import DocxTemplate
+import subprocess
 
 from core.models import EvidenciaIndicador
 
@@ -107,6 +108,11 @@ def generar_reporte_nivel_logro(resultado):
     ruta_salida = os.path.join(carpeta_salida, nombre_archivo)
     doc.save(ruta_salida)
 
+    ruta_pdf = convertir_docx_a_pdf(
+        ruta_salida,
+        carpeta_salida
+    )
+
     evidencia, _ = EvidenciaIndicador.objects.update_or_create(
         curso=curso,
         indicador=indicador,
@@ -116,7 +122,24 @@ def generar_reporte_nivel_logro(resultado):
         }
     )
 
-    with open(ruta_salida, 'rb') as archivo:
-        evidencia.archivo.save(nombre_archivo, File(archivo), save=True)
+    with open(ruta_pdf, 'rb') as archivo:
+        evidencia.archivo.save(
+            nombre_archivo.replace('.docx', '.pdf'),
+            File(archivo),
+            save=True
+        )
 
     return evidencia
+
+def convertir_docx_a_pdf(ruta_docx, carpeta_salida):
+    subprocess.run([
+        'libreoffice',
+        '--headless',
+        '--convert-to',
+        'pdf',
+        '--outdir',
+        carpeta_salida,
+        ruta_docx
+    ], check=True)
+
+    return ruta_docx.replace('.docx', '.pdf')
