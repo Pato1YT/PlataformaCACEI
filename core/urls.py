@@ -126,6 +126,11 @@ urlpatterns = [
     path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/evidencias/<str:tipo_archivo>/subir/', views.subir_evidencia_indicador, name='subir_evidencia_indicador'),
     path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/reporte/', views.subir_reporte_nivel_logro, name='subir_reporte_nivel_logro'),
     
+    # -------------------------------------------------------------------------
+    # Plantillas - Reporte de Nivel de Logro
+    # -------------------------------------------------------------------------
+    path('configuracion/plantillas-reportes/', views.plantillas_reporte_nivel_logro, name='plantillas_reporte_nivel_logro'),
+    
 
 ]
 

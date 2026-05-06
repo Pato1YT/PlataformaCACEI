@@ -297,3 +297,30 @@ class EvidenciaIndicador(models.Model):
 
     class Meta:
         unique_together = ('curso', 'indicador', 'tipo_archivo')
+        
+
+# =========================
+# PLANTILLA DE REPORTE DE NIVEL DE LOGRO
+# =========================
+
+class PlantillaReporteNivelLogro(models.Model):
+    periodo = models.OneToOneField(
+        Periodo,
+        on_delete=models.PROTECT,
+        related_name='plantilla_reporte_nivel_logro'
+    )
+    nombre = models.CharField(max_length=255)
+    archivo = models.FileField(upload_to='plantillas/reportes_nivel_logro/')
+    usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.PROTECT,
+        related_name='plantillas_reporte_subidas'
+    )
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Plantilla de reporte de nivel de logro"
+        verbose_name_plural = "Plantillas de reporte de nivel de logro"
+
+    def __str__(self):
+        return f"{self.periodo.codigo} - {self.nombre}"

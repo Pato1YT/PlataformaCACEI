@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models.deletion import ProtectedError
 
 # Modelos
-from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador, MateriaAtributoEgreso, MateriaIndicador, ResultadoIndicador, EvidenciaIndicador
+from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador, MateriaAtributoEgreso, MateriaIndicador, ResultadoIndicador, EvidenciaIndicador, PlantillaReporteNivelLogro
 
 # Formularios
 from .forms import (
@@ -34,7 +34,8 @@ from .forms import (
     MateriaAtributoEgresoNivelForm,
     ResultadoIndicadorForm,
     EvidenciaIndicadorForm,
-    EvidenciaIndicadorSimpleForm
+    EvidenciaIndicadorSimpleForm,
+    PlantillaReporteNivelLogroForm
 )
 
 # Utilidades — importadores Excel
@@ -59,6 +60,15 @@ from .utils.importador_materias import (
 from .utils.importador_atributos_word import (
     analizar_documento_atributo_word,
     ImportadorAtributosWordError,
+)
+
+from .utils.validadores_plantillas import (
+    validar_placeholders_reporte_nivel_logro,
+)
+
+from .utils.generador_reporte_nivel_logro import (
+    generar_reporte_nivel_logro,
+    GeneradorReporteNivelLogroError,
 )
 
 
@@ -1821,8 +1831,14 @@ def subir_reporte_nivel_logro(request, curso_pk, indicador_pk):
             resultado = form.save(commit=False)
             resultado.usuario = request.user
             resultado.save()
-            messages.success(request, 'Reporte de nivel de logro guardado correctamente.')
-            return redirect('core:detalle_curso', pk=curso.pk)
+
+            try:
+                generar_reporte_nivel_logro(resultado)
+                messages.success(request, 'Reporte de nivel de logro generado correctamente.')
+            except GeneradorReporteNivelLogroError as e:
+                messages.error(request, str(e))
+
+        return redirect('core:detalle_curso', pk=curso.pk)
     else:
         form = ResultadoIndicadorForm(instance=resultado)
 
@@ -1831,4 +1847,53 @@ def subir_reporte_nivel_logro(request, curso_pk, indicador_pk):
         'curso': curso,
         'indicador': indicador,
         'resultado': resultado,
+    })
+    
+    
+# =============================================================================
+# PLANTILLAS - REPORTE DE NIVEL DE LOGRO
+# =============================================================================
+    
+@login_required
+@solo_admin
+def plantillas_reporte_nivel_logro(request):
+    plantillas = PlantillaReporteNivelLogro.objects.select_related(
+        'periodo',
+        'usuario'
+    ).order_by('-periodo__fecha_inicio')
+
+    if request.method == 'POST':
+        periodo_id = request.POST.get('periodo')
+        plantilla_existente = PlantillaReporteNivelLogro.objects.filter(
+            periodo_id=periodo_id
+        ).first()
+
+        form = PlantillaReporteNivelLogroForm(
+            request.POST,
+            request.FILES,
+            instance=plantilla_existente
+        )
+
+        if form.is_valid():
+            plantilla = form.save(commit=False)
+            plantilla.usuario = request.user
+            plantilla.save()
+
+            if plantilla_existente:
+                messages.success(request, 'Plantilla reemplazada correctamente.')
+            else:
+                messages.success(request, 'Plantilla subida correctamente.')
+
+            return redirect('core:plantillas_reporte_nivel_logro')
+
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, error)
+
+    else:
+        form = PlantillaReporteNivelLogroForm()
+
+    return render(request, 'configuracion/plantillas_reporte_nivel_logro.html', {
+        'form': form,
+        'plantillas': plantillas,
     })
