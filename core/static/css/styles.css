@@ -491,7 +491,7 @@ body.menu-open .side-menu-backdrop {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.22;
+  opacity: 1;
   pointer-events: none;
   z-index: 0;
 }
@@ -537,23 +537,23 @@ body.menu-open .side-menu-backdrop {
 }
 
 .course-card--sin-avance::before {
-  background: linear-gradient(135deg, #dc2626, #f97316);
+  background: linear-gradient(to bottom, rgba(220,38,38,0.35) 0%, transparent 70%);
 }
 
 .course-card--bajo::before {
-  background: linear-gradient(135deg, #f97316, #facc15);
+  background: linear-gradient(to bottom, rgba(249,115,22,0.35) 0%, transparent 70%);
 }
 
 .course-card--medio::before {
-  background: linear-gradient(135deg, #facc15, #22c55e);
+  background: linear-gradient(to bottom, rgba(234,179,8,0.35) 0%, transparent 70%);
 }
 
 .course-card--completo::before {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(to bottom, rgba(22,163,74,0.35) 0%, transparent 70%);
 }
 
 .course-card--sin-indicadores::before {
-  background: linear-gradient(135deg, #94a3b8, #e2e8f0);
+  background: linear-gradient(to bottom, rgba(100,116,139,0.25) 0%, transparent 70%);
 }
 
 .table-wrapper {
@@ -1689,8 +1689,14 @@ body.dark-mode .dashboard__legend {
   color: #64748b;
 }
 body.dark-mode .course-card {
-  background-color: #273549;
+  background-color: #2d3f55;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+body.dark-mode .course-card__name,
+body.dark-mode .course-card__meta-value,
+body.dark-mode .course-card__meta-label,
+body.dark-mode .course-card__docente {
+  color: #ffffff !important;
 }
 body.dark-mode .course-card__code {
   background-color: #0c3652;
@@ -1870,5 +1876,25 @@ body.dark-mode .indicador-info-box strong {
 }
 body.dark-mode .indicador-info-box span {
   color: #ffffff;
+}
+
+body.dark-mode .course-card--sin-avance::before {
+  background: linear-gradient(to bottom, rgba(239,68,68,0.45) 0%, transparent 70%);
+}
+
+body.dark-mode .course-card--bajo::before {
+  background: linear-gradient(to bottom, rgba(249,115,22,0.45) 0%, transparent 70%);
+}
+
+body.dark-mode .course-card--medio::before {
+  background: linear-gradient(to bottom, rgba(234,179,8,0.45) 0%, transparent 70%);
+}
+
+body.dark-mode .course-card--completo::before {
+  background: linear-gradient(to bottom, rgba(34,197,94,0.45) 0%, transparent 70%);
+}
+
+body.dark-mode .course-card--sin-indicadores::before {
+  background: linear-gradient(to bottom, rgba(148,163,184,0.45) 0%, transparent 70%);
 }
 /*# sourceMappingURL=styles.css.map */
