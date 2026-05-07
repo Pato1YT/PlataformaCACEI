@@ -482,6 +482,80 @@ body.menu-open .side-menu-backdrop {
   background-color: rgba(255, 255, 255, 0.12);
 }
 
+.course-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.course-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.course-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.course-card--sin-avance {
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+.course-card--bajo {
+  border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+.course-card--medio {
+  border: 1px solid rgba(234, 179, 8, 0.35);
+}
+
+.course-card--completo {
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.course-card--sin-indicadores {
+  border: 1px solid rgba(100, 116, 139, 0.25);
+}
+
+.course-card__code--nivel-I {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+}
+
+.course-card__code--nivel-M {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+}
+
+.course-card__code--nivel-A {
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+.course-card--sin-avance::before {
+  background: linear-gradient(135deg, #dc2626, #f97316);
+}
+
+.course-card--bajo::before {
+  background: linear-gradient(135deg, #f97316, #facc15);
+}
+
+.course-card--medio::before {
+  background: linear-gradient(135deg, #facc15, #22c55e);
+}
+
+.course-card--completo::before {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.course-card--sin-indicadores::before {
+  background: linear-gradient(135deg, #94a3b8, #e2e8f0);
+}
+
 .table-wrapper {
   width: 100%;
   overflow-x: auto;

@@ -95,7 +95,6 @@ def solo_admin(view_func):
 def dashboard(request):
     periodos = Periodo.objects.all().order_by('-fecha_inicio')
 
-    # Si mandan un periodo_id por GET lo usamos, si no el activo
     periodo_id = request.GET.get('periodo_id')
 
     if periodo_id:
@@ -112,6 +111,7 @@ def dashboard(request):
                 request.session['periodo_seleccionado_id'] = periodo_activo.id
 
     cursos = Curso.objects.none()
+
     if periodo_activo:
         cursos = Curso.objects.filter(
             materia__periodo=periodo_activo
@@ -128,10 +128,59 @@ def dashboard(request):
         if request.user.rol == Usuario.DOCENTE:
             cursos = cursos.filter(docente=request.user)
 
+    cursos = list(cursos)
+
+    for curso in cursos:
+        atributos = MateriaAtributoEgreso.objects.filter(
+            materia=curso.materia
+        ).select_related('atributo_egreso').order_by('atributo_egreso__codigo')
+
+        indicadores = MateriaIndicador.objects.filter(
+            materia=curso.materia
+        ).select_related('indicador')
+
+        indicadores_ids = [rel.indicador_id for rel in indicadores]
+
+        total_requeridos = len(indicadores_ids) * 3
+
+        evidencias_cargadas = EvidenciaIndicador.objects.filter(
+            curso=curso,
+            indicador_id__in=indicadores_ids,
+            tipo_archivo__in=['INSTRUMENTO', 'EVIDENCIA', 'REPORTE'],
+            archivo__isnull=False,
+        ).exclude(
+            archivo=''
+        ).count()
+
+        curso.atributos_card = atributos
+        curso.total_evidencias_requeridas = total_requeridos
+        curso.total_evidencias_cargadas = evidencias_cargadas
+        curso.evidencias_completas = total_requeridos > 0 and evidencias_cargadas == total_requeridos
+
+        if total_requeridos == 0:
+            curso.porcentaje_evidencias = None
+            curso.estado_card = 'sin-indicadores'
+        else:
+            curso.porcentaje_evidencias = round((evidencias_cargadas / total_requeridos) * 100)
+
+            if curso.porcentaje_evidencias == 100:
+                curso.estado_card = 'completo'
+            elif curso.porcentaje_evidencias >= 60:
+                curso.estado_card = 'medio'
+            elif curso.porcentaje_evidencias > 0:
+                curso.estado_card = 'bajo'
+            else:
+                curso.estado_card = 'sin-avance'
+
+    total_cursos = len(cursos)
+    cursos_acreditados = sum(1 for curso in cursos if curso.evidencias_completas)
+    
     return render(request, 'core/dashboard.html', {
         'cursos': cursos,
         'periodo_activo': periodo_activo,
         'periodos': periodos,
+        'total_cursos': total_cursos,
+        'cursos_acreditados': cursos_acreditados,
     })
 
 
