@@ -1762,5 +1762,39 @@ body.dark-mode .periodo-detectado-aviso {
 body.dark-mode .periodo-detectado-aviso strong {
   color: #fde68a !important;
 }
+body.dark-mode .detalle-descripcion p {
+  color: #cbd5e1;
+}
+body.dark-mode .detalle-descripcion strong {
+  color: #e2e8f0;
+}
 
+body.dark-mode .indicador-info-box {
+  background: #0c2a3f;
+  border-left-color: #0284c7;
+  color: #cbd5e1;
+}
+body.dark-mode .indicador-info-box p {
+  color: #cbd5e1;
+}
+body.dark-mode .indicador-info-box span {
+  color: #7dd3fc;
+}
+
+.indicador-info-box {
+  background: #f0f9ff;
+}
+body.dark-mode .indicador-info-box {
+  background: #0c3652;
+  color: #ffffff;
+}
+body.dark-mode .indicador-info-box p {
+  color: #ffffff;
+}
+body.dark-mode .indicador-info-box strong {
+  color: #ffffff;
+}
+body.dark-mode .indicador-info-box span {
+  color: #ffffff;
+}
 /*# sourceMappingURL=styles.css.map */
