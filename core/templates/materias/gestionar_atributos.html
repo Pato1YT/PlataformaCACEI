@@ -15,14 +15,12 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-            <a href="{% url 'core:gestionar_indicadores_materia' materia.pk %}"
-               class="course-card__button"
-               style="width:200px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#16a34a;">
+            <a href="{% url 'core:gestionar_indicadores_materia' materia.pk %}" class="course-card__button"
+                style="width:200px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#16a34a;">
                 <i class="fa-solid fa-list-check"></i> Gestionar indicadores
             </a>
-            <a href="{% url 'core:lista_materias' %}"
-               class="course-card__button"
-               style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
+            <a href="{% url 'core:lista_materias' %}" class="course-card__button"
+                style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
                 <i class="fa-solid fa-arrow-left"></i> Volver
             </a>
         </div>
@@ -35,33 +33,57 @@
         <form method="post">
             {% csrf_token %}
 
-           <div style="display:grid; grid-template-columns:1fr 200px; gap:12px; align-items:end; max-width:700px;">
-                <div>
-                    <label class="perfil-card__label">Atributo de egreso</label>
-                    {{ form.atributo_egreso }}
-                    {% if form.atributo_egreso.errors %}
-                        <span class="perfil-card__error">{{ form.atributo_egreso.errors|join:", " }}</span>
-                    {% endif %}
+            <div style="max-width:900px;">
+
+                <div style="
+                display:grid;
+                grid-template-columns: 1fr 280px;
+                gap:18px;
+                margin-bottom:22px;
+            ">
+
+                    <div>
+                        <label class="perfil-card__label">
+                            Atributo de egreso
+                        </label>
+
+                        {{ form.atributo_egreso }}
+
+                        {% if form.atributo_egreso.errors %}
+                        <span class="perfil-card__error">
+                            {{ form.atributo_egreso.errors|join:", " }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="perfil-card__label">
+                            Nivel de aporte
+                        </label>
+
+                        {{ form.nivel_aporte }}
+
+                        {% if form.nivel_aporte.errors %}
+                        <span class="perfil-card__error">
+                            {{ form.nivel_aporte.errors|join:", " }}
+                        </span>
+                        {% endif %}
+                    </div>
+
                 </div>
 
-                <div>
-                    <label class="perfil-card__label">Nivel de aporte</label>
-                    {{ form.nivel_aporte }}
-                    {% if form.nivel_aporte.errors %}
-                        <span class="perfil-card__error">{{ form.nivel_aporte.errors|join:", " }}</span>
-                    {% endif %}
-                </div>
+                <button type="submit" class="course-card__button" style="max-width:160px;">
+                    <i class="fa-solid fa-plus"></i>
+                    Asignar
+                </button>
+
             </div>
 
             {% if form.non_field_errors %}
-                <p class="perfil-card__error" style="margin-top:8px;">{{ form.non_field_errors|join:", " }}</p>
+            <p class="perfil-card__error" style="margin-top:8px;">
+                {{ form.non_field_errors|join:", " }}
+            </p>
             {% endif %}
-
-            <div style="margin-top:16px;">
-                <button type="submit" class="course-card__button" style="max-width:140px;">
-                    <i class="fa-solid fa-plus"></i> Asignar
-                </button>
-            </div>
         </form>
     </div>
 
@@ -83,18 +105,21 @@
                     <td>{{ relacion.atributo_egreso.nombre }}</td>
                     <td>
                         {% if relacion.nivel_aporte == 'A' %}
-                            <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700;">Avanzado</span>
+                        <span
+                            style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700;">Avanzado</span>
                         {% elif relacion.nivel_aporte == 'M' %}
-                            <span style="background:#fef9c3; color:#ca8a04; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700;">Medio</span>
+                        <span
+                            style="background:#fef9c3; color:#ca8a04; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700;">Medio</span>
                         {% else %}
-                            <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700;">Inicial</span>
+                        <span
+                            style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700;">Inicial</span>
                         {% endif %}
                     </td>
                     <td class="data-table__actions">
                         <a href="{% url 'core:editar_atributo_materia' relacion.pk %}"
-                           class="data-table__btn data-table__btn--edit">Editar nivel</a>
+                            class="data-table__btn data-table__btn--edit">Editar nivel</a>
                         <a href="{% url 'core:eliminar_atributo_materia' relacion.pk %}"
-                           class="data-table__btn data-table__btn--delete">Eliminar</a>
+                            class="data-table__btn data-table__btn--delete">Eliminar</a>
                     </td>
                 </tr>
                 {% empty %}

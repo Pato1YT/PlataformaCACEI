@@ -219,8 +219,38 @@ def aviso_privacidad(request):
 
 @login_required
 def lista_atributos(request):
-    atributos = AtributoEgreso.objects.all().order_by('codigo')
-    return render(request, 'atributos/lista_atributos.html', {'atributos': atributos})
+    periodos = Periodo.objects.all().order_by('-fecha_inicio')
+
+    periodo_id = request.GET.get('periodo_id')
+
+    if periodo_id:
+        periodo_activo = Periodo.objects.filter(pk=periodo_id).first()
+
+        if periodo_activo:
+            request.session['periodo_seleccionado_id'] = periodo_activo.id
+    else:
+        periodo_id_sesion = request.session.get('periodo_seleccionado_id')
+
+        if periodo_id_sesion:
+            periodo_activo = Periodo.objects.filter(pk=periodo_id_sesion).first()
+        else:
+            periodo_activo = Periodo.objects.filter(es_activo=True).first()
+
+            if periodo_activo:
+                request.session['periodo_seleccionado_id'] = periodo_activo.id
+
+    atributos = AtributoEgreso.objects.none()
+
+    if periodo_activo:
+        atributos = AtributoEgreso.objects.filter(
+            periodo=periodo_activo
+        ).order_by('codigo')
+
+    return render(request, 'atributos/lista_atributos.html', {
+        'atributos': atributos,
+        'periodos': periodos,
+        'periodo_activo': periodo_activo,
+    })
 
 
 @login_required
@@ -228,7 +258,17 @@ def crear_atributo(request):
     if request.method == 'POST':
         form = AtributoEgresoForm(request.POST)
         if form.is_valid():
-            form.save()
+
+            periodo_id = request.session.get('periodo_seleccionado_id')
+
+            if not periodo_id:
+                messages.error(request, 'Debes seleccionar un periodo activo.')
+                return redirect('core:lista_atributos')
+
+            atributo = form.save(commit=False)
+            atributo.periodo_id = periodo_id
+            atributo.save()
+
             messages.success(request, 'Atributo de egreso creado correctamente.')
             return redirect('core:lista_atributos')
     else:
@@ -284,6 +324,20 @@ def eliminar_atributo(request, pk):
 def importar_atributo_word(request):
     archivo_temporal = None
     preview_data = None
+    
+    periodo_id = request.session.get('periodo_seleccionado_id')
+
+    periodo_activo = None
+
+    if periodo_id:
+        periodo_activo = Periodo.objects.filter(
+            pk=periodo_id
+        ).first()
+
+    if not periodo_activo:
+        periodo_activo = Periodo.objects.filter(
+            es_activo=True
+        ).first()
 
     if request.method == 'POST':
         accion = request.POST.get('accion')
@@ -362,6 +416,7 @@ def importar_atributo_word(request):
             atributo_data = preview_data['atributo']
 
             atributo, _ = AtributoEgreso.objects.update_or_create(
+                periodo=periodo_activo,
                 codigo=atributo_data['codigo'],
                 defaults={
                     'nombre': "Atributo de Egreso "+atributo_data['codigo'],
@@ -1533,7 +1588,10 @@ def gestionar_atributos_materia(request, materia_pk):
     ).select_related('atributo_egreso').order_by('atributo_egreso__codigo')
 
     if request.method == 'POST':
-        form = MateriaAtributoEgresoForm(request.POST)
+        form = MateriaAtributoEgresoForm(
+            request.POST,
+            periodo=materia.periodo
+        )
 
         if form.is_valid():
             atributo_egreso = form.cleaned_data['atributo_egreso']
@@ -1557,7 +1615,9 @@ def gestionar_atributos_materia(request, materia_pk):
             messages.success(request, 'Atributo asignado correctamente.')
             return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
     else:
-        form = MateriaAtributoEgresoForm()
+        form = MateriaAtributoEgresoForm(
+            periodo=materia.periodo
+        )
         
     return render(request, 'materias/gestionar_atributos.html', {
         'materia': materia,

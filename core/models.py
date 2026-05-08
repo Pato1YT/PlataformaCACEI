@@ -32,29 +32,12 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         return f"{self.get_full_name() or self.username} ({self.get_rol_display()})"
-
+    
 
 # =========================
-# ATRIBUTOS DE EGRESO
+# PERIODO
 # =========================
 
-class AtributoEgreso(models.Model):
-    codigo = models.CharField(max_length=3, unique=True)
-    nombre = models.CharField(max_length=255)
-    descripcion = models.TextField()
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Atributo de egreso"
-        verbose_name_plural = "Atributos de egreso"
-
-    def __str__(self):
-        return f"{self.codigo} - {self.nombre}"
-    
-    
-# PARA LOS PERIODOS
 class Periodo(models.Model):
     PAR = "PAR"
     IMPAR = "IMPAR"
@@ -89,6 +72,31 @@ class Periodo(models.Model):
             existe_otro_activo = Periodo.objects.filter(es_activo=True).exclude(pk=self.pk).exists()
             if existe_otro_activo:
                 raise ValidationError("Solo puede existir un periodo activo a la vez.")
+
+# =========================
+# ATRIBUTOS DE EGRESO
+# =========================
+
+class AtributoEgreso(models.Model):
+    periodo = models.ForeignKey(
+        Periodo,
+        on_delete=models.CASCADE,
+        related_name='atributos_egreso'
+    )
+    codigo = models.CharField(max_length=3)
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField()
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Atributo de egreso"
+        verbose_name_plural = "Atributos de egreso"
+        unique_together = ('periodo', 'codigo')
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre}"
     
     
 # =========================
