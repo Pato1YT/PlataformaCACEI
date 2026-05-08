@@ -1,0 +1,88 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Indicadores de materia - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">
+                <span class="course-card__code" style="font-size:15px; margin-right:8px;">{{ materia.clave }}</span>
+                {{ materia.nombre }}
+            </h2>
+            <p class="dashboard__subtitle">Indicadores específicos que evalúa esta materia.</p>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <a href="{% url 'core:gestionar_atributos_materia' materia.pk %}"
+               class="course-card__button"
+               style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulario asignar indicador -->
+    <div class="table-wrapper" style="padding:20px 24px; margin-bottom:20px;">
+        <p class="perfil-card__section-title" style="margin-bottom:16px;">Asignar indicador</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div style="display:grid; grid-template-columns:1fr; gap:12px; align-items:end; max-width:700px;">
+                <div>
+                    <label class="perfil-card__label">Indicador disponible</label>
+                    <select name="indicador_id" class="form-control" required>
+                        <option value="">— Selecciona un indicador —</option>
+                        {% for indicador in indicadores_disponibles %}
+                            <option value="{{ indicador.pk }}">
+                                {{ indicador.criterio.atributo_egreso.codigo }} · {{ indicador.criterio.codigo }} · {{ indicador.codigo }} — {{ indicador.descripcion|truncatechars:80 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <button type="submit" class="course-card__button" style="max-width:140px;">
+                    <i class="fa-solid fa-plus"></i> Asignar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de indicadores asignados -->
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width:80px;">Atributo</th>
+                    <th style="width:80px;">Criterio</th>
+                    <th style="width:80px;">Indicador</th>
+                    <th>Descripción</th>
+                    <th style="width:120px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for relacion in indicadores_asignados %}
+                <tr>
+                    <td><span class="course-card__code">{{ relacion.indicador.criterio.atributo_egreso.codigo }}</span></td>
+                    <td><span class="course-card__code" style="background:#f0f9ff; color:#0284c7;">{{ relacion.indicador.criterio.codigo }}</span></td>
+                    <td><span class="course-card__code" style="background:#f0fdf4; color:#16a34a;">{{ relacion.indicador.codigo }}</span></td>
+                    <td style="font-size:13px; color:#374151;">{{ relacion.indicador.descripcion }}</td>
+                    <td class="data-table__actions">
+                        <a href="{% url 'core:eliminar_indicador_materia' relacion.pk %}"
+                           class="data-table__btn data-table__btn--delete" style="white-space:nowrap;">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="data-table__empty">Esta materia aún no tiene indicadores asignados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

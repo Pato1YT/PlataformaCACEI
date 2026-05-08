@@ -1,0 +1,98 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Reporte de nivel de logro - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="perfil-card" style="max-width:720px;">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar" style="background-color:#16a34a;">
+            <i class="fa-solid fa-chart-simple" style="font-size:22px;"></i>
+        </div>
+        <div>
+            <h2 class="perfil-card__nombre">Reporte de nivel de logro</h2>
+            <span class="perfil-card__rol">{{ curso.materia.clave }} · {{ curso.materia.nombre }} · Grupo {{ curso.grupo }}</span>
+        </div>
+    </div>
+
+    <!-- Info del indicador -->
+    <div class="indicador-info-box" style="border-left:4px solid #0284c7; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:13px;">
+        <p style="margin:0 0 4px 0;">
+            <span class="course-card__code" style="margin-right:6px;">{{ indicador.criterio.atributo_egreso.codigo }}</span>
+            <span class="course-card__code" style="background:#f0f9ff; color:#0284c7; margin-right:6px;">{{ indicador.criterio.codigo }}</span>
+            <span class="course-card__code" style="background:#f0fdf4; color:#16a34a;">{{ indicador.codigo }}</span>
+        </p>
+        <p style="margin:6px 0 4px 0; font-size:12px;">{{ indicador.criterio.descripcion }}</p>
+        <p style="margin:0;">{{ indicador.descripcion }}</p>
+    </div>
+
+    <form method="post" class="perfil-card__form">
+        {% csrf_token %}
+
+        <div class="perfil-card__section-title">Datos del reporte</div>
+
+        <div class="perfil-card__grid" style="grid-template-columns:1fr;">
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Instrumento de evaluación</label>
+                {{ form.instrumento_evaluacion }}
+                {% if form.instrumento_evaluacion.errors %}
+                    <span class="perfil-card__error">{{ form.instrumento_evaluacion.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Alumnos evaluados</label>
+                    {{ form.alumnos_evaluados }}
+                    {% if form.alumnos_evaluados.errors %}
+                        <span class="perfil-card__error">{{ form.alumnos_evaluados.errors|join:", " }}</span>
+                    {% endif %}
+                </div>
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Meta propuesta (%)</label>
+                    {{ form.porcentaje_meta }}
+                    {% if form.porcentaje_meta.errors %}
+                        <span class="perfil-card__error">{{ form.porcentaje_meta.errors|join:", " }}</span>
+                    {% endif %}
+                </div>
+                <div class="perfil-card__field">
+                    <label class="perfil-card__label">Resultado obtenido (%)</label>
+                    {{ form.porcentaje_obtenido }}
+                    {% if form.porcentaje_obtenido.errors %}
+                        <span class="perfil-card__error">{{ form.porcentaje_obtenido.errors|join:", " }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Argumentación</label>
+                {{ form.argumentacion }}
+                {% if form.argumentacion.errors %}
+                    <span class="perfil-card__error">{{ form.argumentacion.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Acciones de mejora propuestas</label>
+                {{ form.acciones_mejora }}
+                {% if form.acciones_mejora.errors %}
+                    <span class="perfil-card__error">{{ form.acciones_mejora.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% if form.non_field_errors %}
+            <p class="perfil-card__error" style="margin-top:8px;">{{ form.non_field_errors|join:", " }}</p>
+        {% endif %}
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width:180px;">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar reporte
+            </button>
+            <a href="{% url 'core:detalle_curso' curso.pk %}" class="perfil-card__cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

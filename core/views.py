@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models.deletion import ProtectedError
 
 # Modelos
-from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador
+from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador, MateriaAtributoEgreso, MateriaIndicador, ResultadoIndicador, EvidenciaIndicador, PlantillaReporteNivelLogro
 
 # Formularios
 from .forms import (
@@ -29,7 +29,13 @@ from .forms import (
     MateriaForm,
     PeriodoForm,
     CriterioDesempenoForm,
-    IndicadorForm
+    IndicadorForm,
+    MateriaAtributoEgresoForm,
+    MateriaAtributoEgresoNivelForm,
+    ResultadoIndicadorForm,
+    EvidenciaIndicadorForm,
+    EvidenciaIndicadorSimpleForm,
+    PlantillaReporteNivelLogroForm
 )
 
 # Utilidades — importadores Excel
@@ -56,6 +62,15 @@ from .utils.importador_atributos_word import (
     ImportadorAtributosWordError,
 )
 
+from .utils.validadores_plantillas import (
+    validar_placeholders_reporte_nivel_logro,
+)
+
+from .utils.generador_reporte_nivel_logro import (
+    generar_reporte_nivel_logro,
+    GeneradorReporteNivelLogroError,
+)
+
 
 # =============================================================================
 # DECORADORES
@@ -80,7 +95,6 @@ def solo_admin(view_func):
 def dashboard(request):
     periodos = Periodo.objects.all().order_by('-fecha_inicio')
 
-    # Si mandan un periodo_id por GET lo usamos, si no el activo
     periodo_id = request.GET.get('periodo_id')
 
     if periodo_id:
@@ -97,6 +111,7 @@ def dashboard(request):
                 request.session['periodo_seleccionado_id'] = periodo_activo.id
 
     cursos = Curso.objects.none()
+
     if periodo_activo:
         cursos = Curso.objects.filter(
             materia__periodo=periodo_activo
@@ -113,10 +128,59 @@ def dashboard(request):
         if request.user.rol == Usuario.DOCENTE:
             cursos = cursos.filter(docente=request.user)
 
+    cursos = list(cursos)
+
+    for curso in cursos:
+        atributos = MateriaAtributoEgreso.objects.filter(
+            materia=curso.materia
+        ).select_related('atributo_egreso').order_by('atributo_egreso__codigo')
+
+        indicadores = MateriaIndicador.objects.filter(
+            materia=curso.materia
+        ).select_related('indicador')
+
+        indicadores_ids = [rel.indicador_id for rel in indicadores]
+
+        total_requeridos = len(indicadores_ids) * 3
+
+        evidencias_cargadas = EvidenciaIndicador.objects.filter(
+            curso=curso,
+            indicador_id__in=indicadores_ids,
+            tipo_archivo__in=['INSTRUMENTO', 'EVIDENCIA', 'REPORTE'],
+            archivo__isnull=False,
+        ).exclude(
+            archivo=''
+        ).count()
+
+        curso.atributos_card = atributos
+        curso.total_evidencias_requeridas = total_requeridos
+        curso.total_evidencias_cargadas = evidencias_cargadas
+        curso.evidencias_completas = total_requeridos > 0 and evidencias_cargadas == total_requeridos
+
+        if total_requeridos == 0:
+            curso.porcentaje_evidencias = None
+            curso.estado_card = 'sin-indicadores'
+        else:
+            curso.porcentaje_evidencias = round((evidencias_cargadas / total_requeridos) * 100)
+
+            if curso.porcentaje_evidencias == 100:
+                curso.estado_card = 'completo'
+            elif curso.porcentaje_evidencias >= 60:
+                curso.estado_card = 'medio'
+            elif curso.porcentaje_evidencias > 0:
+                curso.estado_card = 'bajo'
+            else:
+                curso.estado_card = 'sin-avance'
+
+    total_cursos = len(cursos)
+    cursos_acreditados = sum(1 for curso in cursos if curso.evidencias_completas)
+    
     return render(request, 'core/dashboard.html', {
         'cursos': cursos,
         'periodo_activo': periodo_activo,
         'periodos': periodos,
+        'total_cursos': total_cursos,
+        'cursos_acreditados': cursos_acreditados,
     })
 
 
@@ -1375,4 +1439,510 @@ def importar_cursos(request):
 
     return render(request, 'cursos/importar_cursos.html', {
         'periodo_activo': periodo_seleccionado,
+    })
+    
+    
+@login_required
+def detalle_curso(request, pk):
+    curso = get_object_or_404(
+        Curso.objects.select_related(
+            'materia',
+            'materia__periodo',
+            'docente'
+        ),
+        pk=pk
+    )
+
+    relaciones_atributos = MateriaAtributoEgreso.objects.filter(
+        materia=curso.materia
+    ).select_related('atributo_egreso')
+
+    niveles_por_atributo = {
+        rel.atributo_egreso_id: rel.get_nivel_aporte_display()
+        for rel in relaciones_atributos
+    }
+
+    indicadores_materia = MateriaIndicador.objects.filter(
+        materia=curso.materia
+    ).select_related(
+        'indicador',
+        'indicador__criterio',
+        'indicador__criterio__atributo_egreso'
+    ).order_by(
+        'indicador__criterio__atributo_egreso__codigo',
+        'indicador__criterio__codigo',
+        'indicador__codigo'
+    )
+
+    evidencias = EvidenciaIndicador.objects.filter(
+        curso=curso,
+        indicador__in=[rel.indicador for rel in indicadores_materia]
+    )
+
+    evidencias_map = {
+        (ev.indicador_id, ev.tipo_archivo): ev
+        for ev in evidencias
+    }
+
+    tipos_archivo = [
+        ('INSTRUMENTO', 'Instrumento de evaluación'),
+        ('EVIDENCIA', 'Evidencia del estudiante'),
+        ('REPORTE', 'Reporte de nivel de logro'),
+    ]
+
+    indicadores_bloques = []
+
+    for relacion in indicadores_materia:
+        indicador = relacion.indicador
+        criterio = indicador.criterio
+        atributo = criterio.atributo_egreso
+
+        archivos = []
+        for tipo, nombre in tipos_archivo:
+            archivos.append({
+                'tipo': tipo,
+                'nombre': nombre,
+                'evidencia': evidencias_map.get((indicador.id, tipo)),
+            })
+
+        indicadores_bloques.append({
+            'indicador': indicador,
+            'criterio': criterio,
+            'atributo': atributo,
+            'nivel_aporte': niveles_por_atributo.get(atributo.id, 'Sin nivel'),
+            'archivos': archivos,
+        })
+
+    return render(request, 'cursos/detalle_curso.html', {
+        'curso': curso,
+        'indicadores_bloques': indicadores_bloques,
+    })
+    
+    
+# =============================================================================
+# MATERIAATRIBUTOEGRESO
+# =============================================================================
+
+@login_required
+@solo_admin
+def gestionar_atributos_materia(request, materia_pk):
+    materia = get_object_or_404(Materia, pk=materia_pk)
+
+    relaciones = MateriaAtributoEgreso.objects.filter(
+        materia=materia
+    ).select_related('atributo_egreso').order_by('atributo_egreso__codigo')
+
+    if request.method == 'POST':
+        form = MateriaAtributoEgresoForm(request.POST)
+
+        if form.is_valid():
+            atributo_egreso = form.cleaned_data['atributo_egreso']
+
+            existe_relacion = MateriaAtributoEgreso.objects.filter(
+                materia=materia,
+                atributo_egreso=atributo_egreso
+            ).exists()
+
+            if existe_relacion:
+                messages.error(
+                    request,
+                    'Este atributo ya está asignado a esta materia. Si deseas cambiar el nivel, edita la relación existente.'
+                )
+                return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
+
+            relacion = form.save(commit=False)
+            relacion.materia = materia
+            relacion.save()
+
+            messages.success(request, 'Atributo asignado correctamente.')
+            return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
+    else:
+        form = MateriaAtributoEgresoForm()
+        
+    return render(request, 'materias/gestionar_atributos.html', {
+        'materia': materia,
+        'relaciones': relaciones,
+        'form': form,
+    })
+    
+
+@login_required
+@solo_admin
+def editar_atributo_materia(request, pk):
+    relacion = get_object_or_404(MateriaAtributoEgreso, pk=pk)
+    materia = relacion.materia
+
+    if request.method == 'POST':
+        form = MateriaAtributoEgresoNivelForm(request.POST, instance=relacion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Nivel de aporte actualizado correctamente.')
+            return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
+    else:
+        form = MateriaAtributoEgresoNivelForm(instance=relacion)
+
+    return render(request, 'materias/form_atributo_materia.html', {
+        'form': form,
+        'materia': materia,
+        'relacion': relacion,
+        'titulo': 'Editar nivel de aporte',
+    })
+
+
+@login_required
+@solo_admin
+def eliminar_atributo_materia(request, pk):
+    relacion = get_object_or_404(MateriaAtributoEgreso, pk=pk)
+    materia = relacion.materia
+
+    if request.method == 'POST':
+        relacion.delete()
+        messages.success(request, 'Relación materia-atributo eliminada correctamente.')
+        return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
+
+    return render(request, 'materias/confirmar_eliminar_atributo_materia.html', {
+        'relacion': relacion,
+        'materia': materia,
+    })
+    
+        
+# =============================================================================
+# MATERIAATRIBUTOEGRESO
+# =============================================================================   
+    
+@login_required
+@solo_admin
+def gestionar_indicadores_materia(request, materia_pk):
+    materia = get_object_or_404(Materia, pk=materia_pk)
+
+    atributos_materia = MateriaAtributoEgreso.objects.filter(
+        materia=materia
+    ).values_list('atributo_egreso_id', flat=True)
+
+    indicadores_disponibles = Indicador.objects.filter(
+        criterio__atributo_egreso_id__in=atributos_materia
+    ).select_related(
+        'criterio',
+        'criterio__atributo_egreso'
+    ).order_by(
+        'criterio__atributo_egreso__codigo',
+        'criterio__codigo',
+        'codigo'
+    )
+
+    indicadores_asignados = MateriaIndicador.objects.filter(
+        materia=materia
+    ).select_related(
+        'indicador',
+        'indicador__criterio',
+        'indicador__criterio__atributo_egreso'
+    ).order_by(
+        'indicador__criterio__atributo_egreso__codigo',
+        'indicador__criterio__codigo',
+        'indicador__codigo'
+    )
+
+    if request.method == 'POST':
+        indicador_id = request.POST.get('indicador_id')
+
+        indicador = Indicador.objects.filter(
+            pk=indicador_id,
+            criterio__atributo_egreso_id__in=atributos_materia
+        ).first()
+
+        if not indicador:
+            messages.error(request, 'El indicador seleccionado no es válido para esta materia.')
+            return redirect('core:gestionar_indicadores_materia', materia_pk=materia.pk)
+
+        if MateriaIndicador.objects.filter(materia=materia, indicador=indicador).exists():
+            messages.error(request, 'Este indicador ya está asignado a esta materia.')
+            return redirect('core:gestionar_indicadores_materia', materia_pk=materia.pk)
+
+        MateriaIndicador.objects.create(materia=materia, indicador=indicador)
+        messages.success(request, 'Indicador asignado correctamente.')
+        return redirect('core:gestionar_indicadores_materia', materia_pk=materia.pk)
+
+    return render(request, 'materias/gestionar_indicadores.html', {
+        'materia': materia,
+        'indicadores_disponibles': indicadores_disponibles,
+        'indicadores_asignados': indicadores_asignados,
+    })
+
+
+@login_required
+@solo_admin
+def eliminar_indicador_materia(request, pk):
+    relacion = get_object_or_404(MateriaIndicador, pk=pk)
+    materia = relacion.materia
+
+    if request.method == 'POST':
+        relacion.delete()
+        messages.success(request, 'Indicador eliminado de la materia correctamente.')
+        return redirect('core:gestionar_indicadores_materia', materia_pk=materia.pk)
+
+    return render(request, 'materias/confirmar_eliminar_indicador_materia.html', {
+        'relacion': relacion,
+        'materia': materia,
+    })
+    
+    
+# =============================================================================
+# EVIDENCIAS - REPORTE DE NIVEL DE LOGRO
+# =============================================================================
+
+@login_required
+def evaluacion_indicador(request, curso_pk, indicador_pk):
+    curso = get_object_or_404(
+        Curso.objects.select_related('materia', 'docente', 'materia__periodo'),
+        pk=curso_pk
+    )
+
+    indicador = get_object_or_404(
+        Indicador.objects.select_related(
+            'criterio',
+            'criterio__atributo_egreso'
+        ),
+        pk=indicador_pk
+    )
+
+    # Validar que el indicador sí esté asignado a la materia del curso
+    if not MateriaIndicador.objects.filter(
+        materia=curso.materia,
+        indicador=indicador
+    ).exists():
+        messages.error(request, 'Este indicador no está asignado a la materia de este curso.')
+        return redirect('core:detalle_curso', pk=curso.pk)
+
+    resultado, _ = ResultadoIndicador.objects.get_or_create(
+        curso=curso,
+        indicador=indicador,
+        defaults={
+            'usuario': request.user,
+            'instrumento_evaluacion': '',
+            'alumnos_evaluados': 0,
+            'porcentaje_meta': 85,
+            'porcentaje_obtenido': 0,
+            'argumentacion': '',
+            'acciones_mejora': '',
+        }
+    )
+
+    resultado_form = ResultadoIndicadorForm(instance=resultado)
+    evidencia_form = EvidenciaIndicadorForm()
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        if accion == 'guardar_resultado':
+            resultado_form = ResultadoIndicadorForm(request.POST, instance=resultado)
+            if resultado_form.is_valid():
+                resultado = resultado_form.save(commit=False)
+                resultado.usuario = request.user
+                resultado.save()
+                messages.success(request, 'Resultado del indicador guardado correctamente.')
+                return redirect('core:evaluacion_indicador', curso_pk=curso.pk, indicador_pk=indicador.pk)
+
+        elif accion == 'subir_evidencia':
+            evidencia_form = EvidenciaIndicadorForm(request.POST, request.FILES)
+            if evidencia_form.is_valid():
+                tipo_archivo = evidencia_form.cleaned_data['tipo_archivo']
+
+                evidencia_existente = EvidenciaIndicador.objects.filter(
+                    curso=curso,
+                    indicador=indicador,
+                    tipo_archivo=tipo_archivo
+                ).first()
+
+                if evidencia_existente:
+                    evidencia_existente.titulo = evidencia_form.cleaned_data.get('titulo') or ''
+                    evidencia_existente.archivo = evidencia_form.cleaned_data['archivo']
+                    evidencia_existente.save()
+                    messages.success(request, 'Evidencia reemplazada correctamente.')
+                else:
+                    evidencia = evidencia_form.save(commit=False)
+                    evidencia.curso = curso
+                    evidencia.indicador = indicador
+                    evidencia.save()
+                    messages.success(request, 'Evidencia subida correctamente.')
+
+                return redirect('core:evaluacion_indicador', curso_pk=curso.pk, indicador_pk=indicador.pk)
+
+    evidencias = EvidenciaIndicador.objects.filter(
+        curso=curso,
+        indicador=indicador
+    ).order_by('tipo_archivo')
+
+    return render(request, 'cursos/evaluacion_indicador.html', {
+        'curso': curso,
+        'indicador': indicador,
+        'resultado': resultado,
+        'resultado_form': resultado_form,
+        'evidencia_form': evidencia_form,
+        'evidencias': evidencias,
+    })
+
+@login_required
+def subir_evidencia_indicador(request, curso_pk, indicador_pk, tipo_archivo):
+    curso = get_object_or_404(Curso, pk=curso_pk)
+    indicador = get_object_or_404(Indicador, pk=indicador_pk)
+
+    tipos_permitidos = ['INSTRUMENTO', 'EVIDENCIA']
+
+    if tipo_archivo not in tipos_permitidos:
+        messages.error(request, 'Tipo de archivo no válido para esta acción.')
+        return redirect('core:detalle_curso', pk=curso.pk)
+
+    if not MateriaIndicador.objects.filter(
+        materia=curso.materia,
+        indicador=indicador
+    ).exists():
+        messages.error(request, 'Este indicador no está asignado a la materia del curso.')
+        return redirect('core:detalle_curso', pk=curso.pk)
+
+    evidencia = EvidenciaIndicador.objects.filter(
+        curso=curso,
+        indicador=indicador,
+        tipo_archivo=tipo_archivo
+    ).first()
+
+    if request.method == 'POST':
+        form = EvidenciaIndicadorSimpleForm(
+            request.POST,
+            request.FILES,
+            instance=evidencia
+        )
+
+        if form.is_valid():
+            evidencia = form.save(commit=False)
+            evidencia.curso = curso
+            evidencia.indicador = indicador
+            evidencia.tipo_archivo = tipo_archivo
+            evidencia.save()
+
+            messages.success(request, 'Archivo guardado correctamente.')
+            return redirect('core:detalle_curso', pk=curso.pk)
+
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, error)
+
+    else:
+        form = EvidenciaIndicadorSimpleForm(instance=evidencia)
+
+    return render(request, 'cursos/subir_evidencia_indicador.html', {
+        'form': form,
+        'curso': curso,
+        'indicador': indicador,
+        'tipo_archivo': tipo_archivo,
+        'evidencia': evidencia,
+    })
+    
+
+@login_required
+def subir_reporte_nivel_logro(request, curso_pk, indicador_pk):
+    curso = get_object_or_404(
+        Curso.objects.select_related('materia', 'docente', 'materia__periodo'),
+        pk=curso_pk
+    )
+
+    indicador = get_object_or_404(
+        Indicador.objects.select_related(
+            'criterio',
+            'criterio__atributo_egreso'
+        ),
+        pk=indicador_pk
+    )
+
+    if not MateriaIndicador.objects.filter(
+        materia=curso.materia,
+        indicador=indicador
+    ).exists():
+        messages.error(request, 'Este indicador no está asignado a la materia del curso.')
+        return redirect('core:detalle_curso', pk=curso.pk)
+
+    resultado, _ = ResultadoIndicador.objects.get_or_create(
+        curso=curso,
+        indicador=indicador,
+        defaults={
+            'usuario': request.user,
+            'instrumento_evaluacion': '',
+            'alumnos_evaluados': 0,
+            'porcentaje_meta': 85,
+            'porcentaje_obtenido': 0,
+            'argumentacion': '',
+            'acciones_mejora': '',
+        }
+    )
+
+    if request.method == 'POST':
+        form = ResultadoIndicadorForm(request.POST, instance=resultado)
+        if form.is_valid():
+            resultado = form.save(commit=False)
+            resultado.usuario = request.user
+            resultado.save()
+
+            try:
+                generar_reporte_nivel_logro(resultado)
+                messages.success(request, 'Reporte de nivel de logro generado correctamente.')
+            except GeneradorReporteNivelLogroError as e:
+                messages.error(request, str(e))
+
+        return redirect('core:detalle_curso', pk=curso.pk)
+    else:
+        form = ResultadoIndicadorForm(instance=resultado)
+
+    return render(request, 'cursos/subir_reporte_nivel_logro.html', {
+        'form': form,
+        'curso': curso,
+        'indicador': indicador,
+        'resultado': resultado,
+    })
+    
+    
+# =============================================================================
+# PLANTILLAS - REPORTE DE NIVEL DE LOGRO
+# =============================================================================
+    
+@login_required
+@solo_admin
+def plantillas_reporte_nivel_logro(request):
+    plantillas = PlantillaReporteNivelLogro.objects.select_related(
+        'periodo',
+        'usuario'
+    ).order_by('-periodo__fecha_inicio')
+
+    if request.method == 'POST':
+        periodo_id = request.POST.get('periodo')
+        plantilla_existente = PlantillaReporteNivelLogro.objects.filter(
+            periodo_id=periodo_id
+        ).first()
+
+        form = PlantillaReporteNivelLogroForm(
+            request.POST,
+            request.FILES,
+            instance=plantilla_existente
+        )
+
+        if form.is_valid():
+            plantilla = form.save(commit=False)
+            plantilla.usuario = request.user
+            plantilla.save()
+
+            if plantilla_existente:
+                messages.success(request, 'Plantilla reemplazada correctamente.')
+            else:
+                messages.success(request, 'Plantilla subida correctamente.')
+
+            return redirect('core:plantillas_reporte_nivel_logro')
+
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, error)
+
+    else:
+        form = PlantillaReporteNivelLogroForm()
+
+    return render(request, 'configuracion/plantillas_reporte_nivel_logro.html', {
+        'form': form,
+        'plantillas': plantillas,
     })

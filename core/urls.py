@@ -4,6 +4,8 @@
 
 from django.contrib.auth import views as auth_views
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 
 from . import views
 
@@ -106,5 +108,31 @@ urlpatterns = [
     path('cursos/importar/',                views.importar_cursos, name='importar_cursos'),  # antes de <pk>
     path('cursos/<int:pk>/editar/',         views.editar_curso,    name='editar_curso'),
     path('cursos/<int:pk>/eliminar/',       views.eliminar_curso,  name='eliminar_curso'),
+    path('cursos/<int:pk>/detalle/',        views.detalle_curso,   name='detalle_curso'),
+    
+    # -------------------------------------------------------------------------
+    # MateriaAtributoEgreso
+    # -------------------------------------------------------------------------
+    path('materias/<int:materia_pk>/atributos/', views.gestionar_atributos_materia, name='gestionar_atributos_materia'),
+    path('materia-atributo/<int:pk>/eliminar/',  views.eliminar_atributo_materia,   name='eliminar_atributo_materia'),
+    path('materia-atributo/<int:pk>/editar/',    views.editar_atributo_materia,     name='editar_atributo_materia'),
+    path('materias/<int:materia_pk>/indicadores/', views.gestionar_indicadores_materia, name='gestionar_indicadores_materia'),
+    path('materia-indicador/<int:pk>/eliminar/', views.eliminar_indicador_materia, name='eliminar_indicador_materia'),
+    
+    # -------------------------------------------------------------------------
+    # Evidencias - Reporte de Nivel de Logro
+    # -------------------------------------------------------------------------
+    #path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/reporte/', views.editar_reporte_indicador, name='editar_reporte_indicador'),
+    path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/evidencias/<str:tipo_archivo>/subir/', views.subir_evidencia_indicador, name='subir_evidencia_indicador'),
+    path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/reporte/', views.subir_reporte_nivel_logro, name='subir_reporte_nivel_logro'),
+    
+    # -------------------------------------------------------------------------
+    # Plantillas - Reporte de Nivel de Logro
+    # -------------------------------------------------------------------------
+    path('configuracion/plantillas-reportes/', views.plantillas_reporte_nivel_logro, name='plantillas_reporte_nivel_logro'),
+    
 
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

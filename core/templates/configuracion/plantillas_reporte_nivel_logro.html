@@ -1,0 +1,90 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Plantillas de reportes - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Plantillas de reportes</h2>
+            <p class="dashboard__subtitle">Administra la plantilla DOCX del reporte de nivel de logro por periodo.</p>
+        </div>
+    </div>
+
+    <!-- Formulario subir plantilla -->
+    <div class="table-wrapper" style="padding:20px 24px; margin-bottom:24px;">
+        <p class="perfil-card__section-title" style="margin-bottom:16px;">Subir o reemplazar plantilla</p>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div style="display:grid; grid-template-columns:200px 1fr 1fr; gap:12px; align-items:end; max-width:900px;">
+                <div>
+                    <label class="perfil-card__label">Periodo</label>
+                    {{ form.periodo }}
+                </div>
+                <div>
+                    <label class="perfil-card__label">Nombre</label>
+                    {{ form.nombre }}
+                </div>
+                <div>
+                    <label class="perfil-card__label">Archivo DOCX</label>
+                    {{ form.archivo }}
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+                <p class="perfil-card__error" style="margin-top:10px;">{{ form.non_field_errors|join:", " }}</p>
+            {% endif %}
+
+            <div style="margin-top:16px;">
+                <button type="submit" class="course-card__button" style="max-width:160px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de plantillas -->
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width:130px;">Periodo</th>
+                    <th>Nombre</th>
+                    <th style="width:130px;">Archivo</th>
+                    <th style="width:180px;">Subida por</th>
+                    <th style="width:140px;">Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plantilla in plantillas %}
+                <tr>
+                    <td><span class="course-card__code">{{ plantilla.periodo.codigo }}</span></td>
+                    <td style="font-weight:600;">{{ plantilla.nombre }}</td>
+                    <td>
+                        <a href="{{ plantilla.archivo.url }}" target="_blank"
+                           class="data-table__btn"
+                           style="background-color:#0284c7; color:#fff; white-space:nowrap;">
+                            <i class="fa-solid fa-eye"></i> Ver
+                        </a>
+                    </td>
+                    <td style="font-size:13px; color:#64748b;">
+                        {{ plantilla.usuario.get_full_name|default:plantilla.usuario.username }}
+                    </td>
+                    <td style="font-size:12px; color:#64748b;">
+                        {{ plantilla.fecha_subida|date:"d/m/Y H:i" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="data-table__empty">No hay plantillas cargadas todavía.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

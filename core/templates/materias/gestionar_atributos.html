@@ -1,0 +1,109 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Atributos de materia - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">
+                <span class="course-card__code" style="font-size:15px; margin-right:8px;">{{ materia.clave }}</span>
+                {{ materia.nombre }}
+            </h2>
+            <p class="dashboard__subtitle">Atributos de egreso asociados a esta materia.</p>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <a href="{% url 'core:gestionar_indicadores_materia' materia.pk %}"
+               class="course-card__button"
+               style="width:200px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#16a34a;">
+                <i class="fa-solid fa-list-check"></i> Gestionar indicadores
+            </a>
+            <a href="{% url 'core:lista_materias' %}"
+               class="course-card__button"
+               style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulario asignar atributo -->
+    <div class="table-wrapper" style="padding:20px 24px; margin-bottom:20px;">
+        <p class="perfil-card__section-title" style="margin-bottom:16px;">Asignar atributo de egreso</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+           <div style="display:grid; grid-template-columns:1fr 200px; gap:12px; align-items:end; max-width:700px;">
+                <div>
+                    <label class="perfil-card__label">Atributo de egreso</label>
+                    {{ form.atributo_egreso }}
+                    {% if form.atributo_egreso.errors %}
+                        <span class="perfil-card__error">{{ form.atributo_egreso.errors|join:", " }}</span>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="perfil-card__label">Nivel de aporte</label>
+                    {{ form.nivel_aporte }}
+                    {% if form.nivel_aporte.errors %}
+                        <span class="perfil-card__error">{{ form.nivel_aporte.errors|join:", " }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+                <p class="perfil-card__error" style="margin-top:8px;">{{ form.non_field_errors|join:", " }}</p>
+            {% endif %}
+
+            <div style="margin-top:16px;">
+                <button type="submit" class="course-card__button" style="max-width:140px;">
+                    <i class="fa-solid fa-plus"></i> Asignar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de atributos asignados -->
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width:80px;">Código</th>
+                    <th>Atributo</th>
+                    <th style="width:150px;">Nivel de aporte</th>
+                    <th style="width:180px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for relacion in relaciones %}
+                <tr>
+                    <td><span class="course-card__code">{{ relacion.atributo_egreso.codigo }}</span></td>
+                    <td>{{ relacion.atributo_egreso.nombre }}</td>
+                    <td>
+                        {% if relacion.nivel_aporte == 'A' %}
+                            <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700;">Avanzado</span>
+                        {% elif relacion.nivel_aporte == 'M' %}
+                            <span style="background:#fef9c3; color:#ca8a04; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700;">Medio</span>
+                        {% else %}
+                            <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700;">Inicial</span>
+                        {% endif %}
+                    </td>
+                    <td class="data-table__actions">
+                        <a href="{% url 'core:editar_atributo_materia' relacion.pk %}"
+                           class="data-table__btn data-table__btn--edit">Editar nivel</a>
+                        <a href="{% url 'core:eliminar_atributo_materia' relacion.pk %}"
+                           class="data-table__btn data-table__btn--delete">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="data-table__empty">Esta materia no tiene atributos asociados todavía.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

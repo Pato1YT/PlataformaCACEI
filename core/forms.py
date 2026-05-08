@@ -5,12 +5,13 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password  # noqa: F401 — disponible para uso futuro
 
-from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador
+from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador, MateriaAtributoEgreso, ResultadoIndicador, EvidenciaIndicador, PlantillaReporteNivelLogro
 
-
+from .utils.validadores_plantillas import validar_placeholders_reporte_nivel_logro
 # =============================================================================
 # ATRIBUTOS DE EGRESO
 # =============================================================================
+
 
 class AtributoEgresoForm(forms.ModelForm):
     class Meta:
@@ -47,13 +48,16 @@ class MateriaForm(forms.ModelForm):
         if semestre is None:
             raise forms.ValidationError('El semestre es obligatorio.')
         if semestre < 1 or semestre > 8:
-            raise forms.ValidationError('El semestre debe ser un valor entre 1 y 8.')
+            raise forms.ValidationError(
+                'El semestre debe ser un valor entre 1 y 8.')
 
         if self.periodo:
             if self.periodo.tipo_oferta == Periodo.PAR and semestre % 2 != 0:
-                raise forms.ValidationError('Para un periodo par, el semestre debe ser par.')
+                raise forms.ValidationError(
+                    'Para un periodo par, el semestre debe ser par.')
             if self.periodo.tipo_oferta == Periodo.IMPAR and semestre % 2 == 0:
-                raise forms.ValidationError('Para un periodo impar, el semestre debe ser impar.')
+                raise forms.ValidationError(
+                    'Para un periodo impar, el semestre debe ser impar.')
 
         return semestre
 
@@ -156,7 +160,8 @@ class CursoForm(forms.ModelForm):
 class PeriodoForm(forms.ModelForm):
     class Meta:
         model = Periodo
-        fields = ['codigo', 'nombre', 'fecha_inicio', 'fecha_fin', 'tipo_oferta', 'es_activo']
+        fields = ['codigo', 'nombre', 'fecha_inicio',
+                  'fecha_fin', 'tipo_oferta', 'es_activo']
         labels = {
             'codigo':      'Codigo',
             'nombre':      'Nombre',
@@ -177,23 +182,26 @@ class PeriodoForm(forms.ModelForm):
     def clean_codigo(self):
         codigo = self.cleaned_data.get('codigo', '').strip()
         if not codigo.isalnum():
-            raise forms.ValidationError('El código solo puede contener letras y números, sin espacios ni caracteres especiales.')
+            raise forms.ValidationError(
+                'El código solo puede contener letras y números, sin espacios ni caracteres especiales.')
         return codigo
 
     def clean_nombre(self):
         nombre = self.cleaned_data.get('nombre', '').strip()
         if not nombre.replace(' ', '').replace('-', '').isalnum():
-            raise forms.ValidationError('El nombre solo puede contener letras, números, espacios y guiones.')
+            raise forms.ValidationError(
+                'El nombre solo puede contener letras, números, espacios y guiones.')
         return nombre
 
     def clean(self):
         cleaned_data = super().clean()
         fecha_inicio = cleaned_data.get('fecha_inicio')
-        fecha_fin    = cleaned_data.get('fecha_fin')
+        fecha_fin = cleaned_data.get('fecha_fin')
 
         if fecha_inicio and fecha_fin:
             if fecha_inicio > fecha_fin:
-                raise forms.ValidationError('La fecha de inicio no puede ser mayor que la fecha de fin.')
+                raise forms.ValidationError(
+                    'La fecha de inicio no puede ser mayor que la fecha de fin.')
 
         es_activo = cleaned_data.get('es_activo')
         if es_activo:
@@ -202,13 +210,16 @@ class PeriodoForm(forms.ModelForm):
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
-                raise forms.ValidationError('Ya existe un periodo activo. Desactívalo antes de activar otro.')
+                raise forms.ValidationError(
+                    'Ya existe un periodo activo. Desactívalo antes de activar otro.')
 
             # Validar que sea el periodo más reciente
-            periodo_mas_reciente = Periodo.objects.order_by('-fecha_inicio').first()
+            periodo_mas_reciente = Periodo.objects.order_by(
+                '-fecha_inicio').first()
             if periodo_mas_reciente and self.instance and self.instance.pk:
                 if periodo_mas_reciente.pk != self.instance.pk:
-                    raise forms.ValidationError('Solo se puede activar el periodo más reciente.')
+                    raise forms.ValidationError(
+                        'Solo se puede activar el periodo más reciente.')
 
         return cleaned_data
 
@@ -239,3 +250,146 @@ class IndicadorForm(forms.ModelForm):
             'codigo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. I1'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
+
+
+# =============================================================================
+# MATERIA -> ATRIBUTO(S) DE EGRESO
+# =============================================================================
+
+class MateriaAtributoEgresoForm(forms.ModelForm):
+    class Meta:
+        model = MateriaAtributoEgreso
+        fields = ['atributo_egreso', 'nivel_aporte']
+        widgets = {
+            'atributo_egreso': forms.Select(attrs={'class': 'form-control'}),
+            'nivel_aporte': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+class MateriaAtributoEgresoNivelForm(forms.ModelForm):
+    class Meta:
+        model = MateriaAtributoEgreso
+        fields = ['nivel_aporte']
+        widgets = {
+            'nivel_aporte': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+# =============================================================================
+# EVIDENCIAS - REPORTE DE NIVEL DE LOGRO
+# =============================================================================
+
+class ResultadoIndicadorForm(forms.ModelForm):
+    class Meta:
+        model = ResultadoIndicador
+        fields = [
+            'instrumento_evaluacion',
+            'alumnos_evaluados',
+            'porcentaje_meta',
+            'porcentaje_obtenido',
+            'argumentacion',
+            'acciones_mejora',
+        ]
+        widgets = {
+            'instrumento_evaluacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'alumnos_evaluados': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'porcentaje_meta': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': 0, 'max': 100}),
+            'porcentaje_obtenido': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': 0, 'max': 100}),
+            'argumentacion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'acciones_mejora': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+
+class EvidenciaIndicadorForm(forms.ModelForm):
+    class Meta:
+        model = EvidenciaIndicador
+        fields = ['tipo_archivo', 'titulo', 'archivo']
+        widgets = {
+            'tipo_archivo': forms.Select(attrs={'class': 'form-control'}),
+            'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Título opcional'}),
+            'archivo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+
+
+class EvidenciaIndicadorSimpleForm(forms.ModelForm):
+    class Meta:
+        model = EvidenciaIndicador
+        fields = ['titulo', 'comentario', 'archivo']
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Título opcional'
+            }),
+            'comentario': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Comentario opcional sobre el archivo'
+            }),
+            'archivo': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'application/pdf,.pdf'
+            }),
+        }
+
+    def clean_archivo(self):
+        archivo = self.cleaned_data.get('archivo')
+
+        if archivo:
+            # Validar extensión
+            if not archivo.name.lower().endswith('.pdf'):
+                raise forms.ValidationError('Solo se permiten archivos PDF.')
+
+            if archivo.content_type != 'application/pdf':
+                raise forms.ValidationError(
+                    'El archivo debe ser un PDF válido.')
+
+            max_size = 5 * 1024 * 1024  # 5MB
+
+            if archivo.size > max_size:
+                raise forms.ValidationError(
+                    'El archivo no debe superar los 5MB.')
+
+        return archivo
+
+
+# =============================================================================
+# PLANTILLAS - REPORTE DE NIVEL DE LOGRO
+# =============================================================================
+
+class PlantillaReporteNivelLogroForm(forms.ModelForm):
+    class Meta:
+        model = PlantillaReporteNivelLogro
+        fields = ['periodo', 'nombre', 'archivo']
+        widgets = {
+            'periodo': forms.Select(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'archivo': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            }),
+        }
+
+    def clean_archivo(self):
+        archivo = self.cleaned_data.get('archivo')
+
+        if archivo:
+            if not archivo.name.lower().endswith('.docx'):
+                raise forms.ValidationError('Solo se permiten archivos .docx.')
+
+            try:
+                resultado = validar_placeholders_reporte_nivel_logro(archivo)
+
+                if not resultado['es_valida']:
+                    faltantes = ', '.join(resultado['faltantes'])
+                    raise forms.ValidationError(
+                        f'La plantilla no contiene todos los campos obligatorios. Faltan: {faltantes}'
+                    )
+
+            except forms.ValidationError:
+                raise
+            except Exception as e:
+                raise forms.ValidationError(
+                    f'No se pudo validar la plantilla. Verifica que sea un archivo DOCX válido. Detalle: {str(e)}'
+                )
+
+        return archivo

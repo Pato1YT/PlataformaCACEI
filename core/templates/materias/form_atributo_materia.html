@@ -1,0 +1,57 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}{{ titulo }} - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="perfil-card" style="max-width:680px;">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar" style="background-color:#0284c7;">
+            <i class="fa-solid fa-pen" style="font-size:22px;"></i>
+        </div>
+        <div>
+            <h2 class="perfil-card__nombre">{{ titulo }}</h2>
+            <span class="perfil-card__rol">
+                <span class="course-card__code" style="font-size:11px; margin-right:6px;">{{ materia.clave }}</span>
+                {{ materia.nombre }}
+            </span>
+        </div>
+    </div>
+
+    <form method="post" class="perfil-card__form">
+        {% csrf_token %}
+
+        <div class="perfil-card__section-title">Datos de la relación</div>
+
+        <div class="perfil-card__grid" style="grid-template-columns:1fr;">
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Atributo de egreso</label>
+                <input type="text"
+                       class="form-control"
+                       value="{{ relacion.atributo_egreso.codigo }} — {{ relacion.atributo_egreso.nombre }}"
+                       disabled
+                       style="background:#f1f5f9; color:#64748b; cursor:not-allowed;">
+            </div>
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Nivel de aporte</label>
+                {{ form.nivel_aporte }}
+                {% if form.nivel_aporte.errors %}
+                    <span class="perfil-card__error">{{ form.nivel_aporte.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width:160px;">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar
+            </button>
+            <a href="{% url 'core:gestionar_atributos_materia' materia.pk %}" class="perfil-card__cancelar">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

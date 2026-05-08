@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y gcc libpq-dev && apt-get clean
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev libreoffice libreoffice-writer && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
