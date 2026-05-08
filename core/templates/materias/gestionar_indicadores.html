@@ -15,9 +15,8 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-            <a href="{% url 'core:gestionar_atributos_materia' materia.pk %}"
-               class="course-card__button"
-               style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
+            <a href="{% url 'core:gestionar_atributos_materia' materia.pk %}" class="course-card__button"
+                style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
                 <i class="fa-solid fa-arrow-left"></i> Volver
             </a>
         </div>
@@ -30,18 +29,49 @@
         <form method="post">
             {% csrf_token %}
 
-            <div style="display:grid; grid-template-columns:1fr; gap:12px; align-items:end; max-width:700px;">
+            <div style="display:grid; grid-template-columns:260px 1fr; gap:16px; max-width:900px;">
+
+                <!-- AE -->
                 <div>
-                    <label class="perfil-card__label">Indicador disponible</label>
-                    <select name="indicador_id" class="form-control" required>
-                        <option value="">— Selecciona un indicador —</option>
-                        {% for indicador in indicadores_disponibles %}
-                            <option value="{{ indicador.pk }}">
-                                {{ indicador.criterio.atributo_egreso.codigo }} · {{ indicador.criterio.codigo }} · {{ indicador.codigo }} — {{ indicador.descripcion|truncatechars:80 }}
-                            </option>
+                    <label class="perfil-card__label">
+                        Atributo de egreso
+                    </label>
+
+                    <select name="atributo_id" class="form-control"
+                        onchange="window.location.href='?atributo_id=' + this.value">
+                        <option value="">— Selecciona un AE —</option>
+
+                        {% for atributo in atributos_disponibles %}
+                        <option
+                            value="{{ atributo.pk }}"
+                            {% if atributo.pk|stringformat:"s" == atributo_id %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ atributo.codigo }} — {{ atributo.nombre }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
+
+                <!-- INDICADOR -->
+                <div>
+                    <label class="perfil-card__label">
+                        Indicador disponible
+                    </label>
+
+                    <select name="indicador_id" class="form-control" required>
+                        <option value="">— Selecciona un indicador —</option>
+
+                        {% for indicador in indicadores_disponibles %}
+                        <option value="{{ indicador.pk }}">
+                            {{ indicador.criterio.codigo }} · {{ indicador.codigo }}
+                            — {{ indicador.descripcion|truncatechars:80 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
             </div>
 
             <div style="margin-top:16px;">
@@ -67,13 +97,27 @@
             <tbody>
                 {% for relacion in indicadores_asignados %}
                 <tr>
-                    <td><span class="course-card__code">{{ relacion.indicador.criterio.atributo_egreso.codigo }}</span></td>
-                    <td><span class="course-card__code" style="background:#f0f9ff; color:#0284c7;">{{ relacion.indicador.criterio.codigo }}</span></td>
-                    <td><span class="course-card__code" style="background:#f0fdf4; color:#16a34a;">{{ relacion.indicador.codigo }}</span></td>
-                    <td style="font-size:13px; color:#374151;">{{ relacion.indicador.descripcion }}</td>
+                    <td>
+                        <span class="course-card__code">
+                            {{ relacion.indicador.criterio.atributo_egreso.codigo }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="course-card__code" style="background:#f0f9ff; color:#0284c7;">
+                            {{relacion.indicador.criterio.codigo }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="course-card__code" style="background:#f0fdf4; color:#16a34a;">
+                            {{relacion.indicador.codigo }}
+                        </span>
+                    </td>
+                    <td style="font-size:13px; color:#374151;">
+                        {{ relacion.indicador.descripcion }}
+                    </td>
                     <td class="data-table__actions">
                         <a href="{% url 'core:eliminar_indicador_materia' relacion.pk %}"
-                           class="data-table__btn data-table__btn--delete" style="white-space:nowrap;">Eliminar</a>
+                            class="data-table__btn data-table__btn--delete" style="white-space:nowrap;">Eliminar</a>
                     </td>
                 </tr>
                 {% empty %}

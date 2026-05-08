@@ -1678,17 +1678,22 @@ def gestionar_indicadores_materia(request, materia_pk):
     atributos_materia = MateriaAtributoEgreso.objects.filter(
         materia=materia
     ).values_list('atributo_egreso_id', flat=True)
+    
+    atributo_id = request.GET.get('atributo_id')
 
-    indicadores_disponibles = Indicador.objects.filter(
-        criterio__atributo_egreso_id__in=atributos_materia
-    ).select_related(
-        'criterio',
-        'criterio__atributo_egreso'
-    ).order_by(
-        'criterio__atributo_egreso__codigo',
-        'criterio__codigo',
-        'codigo'
-    )
+    indicadores_disponibles = Indicador.objects.none()
+
+    if atributo_id:
+        indicadores_disponibles = Indicador.objects.filter(
+            criterio__atributo_egreso_id=atributo_id,
+            criterio__atributo_egreso_id__in=atributos_materia
+        ).select_related(
+            'criterio',
+            'criterio__atributo_egreso'
+        ).order_by(
+            'criterio__codigo',
+            'codigo'
+        )
 
     indicadores_asignados = MateriaIndicador.objects.filter(
         materia=materia
@@ -1722,8 +1727,14 @@ def gestionar_indicadores_materia(request, materia_pk):
         messages.success(request, 'Indicador asignado correctamente.')
         return redirect('core:gestionar_indicadores_materia', materia_pk=materia.pk)
 
+    atributos_disponibles = AtributoEgreso.objects.filter(
+        pk__in=atributos_materia
+    ).order_by('codigo')
+    
     return render(request, 'materias/gestionar_indicadores.html', {
         'materia': materia,
+        'atributos_disponibles': atributos_disponibles,
+        'atributo_id': atributo_id,
         'indicadores_disponibles': indicadores_disponibles,
         'indicadores_asignados': indicadores_asignados,
     })
