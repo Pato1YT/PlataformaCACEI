@@ -260,10 +260,44 @@ class MateriaAtributoEgresoForm(forms.ModelForm):
     class Meta:
         model = MateriaAtributoEgreso
         fields = ['atributo_egreso', 'nivel_aporte']
-        widgets = {
-            'atributo_egreso': forms.Select(attrs={'class': 'form-control'}),
-            'nivel_aporte': forms.Select(attrs={'class': 'form-control'}),
-        }
+        
+        
+        
+
+    def __init__(self, *args, **kwargs):
+        periodo = kwargs.pop('periodo', None)
+
+        super().__init__(*args, **kwargs)
+        
+        self.fields['atributo_egreso'].widget.attrs.update({
+            'style': '''
+            width:100%;
+            height:44px;
+            border-radius:12px;
+            padding:0 14px;
+            border:1px solid #d7dee8;
+            background:#fff;
+        '''
+        })
+
+        self.fields['nivel_aporte'].widget.attrs.update({
+            'style': '''
+            width:100%;
+            height:44px;
+            border-radius:12px;
+            padding:0 14px;
+            border:1px solid #d7dee8;
+            background:#fff;
+        '''
+        })
+
+        if periodo:
+            self.fields['atributo_egreso'].queryset = (
+                AtributoEgreso.objects.filter(
+                    periodo=periodo
+                ).order_by('codigo')
+            )
+    
 
 
 class MateriaAtributoEgresoNivelForm(forms.ModelForm):
