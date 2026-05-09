@@ -21,7 +21,15 @@
 
             <div class="login-form__group">
                 <label for="{{ form.password.id_for_label }}" class="login-form__label">Contraseña</label>
-                {{ form.password }}
+                <div style="position:relative;">
+                    {{ form.password }}
+                    <button type="button" id="togglePassword"
+                        style="position:absolute; right:12px; top:50%; transform:translateY(-50%);
+                               background:none; border:none; cursor:pointer; padding:0;
+                               color:#64748b; font-size:16px; line-height:1;">
+                        <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="login-form__actions">
@@ -30,8 +38,7 @@
         </form>
     </section>
 
-    <!-- Todos los logos abajo -->
-    <div class="auth-bottom-logos">
+    <div class="auth-bottom-logos" style="margin-right: 22px;">
         <img src="{% static 'img/logo_tecnm.png' %}" alt="TecNM" class="auth-bottom-logo" style="max-height: 90px;">
         <img src="{% static 'img/logo_itsh.png' %}" alt="ITSH" class="auth-bottom-logo">
         <img src="{% static 'img/logocacei.png' %}" alt="CACEI" class="auth-bottom-logo">
@@ -51,4 +58,18 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+document.getElementById('togglePassword').addEventListener('click', function () {
+    var input = document.getElementById('{{ form.password.id_for_label }}');
+    var icon  = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+    }
+});
+</script>
 {% endblock %}

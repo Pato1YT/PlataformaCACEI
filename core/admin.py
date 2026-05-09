@@ -4,10 +4,13 @@ from .models import (
     Usuario,
     AtributoEgreso,
     Materia,
-    Evidencia,
-    ReporteNivelLogro,
     Periodo,
-    Curso
+    Curso,
+    CriterioDesempeno,
+    Indicador,
+    EvidenciaIndicador,
+    ResultadoIndicador
+    
 )
 
 # Register your models here.
@@ -22,7 +25,9 @@ class UsuarioAdmin(BaseUserAdmin):
 
 admin.site.register(AtributoEgreso)
 admin.site.register(Materia)
-admin.site.register(Evidencia)
-admin.site.register(ReporteNivelLogro)
 admin.site.register(Periodo)
 admin.site.register(Curso)
+admin.site.register(CriterioDesempeno)
+admin.site.register(Indicador)
+admin.site.register(EvidenciaIndicador)
+admin.site.register(ResultadoIndicador)

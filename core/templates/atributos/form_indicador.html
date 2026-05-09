@@ -1,0 +1,57 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}{{ titulo }} - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="perfil-card" style="max-width: 680px;">
+
+    <div class="perfil-card__header">
+        <div class="perfil-card__avatar" style="background-color:#0284c7;">
+            <i class="fa-solid fa-chart-simple" style="font-size:24px;"></i>
+        </div>
+        <div>
+            <h2 class="perfil-card__nombre">{{ titulo }}</h2>
+            <span class="perfil-card__rol">
+                {{ atributo.codigo }} — Criterio {{ criterio.codigo }}
+            </span>
+        </div>
+    </div>
+
+    <form method="post" class="perfil-card__form">
+        {% csrf_token %}
+
+        <div class="perfil-card__section-title">Datos del indicador</div>
+
+        <div class="perfil-card__grid" style="grid-template-columns: 1fr;">
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Código</label>
+                {{ form.codigo }}
+                {% if form.codigo.errors %}
+                    <span class="perfil-card__error">{{ form.codigo.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+            <div class="perfil-card__field">
+                <label class="perfil-card__label">Descripción</label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                    <span class="perfil-card__error">{{ form.descripcion.errors|join:", " }}</span>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% if form.non_field_errors %}
+            <p class="perfil-card__error" style="margin-top:8px;">{{ form.non_field_errors|join:", " }}</p>
+        {% endif %}
+
+        <div class="perfil-card__actions">
+            <button type="submit" class="course-card__button" style="max-width:160px;">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar
+            </button>
+            <a href="{% url 'core:ver_tabla_atributo' atributo.pk %}" class="perfil-card__cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

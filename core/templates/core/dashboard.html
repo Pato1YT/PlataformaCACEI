@@ -3,6 +3,106 @@
 {% block title %}Inicio - Se'si Eskani{% endblock %}
 
 {% block content %}
+<style>
+.course-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.course-card--completo {
+    background: linear-gradient(145deg, #ffffff 55%, #dcfce7 100%) !important;
+    border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.course-card--sin-avance {
+    background: linear-gradient(145deg, #ffffff 55%, #fee2e2 100%) !important;
+    border: 1px solid rgba(220, 38, 38, 0.22);
+}
+
+.course-card--bajo {
+    background: linear-gradient(145deg, #ffffff 55%, #ffedd5 100%) !important;
+    border: 1px solid rgba(249, 115, 22, 0.22);
+}
+
+.course-card--medio {
+    background: linear-gradient(145deg, #ffffff 55%, #fef3c7 100%) !important;
+    border: 1px solid rgba(234, 179, 8, 0.28);
+}
+
+.course-card--sin-indicadores {
+    background: linear-gradient(145deg, #ffffff 55%, #f1f5f9 100%) !important;
+    border: 1px solid rgba(100, 116, 139, 0.18);
+}
+
+.course-card__code--nivel-I {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+}
+
+.course-card__code--nivel-M {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+.course-card__code--nivel-A {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+}
+</style>
+
+<style>
+body.dark-mode .course-card {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .course-card__title,
+body.dark-mode .course-card__teacher,
+body.dark-mode .course-card__meta,
+body.dark-mode .course-card__label {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .course-card--completo {
+    background: linear-gradient(
+        145deg,
+        #1e293b 55%,
+        rgba(34, 197, 94, 0.18) 100%
+    ) !important;
+}
+
+body.dark-mode .course-card--sin-avance {
+    background: linear-gradient(
+        145deg,
+        #1e293b 55%,
+        rgba(239, 68, 68, 0.18) 100%
+    ) !important;
+}
+
+body.dark-mode .course-card--medio {
+    background: linear-gradient(
+        145deg,
+        #1e293b 55%,
+        rgba(250, 204, 21, 0.16) 100%
+    ) !important;
+}
+
+body.dark-mode .course-card--bajo {
+    background: linear-gradient(
+        145deg,
+        #1e293b 55%,
+        rgba(249, 115, 22, 0.18) 100%
+    ) !important;
+}
+
+body.dark-mode .course-card--sin-indicadores {
+    background: linear-gradient(
+        145deg,
+        #1e293b 55%,
+        rgba(148, 163, 184, 0.12) 100%
+    ) !important;
+}
+</style>
 <div class="dashboard">
 
     <!-- ENCABEZADO -->
@@ -10,55 +110,51 @@
         <div>
             <h2 class="dashboard__title">
                 {% if periodo_activo %}
-                    {{ periodo_activo.nombre }}
+                {{ periodo_activo.nombre }}
                 {% else %}
-                    Dashboard académico
+                Dashboard académico
                 {% endif %}
             </h2>
             <p class="dashboard__subtitle">
                 {% if periodo_activo %}
-                    <i class="fa-solid fa-chalkboard" style="margin-right:4px; color:#00a3ff;"></i>
-                    Cursos registrados: <strong>{{ cursos|length }}</strong>
+                <i class="fa-solid fa-chalkboard" style="margin-right:4px; color:#00a3ff;"></i>
+                Cursos registrados: <strong>{{ cursos|length }}</strong>
                 {% else %}
-                    No hay periodo activo configurado.
+                No hay periodo activo configurado.
                 {% endif %}
             </p>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-           {% if periodos %}
-                <div style="display:flex; align-items:center; gap:6px; margin-top:8px;">
-                <a href="{% url 'core:lista_periodos' %}"
-                   title="Gestionar periodos"
-                   style="color:#64748b; font-size:14px; display:flex; align-items:center; padding:4px; border-radius:6px; text-decoration:none;">
+            {% if periodos %}
+            <div style="display:flex; align-items:center; gap:6px; margin-top:8px;">
+                <a href="{% url 'core:lista_periodos' %}" title="Gestionar periodos"
+                    style="color:#64748b; font-size:14px; display:flex; align-items:center; padding:4px; border-radius:6px; text-decoration:none;">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </a>
-                <form method="get" id="periodoForm" action="{% url 'core:dashboard' %}" style="margin:0; display:flex; align-items:center;">
-                    <select
-                        name="periodo_id"
-                        onchange="document.getElementById('periodoForm').submit()"
-                       style="width:150px; margin:0; font-size:14px; padding:8px 12px; border-radius:999px; background-color:#e0f2fe; color:#0369a1; border:none; cursor:pointer; font-weight:700;">
+                <form method="get" id="periodoForm" action="{% url 'core:dashboard' %}"
+                    style="margin:0; display:flex; align-items:center;">
+                    <select name="periodo_id" onchange="document.getElementById('periodoForm').submit()"
+                        style="width:150px; margin:0; font-size:14px; padding:8px 12px; border-radius:999px; background-color:#e0f2fe; color:#0369a1; border:none; cursor:pointer; font-weight:700;">
                         {% for periodo in periodos %}
-                            <option
-                                value="{{ periodo.pk }}"
-                                {% if periodo_activo and periodo.pk == periodo_activo.pk %}selected{% endif %}>
-                                {{ periodo.codigo }}
-                            </option>
+                        <option value="{{ periodo.pk }}"
+                            {% if periodo_activo and periodo.pk == periodo_activo.pk %}selected{% endif %}>
+                            {{ periodo.codigo }}
+                        </option>
 
 
                         {% endfor %}
                     </select>
 
-                    
+
                 </form>
-                 </div>
+            </div>
             {% endif %}
             {% if request.user.rol == 'ADMINISTRADOR' and periodo_activo %}
-                <a href="{% url 'core:crear_curso' %}?periodo_id={{ periodo_activo.pk }}"
-                   class="course-card__button"
-                   style="width: 150px; text-align:center; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:700;">
-                    <i class="fa-solid fa-square-plus"></i> Nuevo curso
-                </a>
+            <a href="{% url 'core:crear_curso' %}?periodo_id={{ periodo_activo.pk }}" class="course-card__button"
+                style="width: 150px; text-align:center; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:700;">
+                <i class="fa-solid fa-square-plus"></i> Nuevo curso
+            </a>
             {% endif %}
         </div>
     </div>
@@ -68,12 +164,37 @@
         <select class="dashboard__filter" id="filtro-semestre">
             <option value="">Todos los semestres</option>
             {% for curso in cursos %}
-                <option value="{{ curso.materia.semestre }}">Semestre {{ curso.materia.semestre }}</option>
+            <option value="{{ curso.materia.semestre }}">Semestre {{ curso.materia.semestre }}</option>
             {% endfor %}
         </select>
-        <input type="text" class="dashboard__filter dashboard__filter--search"
-               id="filtro-busqueda"
-               placeholder="Buscar materia, clave o docente...">
+        <input type="text" class="dashboard__filter dashboard__filter--search" id="filtro-busqueda"
+            placeholder="Buscar materia, clave o docente...">
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin:16px 0;">
+        <div style="font-size:14px; color:#334155; font-weight:700;">
+            Cursos acreditados:
+            <span style="color:#16a34a;">{{ cursos_acreditados }}</span>
+            /
+            <span>{{ total_cursos }}</span>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:12px;">
+            <strong style="color:#334155;">Nivel de aporte:</strong>
+
+            <span class="course-card__code course-card__code--nivel-I">Inicial</span>
+            <span class="course-card__code course-card__code--nivel-M">Medio</span>
+            <span class="course-card__code course-card__code--nivel-A">Avanzado</span>
+
+            <span style="margin-left:8px; color:#64748b;">|</span>
+
+            <span style="color:#16a34a; font-weight:700;">
+                <i class="fa-solid fa-circle-check"></i> Completo
+            </span>
+            <span style="color:#dc2626; font-weight:700;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Incompleto
+            </span>
+        </div>
     </div>
 
     <!-- SEPARADOR -->
@@ -82,66 +203,95 @@
     <!-- GRID DE CARDS -->
     <div class="dashboard__grid" id="courses-grid">
         {% for curso in cursos %}
-            <article class="course-card"
-                     data-semestre="{{ curso.materia.semestre }}"
-                     data-search="{{ curso.materia.nombre|lower }} {{ curso.materia.clave|lower }} {{ curso.docente.get_full_name|lower }}">
-                <header class="course-card__header">
-                    <h3 class="course-card__name">{{ curso.materia.nombre }}</h3>
-                    <span class="course-card__code">{{ curso.materia.clave }}</span>
-                </header>
+        <article class="course-card course-card--{{ curso.estado_card }}" data-semestre="{{ curso.materia.semestre }}"
+            data-search="{{ curso.materia.nombre|lower }} {{ curso.materia.clave|lower }} {{ curso.docente.get_full_name|lower }}">
+            <header class="course-card__header">
+                <h3 class="course-card__name">{{ curso.materia.nombre }}</h3>
+                <span class="course-card__code">{{ curso.materia.clave }}</span>
+            </header>
 
-                <div class="course-card__body">
-                    <div class="course-card__meta">
-                        <div>
-                            <span class="course-card__meta-label">Semestre</span>
-                            <span class="course-card__meta-value">{{ curso.materia.semestre }}</span>
-                        </div>
-                        <div>
-                            <span class="course-card__meta-label">Grupo</span>
-                            <span class="course-card__meta-value">{{ curso.grupo }}</span>
-                        </div>
+            <div class="course-card__body">
+                <div class="course-card__meta">
+                    <div>
+                        <span class="course-card__meta-label">Semestre</span>
+                        <span class="course-card__meta-value">{{ curso.materia.semestre }}</span>
                     </div>
-
-                    <div class="course-card__docente">
-                        <i class="fa-solid fa-chalkboard-user" style="font-size:12px; color:#00a3ff;"></i>
-                        {{ curso.docente.get_full_name|default:curso.docente.username }}
+                    <div>
+                        <span class="course-card__meta-label">Grupo</span>
+                        <span class="course-card__meta-value">{{ curso.grupo }}</span>
                     </div>
-
-                    <button class="course-card__button">
-                        <i class="fa-solid fa-eye" style="margin-right:5px;"></i>Ver detalles
-                    </button>
                 </div>
-            </article>
-        {% empty %}
-            <div class="dashboard__empty">
-                {% if periodo_activo %}
-                    <div class="dashboard__empty-icon">
-                        <i class="fa-solid fa-book-open"></i>
-                    </div>
-                    <p class="dashboard__empty-title">No hay cursos registrados</p>
-                    <p class="dashboard__empty-text">No hay cursos para el periodo activo aún.</p>
-                    {% if request.user.rol == 'ADMINISTRADOR' %}
-                        <a href="{% url 'core:crear_curso' %}"
-                           class="course-card__button"
-                           style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block; margin-top:8px;">
-                            <i class="fa-solid fa-square-plus"></i> Crear primer curso
-                        </a>
-                        <a href="{% url 'core:importar_cursos' %}"
-                           class="course-card__button"
-                           style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block; margin-top:8px; background-color: #16a34a;">
-                            <i class="fa-solid fa-file-excel"></i> Importar Excel
-                        </a>
+
+                <div class="course-card__docente">
+                    <i class="fa-solid fa-chalkboard-user" style="font-size:12px; color:#00a3ff;"></i>
+                    {{ curso.docente.get_full_name|default:curso.docente.username }}
+                </div>
+
+                <div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
+                    {% for rel in curso.atributos_card %}
+                    <span class="course-card__code course-card__code--nivel-{{ rel.nivel_aporte }}">
+                        {{ rel.atributo_egreso.codigo }} - {{ rel.get_nivel_aporte_display }}
+                    </span>
+                    {% empty %}
+                    <span style="font-size:12px; color:#64748b; font-weight:700;">
+                        Sin atributos
+                    </span>
+                    {% endfor %}
+                </div>
+
+                <div style="margin-top:10px; font-size:12px;">
+                    {% if curso.total_evidencias_requeridas == 0 %}
+                    <span style="color:#64748b; font-weight:700;">
+                        Sin indicadores asignados
+                    </span>
+                    {% elif curso.evidencias_completas %}
+                    <span style="color:#16a34a; font-weight:700;">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Evidencias completas
+                    </span>
+                    {% else %}
+                    <span style="color:#dc2626; font-weight:700;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Evidencias incompletas
+                        {{ curso.total_evidencias_cargadas }}/{{ curso.total_evidencias_requeridas }}
+                    </span>
                     {% endif %}
-                {% else %}
-                    <div class="dashboard__empty-icon">
-                        <i class="fa-solid fa-calendar-xmark"></i>
-                    </div>
-                    <p class="dashboard__empty-title">Sin periodo activo</p>
-                    <p class="dashboard__empty-text">
-                        Configura un periodo activo en <strong>Administración &rsaquo; Cursos</strong>.
-                    </p>
-                {% endif %}
+                </div>
+
+                <a href="{% url 'core:detalle_curso' curso.pk %}" class="course-card__button"
+                    style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-eye" style="margin-right:5px;"></i>Ver curso
+                </a>
             </div>
+        </article>
+        {% empty %}
+        <div class="dashboard__empty">
+            {% if periodo_activo %}
+            <div class="dashboard__empty-icon">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+            <p class="dashboard__empty-title">No hay cursos registrados</p>
+            <p class="dashboard__empty-text">No hay cursos para el periodo activo aún.</p>
+            {% if request.user.rol == 'ADMINISTRADOR' %}
+            <a href="{% url 'core:crear_curso' %}" class="course-card__button"
+                style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block; margin-top:8px;">
+                <i class="fa-solid fa-square-plus"></i> Crear primer curso
+            </a>
+            <a href="{% url 'core:importar_cursos' %}" class="course-card__button"
+                style="max-width: 200px; text-align:center; text-decoration:none; display:inline-block; margin-top:8px; background-color: #16a34a;">
+                <i class="fa-solid fa-file-excel"></i> Importar Excel
+            </a>
+            {% endif %}
+            {% else %}
+            <div class="dashboard__empty-icon">
+                <i class="fa-solid fa-calendar-xmark"></i>
+            </div>
+            <p class="dashboard__empty-title">Sin periodo activo</p>
+            <p class="dashboard__empty-text">
+                Configura un periodo activo en <strong>Administración &rsaquo; Cursos</strong>.
+            </p>
+            {% endif %}
+        </div>
         {% endfor %}
     </div>
 
@@ -154,44 +304,44 @@
 </div>
 
 <script>
-(function () {
-    const filtroSemestre = document.getElementById('filtro-semestre');
-    const filtroBusqueda = document.getElementById('filtro-busqueda');
-    const grid = document.getElementById('courses-grid');
-    const noResults = document.getElementById('no-results');
+    (function () {
+        const filtroSemestre = document.getElementById('filtro-semestre');
+        const filtroBusqueda = document.getElementById('filtro-busqueda');
+        const grid = document.getElementById('courses-grid');
+        const noResults = document.getElementById('no-results');
 
-    // Eliminar opciones duplicadas del select de semestre y ordenar
-    if (filtroSemestre) {
-        const seen = new Set();
-        Array.from(filtroSemestre.options).forEach(opt => {
-            if (opt.value && seen.has(opt.value)) opt.remove();
-            else seen.add(opt.value);
-        });
-        const opts = Array.from(filtroSemestre.options).slice(1);
-        opts.sort((a, b) => parseInt(a.value) - parseInt(b.value));
-        while (filtroSemestre.options.length > 1) filtroSemestre.remove(1);
-        opts.forEach(o => filtroSemestre.add(o));
-    }
+        // Eliminar opciones duplicadas del select de semestre y ordenar
+        if (filtroSemestre) {
+            const seen = new Set();
+            Array.from(filtroSemestre.options).forEach(opt => {
+                if (opt.value && seen.has(opt.value)) opt.remove();
+                else seen.add(opt.value);
+            });
+            const opts = Array.from(filtroSemestre.options).slice(1);
+            opts.sort((a, b) => parseInt(a.value) - parseInt(b.value));
+            while (filtroSemestre.options.length > 1) filtroSemestre.remove(1);
+            opts.forEach(o => filtroSemestre.add(o));
+        }
 
-    function filtrar() {
-        if (!grid) return;
-        const semestre = filtroSemestre ? filtroSemestre.value : '';
-        const texto = filtroBusqueda ? filtroBusqueda.value.toLowerCase().trim() : '';
-        const cards = grid.querySelectorAll('.course-card');
-        let visibles = 0;
+        function filtrar() {
+            if (!grid) return;
+            const semestre = filtroSemestre ? filtroSemestre.value : '';
+            const texto = filtroBusqueda ? filtroBusqueda.value.toLowerCase().trim() : '';
+            const cards = grid.querySelectorAll('.course-card');
+            let visibles = 0;
 
-        cards.forEach(card => {
-            const matchSem = !semestre || card.dataset.semestre === semestre;
-            const matchTxt = !texto || (card.dataset.search || '').includes(texto);
-            card.style.display = (matchSem && matchTxt) ? '' : 'none';
-            if (matchSem && matchTxt) visibles++;
-        });
+            cards.forEach(card => {
+                const matchSem = !semestre || card.dataset.semestre === semestre;
+                const matchTxt = !texto || (card.dataset.search || '').includes(texto);
+                card.style.display = (matchSem && matchTxt) ? '' : 'none';
+                if (matchSem && matchTxt) visibles++;
+            });
 
-        if (noResults) noResults.style.display = (cards.length > 0 && visibles === 0) ? 'block' : 'none';
-    }
+            if (noResults) noResults.style.display = (cards.length > 0 && visibles === 0) ? 'block' : 'none';
+        }
 
-    if (filtroSemestre) filtroSemestre.addEventListener('change', filtrar);
-    if (filtroBusqueda) filtroBusqueda.addEventListener('input', filtrar);
-})();
+        if (filtroSemestre) filtroSemestre.addEventListener('change', filtrar);
+        if (filtroBusqueda) filtroBusqueda.addEventListener('input', filtrar);
+    })();
 </script>
 {% endblock %}
