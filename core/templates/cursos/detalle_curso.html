@@ -12,6 +12,7 @@
                 {{ curso.materia.clave }} · Grupo {{ curso.grupo }} · {{ curso.materia.periodo.nombre }}
             </p>
         </div>
+
         <a href="{% url 'core:dashboard' %}"
            class="course-card__button"
            style="width:140px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color:#64748b;">
@@ -22,27 +23,37 @@
     <!-- Info del curso -->
     <div class="table-wrapper" style="padding:20px 24px; margin-bottom:24px;">
         <p class="perfil-card__section-title" style="margin-bottom:16px;">Información del curso</p>
+
         <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:14px 32px;">
             <div>
                 <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Materia</span>
                 <p style="margin:4px 0 0 0; font-weight:600; font-size:14px;">{{ curso.materia.nombre }}</p>
             </div>
+
             <div>
                 <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Clave</span>
-                <p style="margin:4px 0 0 0;"><span class="course-card__code">{{ curso.materia.clave }}</span></p>
+                <p style="margin:4px 0 0 0;">
+                    <span class="course-card__code">{{ curso.materia.clave }}</span>
+                </p>
             </div>
+
             <div>
                 <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Docente</span>
-                <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.docente.get_full_name|default:curso.docente.username }}</p>
+                <p style="margin:4px 0 0 0; font-size:14px;">
+                    {{ curso.docente.get_full_name|default:curso.docente.username }}
+                </p>
             </div>
+
             <div>
                 <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Grupo</span>
                 <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.grupo }}</p>
             </div>
+
             <div>
                 <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Semestre</span>
                 <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.materia.semestre }}</p>
             </div>
+
             <div>
                 <span style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;">Periodo</span>
                 <p style="margin:4px 0 0 0; font-size:14px;">{{ curso.materia.periodo.nombre }}</p>
@@ -52,110 +63,433 @@
 
     <!-- Bloque por indicador -->
     {% for bloque in indicadores_bloques %}
- <div style="margin-bottom:48px;">
+        <div style="margin-bottom:48px;">
 
-        <!-- Descripciones -->
-        <div class="detalle-descripcion" style="padding:10px 4px 20px 4px;">
-            <p style="margin:0 0 6px 0; font-size:13px;">
-                <strong>{{ bloque.atributo.codigo }} - {{ bloque.atributo.nombre }}:</strong>
-                {{ bloque.atributo.descripcion }}
-            </p>
-            <p style="margin:0 0 6px 0; font-size:13px;">
-                <strong>{{ bloque.criterio.codigo }}:</strong>
-                {{ bloque.criterio.descripcion }}
-            </p>
-            <p style="margin:0; font-size:13px;">
-                <strong>{{ bloque.indicador.codigo }}:</strong>
-                {{ bloque.indicador.descripcion }}
+            <!-- Descripciones -->
+            <div class="detalle-descripcion" style="padding:10px 4px 20px 4px;">
+                <p style="margin:0 0 6px 0; font-size:13px;">
+                    <strong>{{ bloque.atributo.codigo }} - {{ bloque.atributo.nombre }}:</strong>
+                    {{ bloque.atributo.descripcion }}
+                </p>
+
+                <p style="margin:0 0 6px 0; font-size:13px;">
+                    <strong>{{ bloque.criterio.codigo }}:</strong>
+                    {{ bloque.criterio.descripcion }}
+                </p>
+
+                <p style="margin:0; font-size:13px;">
+                    <strong>{{ bloque.indicador.codigo }}:</strong>
+                    {{ bloque.indicador.descripcion }}
+                </p>
+            </div>
+
+            <!-- Tabla de archivos -->
+            <div style="border:2px solid #cbd5e1; border-radius:10px; overflow:hidden; margin-top:10px; margin-bottom:70px;">
+                <table class="data-table" style="margin:0; border-radius:0;">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">#</th>
+                            <th>Archivo requerido</th>
+                            <th style="width:115px;">Nivel de aporte</th>
+                            <th style="width:150px;">Estado</th>
+                            <th style="width:80px;">Ver</th>
+                            <th style="width:320px;">Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for archivo in bloque.archivos %}
+                            <tr style="border-bottom:1px solid #e2e8f0;">
+                                <td style="font-size:13px; color:#64748b;">
+                                    {{ forloop.counter }}
+                                </td>
+
+                                <td style="font-size:13px;">
+                                    {{ archivo.nombre }}
+                                </td>
+
+                                <!-- Nivel de aporte -->
+                                <td>
+                                    {% if bloque.nivel_aporte == 'A' %}
+                                        <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
+                                            Avanzado
+                                        </span>
+                                    {% elif bloque.nivel_aporte == 'M' %}
+                                        <span style="background:#fef9c3; color:#ca8a04; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
+                                            Medio
+                                        </span>
+                                    {% else %}
+                                        <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
+                                            Inicial
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Estado -->
+                                <td>
+                                    {% if archivo.evidencia %}
+
+                                        {% if archivo.evidencia.estado_revision == 'APROBADO' %}
+                                            <div style="display:flex; flex-direction:column; gap:5px; align-items:flex-start;">
+                                                <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
+                                                    <i class="fa-solid fa-check"></i> Aprobado
+                                                </span>
+
+                                                <button type="button"
+                                                        onclick="openEvidenceModal('approvedInfoModal{{ archivo.evidencia.pk }}')"
+                                                        style="border:none; background:#e0f2fe; color:#0284c7; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700; cursor:pointer;">
+                                                    <i class="fa-solid fa-circle-info"></i> Ver revisión
+                                                </button>
+                                            </div>
+
+                                            <!-- Modal info aprobado -->
+                                            <div id="approvedInfoModal{{ archivo.evidencia.pk }}"
+                                                 class="custom-modal"
+                                                 style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+
+                                                <div style="background:#fff; border-radius:16px; width:100%; max-width:480px; box-shadow:0 20px 45px rgba(15,23,42,0.25); overflow:hidden;">
+
+                                                    <div style="padding:18px 22px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+                                                        <div>
+                                                            <h3 style="margin:0; font-size:18px; color:#0f172a;">
+                                                                Información de revisión
+                                                            </h3>
+                                                            <p style="margin:4px 0 0 0; font-size:13px; color:#64748b;">
+                                                                {{ archivo.nombre }}
+                                                            </p>
+                                                        </div>
+
+                                                        <button type="button"
+                                                                onclick="closeEvidenceModal('approvedInfoModal{{ archivo.evidencia.pk }}')"
+                                                                style="border:none; background:transparent; font-size:20px; cursor:pointer; color:#64748b;">
+                                                            <i class="fa-solid fa-xmark"></i>
+                                                        </button>
+                                                    </div>
+
+                                                    <div style="padding:22px;">
+                                                        <div style="margin-bottom:16px;">
+                                                            <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:4px 12px; font-size:12px; font-weight:700;">
+                                                                <i class="fa-solid fa-check"></i> Archivo aprobado
+                                                            </span>
+                                                        </div>
+
+                                                        {% if archivo.evidencia.revisado_por %}
+                                                            <p style="margin:0 0 6px 0; font-size:13px; color:#64748b;">
+                                                                <strong>Revisó:</strong>
+                                                                {{ archivo.evidencia.revisado_por.get_full_name|default:archivo.evidencia.revisado_por.username }}
+                                                            </p>
+                                                        {% endif %}
+
+                                                        {% if archivo.evidencia.fecha_revision %}
+                                                            <p style="margin:0; font-size:13px; color:#64748b;">
+                                                                <strong>Fecha:</strong>
+                                                                {{ archivo.evidencia.fecha_revision|date:"d/m/Y H:i" }}
+                                                            </p>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div style="padding:16px 22px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end;">
+                                                        <button type="button"
+                                                                onclick="closeEvidenceModal('approvedInfoModal{{ archivo.evidencia.pk }}')"
+                                                                style="border:none; background:#0f4c68; color:#fff; padding:8px 16px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer;">
+                                                            Cerrar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        {% elif archivo.evidencia.estado_revision == 'RECHAZADO' %}
+                                            <div style="display:flex; flex-direction:column; gap:5px; align-items:flex-start;">
+                                                <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
+                                                    <i class="fa-solid fa-xmark"></i> Rechazado
+                                                </span>
+
+                                                <button type="button"
+                                                        onclick="openEvidenceModal('rejectInfoModal{{ archivo.evidencia.pk }}')"
+                                                        style="border:none; background:#e0f2fe; color:#0284c7; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700; cursor:pointer;">
+                                                    <i class="fa-solid fa-circle-info"></i> Ver motivo
+                                                </button>
+                                            </div>
+
+                                            <!-- Modal info rechazado -->
+                                            <div id="rejectInfoModal{{ archivo.evidencia.pk }}"
+                                                 class="custom-modal"
+                                                 style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+
+                                                <div style="background:#fff; border-radius:16px; width:100%; max-width:480px; box-shadow:0 20px 45px rgba(15,23,42,0.25); overflow:hidden;">
+
+                                                    <div style="padding:18px 22px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+                                                        <div>
+                                                            <h3 style="margin:0; font-size:18px; color:#0f172a;">
+                                                                Motivo de rechazo
+                                                            </h3>
+                                                            <p style="margin:4px 0 0 0; font-size:13px; color:#64748b;">
+                                                                {{ archivo.nombre }}
+                                                            </p>
+                                                        </div>
+
+                                                        <button type="button"
+                                                                onclick="closeEvidenceModal('rejectInfoModal{{ archivo.evidencia.pk }}')"
+                                                                style="border:none; background:transparent; font-size:20px; cursor:pointer; color:#64748b;">
+                                                            <i class="fa-solid fa-xmark"></i>
+                                                        </button>
+                                                    </div>
+
+                                                    <div style="padding:22px;">
+                                                        <div style="margin-bottom:16px;">
+                                                            <p style="margin:0 0 6px 0; font-size:13px; font-weight:700; color:#334155;">
+                                                                Motivo
+                                                            </p>
+
+                                                            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; font-size:14px; color:#334155; line-height:1.5;">
+                                                                {% if archivo.evidencia.comentario_revision %}
+                                                                    {{ archivo.evidencia.comentario_revision }}
+                                                                {% else %}
+                                                                    Sin motivo registrado.
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+
+                                                        {% if archivo.evidencia.revisado_por %}
+                                                            <p style="margin:0 0 6px 0; font-size:13px; color:#64748b;">
+                                                                <strong>Revisó:</strong>
+                                                                {{ archivo.evidencia.revisado_por.get_full_name|default:archivo.evidencia.revisado_por.username }}
+                                                            </p>
+                                                        {% endif %}
+
+                                                        {% if archivo.evidencia.fecha_revision %}
+                                                            <p style="margin:0; font-size:13px; color:#64748b;">
+                                                                <strong>Fecha:</strong>
+                                                                {{ archivo.evidencia.fecha_revision|date:"d/m/Y H:i" }}
+                                                            </p>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div style="padding:16px 22px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end;">
+                                                        <button type="button"
+                                                                onclick="closeEvidenceModal('rejectInfoModal{{ archivo.evidencia.pk }}')"
+                                                                style="border:none; background:#0f4c68; color:#fff; padding:8px 16px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer;">
+                                                            Cerrar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        {% else %}
+                                            <span style="background:#fef9c3; color:#ca8a04; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
+                                                <i class="fa-solid fa-clock"></i> En revisión
+                                            </span>
+                                        {% endif %}
+
+                                    {% else %}
+                                        <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
+                                            <i class="fa-solid fa-clock"></i> Pendiente
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Ver archivo -->
+                                <td>
+                                    {% if archivo.evidencia %}
+                                        <a href="{{ archivo.evidencia.archivo.url }}"
+                                           target="_blank"
+                                           class="data-table__btn"
+                                           style="background-color:#0284c7; color:#fff; font-size:11px; padding:3px 10px; white-space:nowrap;">
+                                            <i class="fa-solid fa-eye"></i> Ver
+                                        </a>
+                                    {% else %}
+                                        <span style="color:#94a3b8; font-size:12px;">—</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Acciones -->
+                                <td>
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+
+                                        {% if archivo.evidencia %}
+
+                                            <!-- Reemplazar -->
+                                            {% if archivo.tipo == 'REPORTE' %}
+                                                <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
+                                                   class="data-table__btn"
+                                                   style="white-space:nowrap; background-color:#d97706; color:#fff;">
+                                                    <i class="fa-solid fa-rotate"></i> Reemplazar
+                                                </a>
+                                            {% else %}
+                                                <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
+                                                   class="data-table__btn"
+                                                   style="white-space:nowrap; background-color:#d97706; color:#fff;">
+                                                    <i class="fa-solid fa-rotate"></i> Reemplazar
+                                                </a>
+                                            {% endif %}
+
+                                            <!-- Eliminar -->
+                                            <form method="post"
+                                                  action="{% url 'core:eliminar_evidencia_indicador' archivo.evidencia.pk %}"
+                                                  style="display:inline;"
+                                                  onsubmit="return confirm('¿Seguro que deseas eliminar este archivo?');">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="data-table__btn"
+                                                        style="white-space:nowrap; background-color:#dc2626; color:#fff; border:none; cursor:pointer;">
+                                                    <i class="fa-solid fa-trash"></i> Eliminar
+                                                </button>
+                                            </form>
+
+                                            <!-- Aprobar / Rechazar solo administrador -->
+                                            {% if user.rol == 'ADMINISTRADOR' %}
+                                                {% if archivo.evidencia.estado_revision == 'EN_REVISION' %}
+
+                                                    <form method="post"
+                                                          action="{% url 'core:aprobar_evidencia_indicador' archivo.evidencia.pk %}"
+                                                          style="display:inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit"
+                                                                class="data-table__btn"
+                                                                style="white-space:nowrap; background-color:#16a34a; color:#fff; border:none; cursor:pointer;">
+                                                            <i class="fa-solid fa-check"></i> Aprobar
+                                                        </button>
+                                                    </form>
+
+                                                    <button type="button"
+                                                            class="data-table__btn"
+                                                            onclick="openEvidenceModal('rejectModal{{ archivo.evidencia.pk }}')"
+                                                            style="white-space:nowrap; background-color:#ef4444; color:#fff; border:none; cursor:pointer;">
+                                                        <i class="fa-solid fa-xmark"></i> Rechazar
+                                                    </button>
+
+                                                    <!-- Modal para rechazar archivo -->
+                                                    <div id="rejectModal{{ archivo.evidencia.pk }}"
+                                                         class="custom-modal"
+                                                         style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+
+                                                        <div style="background:#fff; border-radius:16px; width:100%; max-width:480px; box-shadow:0 20px 45px rgba(15,23,42,0.25); overflow:hidden;">
+
+                                                            <div style="padding:18px 22px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+                                                                <div>
+                                                                    <h3 style="margin:0; font-size:18px; color:#0f172a;">
+                                                                        Rechazar archivo
+                                                                    </h3>
+                                                                    <p style="margin:4px 0 0 0; font-size:13px; color:#64748b;">
+                                                                        {{ archivo.nombre }}
+                                                                    </p>
+                                                                </div>
+
+                                                                <button type="button"
+                                                                        onclick="closeEvidenceModal('rejectModal{{ archivo.evidencia.pk }}')"
+                                                                        style="border:none; background:transparent; font-size:20px; cursor:pointer; color:#64748b;">
+                                                                    <i class="fa-solid fa-xmark"></i>
+                                                                </button>
+                                                            </div>
+
+                                                            <form method="post"
+                                                                  action="{% url 'core:rechazar_evidencia_indicador' archivo.evidencia.pk %}">
+                                                                {% csrf_token %}
+
+                                                                <div style="padding:22px;">
+                                                                    <label for="comentario_revision_{{ archivo.evidencia.pk }}"
+                                                                           style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:8px;">
+                                                                        Motivo del rechazo
+                                                                    </label>
+
+                                                                    <textarea id="comentario_revision_{{ archivo.evidencia.pk }}"
+                                                                              name="comentario_revision"
+                                                                              rows="4"
+                                                                              required
+                                                                              placeholder="Ejemplo: El archivo no corresponde al formato solicitado."
+                                                                              style="width:100%; resize:vertical; border:1px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:14px; font-family:inherit; outline:none;"></textarea>
+
+                                                                    <p style="margin:8px 0 0 0; font-size:12px; color:#64748b;">
+                                                                        Este comentario será visible para el docente.
+                                                                    </p>
+                                                                </div>
+
+                                                                <div style="padding:16px 22px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:10px;">
+                                                                    <button type="button"
+                                                                            onclick="closeEvidenceModal('rejectModal{{ archivo.evidencia.pk }}')"
+                                                                            style="border:none; background:#e2e8f0; color:#334155; padding:8px 14px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer;">
+                                                                        Cancelar
+                                                                    </button>
+
+                                                                    <button type="submit"
+                                                                            style="border:none; background:#ef4444; color:#fff; padding:8px 14px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer;">
+                                                                        <i class="fa-solid fa-xmark"></i> Rechazar archivo
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+
+                                                {% endif %}
+                                            {% endif %}
+
+                                        {% else %}
+
+                                            <!-- Subir -->
+                                            {% if archivo.tipo == 'REPORTE' %}
+                                                <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
+                                                   class="data-table__btn data-table__btn--edit"
+                                                   style="white-space:nowrap;">
+                                                    <i class="fa-solid fa-upload"></i> Subir
+                                                </a>
+                                            {% else %}
+                                                <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
+                                                   class="data-table__btn data-table__btn--edit"
+                                                   style="white-space:nowrap;">
+                                                    <i class="fa-solid fa-upload"></i> Subir
+                                                </a>
+                                            {% endif %}
+
+                                        {% endif %}
+
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    {% empty %}
+        <div class="table-wrapper" style="padding:32px; text-align:center;">
+            <p style="color:#94a3b8; font-size:14px; margin:0;">
+                Esta materia no tiene indicadores específicos asignados.
             </p>
         </div>
-
-        <!-- Tabla de archivos -->
-       <div style="border:2px solid #cbd5e1; border-radius:10px; overflow:hidden; margin-top:10px; margin-bottom:70px;">
-        <table class="data-table" style="margin:0; border-radius:0;">
-            <thead>
-                <tr>
-                    <th style="width:40px;">#</th>
-                    <th>Archivo requerido</th>
-                    <th style="width:115px;">Nivel de aporte</th>
-                    <th style="width:115px;">Estado</th>
-                    <th style="width:80px;">Ver</th>
-                    <th style="width:140px;">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for archivo in bloque.archivos %}
-                <tr style="border-bottom:1px solid #e2e8f0;">
-                    <td style="font-size:13px; color:#64748b;">{{ forloop.counter }}</td>
-                    <td style="font-size:13px;">{{ archivo.nombre }}</td>
-                    <td>
-                        {% if bloque.nivel_aporte == 'A' %}
-                            <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">Avanzado</span>
-                        {% elif bloque.nivel_aporte == 'M' %}
-                            <span style="background:#fef9c3; color:#ca8a04; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">Medio</span>
-                        {% else %}
-                            <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">Inicial</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if archivo.evidencia %}
-                            <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
-                                <i class="fa-solid fa-check"></i> Cargado
-                            </span>
-                        {% else %}
-                            <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:700; white-space:nowrap;">
-                                <i class="fa-solid fa-clock"></i> Pendiente
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if archivo.evidencia %}
-                            <a href="{{ archivo.evidencia.archivo.url }}" target="_blank"
-                               class="data-table__btn"
-                               style="background-color:#0284c7; color:#fff; font-size:11px; padding:3px 10px; white-space:nowrap;">
-                                <i class="fa-solid fa-eye"></i> Ver
-                            </a>
-                        {% else %}
-                            <span style="color:#94a3b8; font-size:12px;">—</span>
-                        {% endif %}
-                    </td>
-                    <td class="data-table__actions">
-                        {% if archivo.tipo == 'REPORTE' %}
-                            {% if archivo.evidencia %}
-                            <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
-                               class="data-table__btn" style="white-space:nowrap; background-color:#d97706; color:#fff;">
-                                <i class="fa-solid fa-rotate"></i> Reemplazar
-                            </a>
-                            {% else %}
-                            <a href="{% url 'core:subir_reporte_nivel_logro' curso.pk bloque.indicador.pk %}"
-                               class="data-table__btn data-table__btn--edit" style="white-space:nowrap;">
-                                <i class="fa-solid fa-upload"></i> Subir
-                            </a>
-                            {% endif %}
-                        {% else %}
-                            {% if archivo.evidencia %}
-                            <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
-                               class="data-table__btn" style="white-space:nowrap; background-color:#d97706; color:#fff;">
-                                <i class="fa-solid fa-rotate"></i> Reemplazar
-                            </a>
-                            {% else %}
-                            <a href="{% url 'core:subir_evidencia_indicador' curso.pk bloque.indicador.pk archivo.tipo %}"
-                               class="data-table__btn data-table__btn--edit" style="white-space:nowrap;">
-                                <i class="fa-solid fa-upload"></i> Subir
-                            </a>
-                            {% endif %}
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% empty %}
-    <div class="table-wrapper" style="padding:32px; text-align:center;">
-        <p style="color:#94a3b8; font-size:14px; margin:0;">Esta materia no tiene indicadores específicos asignados.</p>
-    </div>
     {% endfor %}
 
 </div>
+
+<script>
+    function openEvidenceModal(modalId) {
+        const modal = document.getElementById(modalId);
+
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeEvidenceModal(modalId) {
+        const modal = document.getElementById(modalId);
+
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('custom-modal')) {
+            event.target.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            document.querySelectorAll('.custom-modal').forEach(function (modal) {
+                modal.style.display = 'none';
+            });
+        }
+    });
+</script>
 {% endblock %}

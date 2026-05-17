@@ -125,6 +125,9 @@ urlpatterns = [
     #path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/reporte/', views.editar_reporte_indicador, name='editar_reporte_indicador'),
     path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/evidencias/<str:tipo_archivo>/subir/', views.subir_evidencia_indicador, name='subir_evidencia_indicador'),
     path('cursos/<int:curso_pk>/indicadores/<int:indicador_pk>/reporte/', views.subir_reporte_nivel_logro, name='subir_reporte_nivel_logro'),
+    path('evidencias/<int:evidencia_pk>/eliminar/', views.eliminar_evidencia_indicador, name='eliminar_evidencia_indicador'),
+    path('evidencias/<int:evidencia_pk>/aprobar/', views.aprobar_evidencia_indicador, name='aprobar_evidencia_indicador'),
+    path('evidencias/<int:evidencia_pk>/rechazar/', views.rechazar_evidencia_indicador, name='rechazar_evidencia_indicador'),
     
     # -------------------------------------------------------------------------
     # Plantillas - Reporte de Nivel de Logro
