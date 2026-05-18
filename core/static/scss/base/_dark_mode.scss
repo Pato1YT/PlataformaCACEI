@@ -1,177 +1,91 @@
 @use '../variables' as v;
 
 body.dark-mode {
-
   background-color: #0f172a;
   color: #e2e8f0;
 
-  // Header
   .app-header {
-    background-color: #001e30;
+    background-color: #0b2a18;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   }
 
-  // Sidebar
-  .side-menu {
-    background-color: #001624;
-  }
+  .side-menu { background-color: #071a0f; }
 
-  // Footer
   .app-footer {
     border-top-color: #1e293b;
     color: #475569;
   }
 
-  // Carta principal (dashboard, aviso, perfil, formularios)
   .dashboard,
   .aviso-privacidad {
     background-color: #1e293b;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
   }
 
-  // Títulos y textos generales dentro de las cartas
   .dashboard__title,
   .aviso-privacidad__titulo,
   .course-card__name,
-  .course-card__meta-value {
-    color: #e2e8f0;
-  }
+  .course-card__meta-value { color: #e2e8f0; }
 
   .dashboard__subtitle,
   .aviso-privacidad__intro,
   .aviso-privacidad__seccion p,
   .aviso-privacidad__cierre,
-  .course-card__meta-label {
-    color: #94a3b8;
-  }
+  .course-card__meta-label { color: #94a3b8; }
 
-  .dashboard__tag {
-    background-color: #0c3652;
-    color: #7dd3fc;
-  }
+  .dashboard__tag { background-color: #0d3320; color: #6ee7a0; }
+  .dashboard__filter { background-color: #0f172a; border-color: #334155; color: #cbd5e1; }
+  .dashboard__legend { color: #64748b; }
 
-  .dashboard__filter {
-    background-color: #0f172a;
-    border-color: #334155;
-    color: #cbd5e1;
-  }
-
-  .dashboard__legend {
-    color: #64748b;
-  }
-
-  // Cards de materias
   .course-card {
-    background-color: #273549;
+    background-color: #243044;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   }
 
-  .course-card__code {
-    background-color: #0c3652;
-    color: #7dd3fc;
-  }
+  .course-card__name,
+  .course-card__meta-value,
+  .course-card__meta-label,
+  .course-card__docente { color: #ffffff !important; }
 
-  // TABLAS — fondo levemente más claro que el resto
-  .table-wrapper {
-    background-color: #1e293b;
-    border-radius: 12px;
-  }
+  .course-card__code { background-color: #0d3320; color: #6ee7a0; }
+
+  .table-wrapper { background-color: #1e293b; border-radius: 12px; }
 
   .data-table {
-    thead tr {
-      background-color: #001e30;
-    }
-
+    thead tr { background-color: #0b2a18; }
     tbody tr {
       border-bottom-color: #2d3f55;
       background-color: #243044;
-
       &:hover { background-color: #2d3f55; }
     }
+    tbody td { color: #e2e8f0; }
 
-    tbody td {
-      color: #e2e8f0;
-    }
-
-    &__btn--edit {
-      background-color: #0c3652;
-      color: #7dd3fc;
-
-      &:hover { background-color: #0e4a70; }
-    }
-
-    &__btn--delete {
-      background-color: #3b1212;
-      color: #fca5a5;
-
-      &:hover { background-color: #4f1a1a; }
-    }
-
-    &__empty {
-      color: #475569;
-    }
+    &__btn--edit { background-color: #0d3320; color: #6ee7a0; &:hover { background-color: #12472c; } }
+    &__btn--delete { background-color: #3b1212; color: #fca5a5; &:hover { background-color: #4f1a1a; } }
+    &__empty { color: #475569; }
   }
 
-  // Modal instrucciones
-  .modal-custom {
-    background: rgba(0, 0, 0, 0.65);
-  }
-
-  .modal-custom__content {
-    background-color: #1e293b;
-  }
-
-  .modal-custom__header {
-    background-color: #001e30;
-  }
-
-  .modal-custom__body {
-    color: #cbd5e1;
-  }
-
+  .modal-custom { background: rgba(0, 0, 0, 0.65); }
+  .modal-custom__content { background-color: #1e293b; }
+  .modal-custom__header { background-color: #0b2a18; }
+  .modal-custom__body { color: #cbd5e1; }
   .modal-custom__greeting,
-  .modal-custom__greeting strong {
-    color: #e2e8f0;
-  }
-
-  .modal-custom__intro {
-    color: #94a3b8;
-  }
-
+  .modal-custom__greeting strong { color: #e2e8f0; }
+  .modal-custom__intro { color: #94a3b8; }
   .modal-custom__list li {
     background-color: #0f172a;
     color: #cbd5e1;
-
     strong { color: #e2e8f0; }
   }
+  .modal-custom__tip { background-color: #1c1a09; border-left-color: #d97706; color: #94a3b8; }
+  .modal-custom__footer { border-top-color: #334155; background-color: #1e293b; }
 
-  .modal-custom__tip {
-    background-color: #1c1a09;
-    border-left-color: #d97706;
-    color: #94a3b8;
-  }
+  .aviso-privacidad__subtitulo { color: #6ee7a0; }
 
-  .modal-custom__footer {
-    border-top-color: #334155;
-    background-color: #1e293b;
-  }
+  .messages__item { background-color: #0d3320; color: #6ee7a0; }
 
-  // Aviso de privacidad subtítulos
-  .aviso-privacidad__subtitulo {
-    color: #93c5fd;
-  }
-
-  // Mensajes del sistema
-  .messages__item {
-    background-color: #0c3652;
-    color: #7dd3fc;
-  }
-
-  // Formularios (perfil, crear docente, etc.)
   .form-grid p label,
-  label {
-    color: #cbd5e1;
-  }
+  label { color: #cbd5e1; }
 
   input[type="text"],
   input[type="email"],
@@ -181,69 +95,57 @@ body.dark-mode {
     background-color: #0f172a;
     border-color: #334155;
     color: #e2e8f0;
-
     &:focus {
       border-color: v.$color-accent;
-      box-shadow: 0 0 0 2px rgba(0, 163, 255, 0.2);
+      box-shadow: 0 0 0 2px rgba(45, 158, 95, 0.2);
     }
   }
 
-  // Contraseña temporal — span de puntos y texto
-  // Contraseña temporal — span de puntos y texto
   .password-span {
     background: #1e293b !important;
     color: #e2e8f0 !important;
     border: 1px solid #475569;
   }
 
-  // Icono del ojo en contraseña
-  .data-table tbody td button {
-    color: #94a3b8;
-  }
+  .data-table tbody td button { color: #94a3b8; }
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
-  // Icono calendario en inputs de fecha
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-  }
-
-  // Tarjeta perfil-card — textos en modo oscuro (confirmar eliminar, etc.)
   .perfil-card {
     background-color: #1e293b;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-
-    p {
-      color: #e2e8f0;
-    }
-
-    strong {
-      color: #ffffff;
-    }
-
-    .perfil-card__nombre {
-      color: #e2e8f0;
-    }
-
-    .perfil-card__rol {
-      background-color: #0c3652;
-      color: #7dd3fc;
-    }
-
+    p { color: #e2e8f0; }
+    strong { color: #ffffff; }
+    .perfil-card__nombre { color: #e2e8f0; }
+    .perfil-card__rol { background-color: #0d3320; color: #6ee7a0; }
     .perfil-card__cancelar {
       background-color: #3b1212;
       color: #fca5a5;
-
       &:hover { background-color: #4f1a1a; }
     }
   }
 
-  // Aviso periodo detectado en importar cursos
   .periodo-detectado-aviso {
     background: #2d2208 !important;
     border-left-color: #d97706 !important;
     color: #fcd34d !important;
-
-    strong {
-      color: #fde68a !important;
-    }
+    strong { color: #fde68a !important; }
   }
+
+  .detalle-descripcion p { color: #cbd5e1; }
+  .detalle-descripcion strong { color: #e2e8f0; }
+
+  .indicador-info-box {
+    background: #0d2d1a;
+    border-left-color: v.$color-accent;
+    color: #cbd5e1;
+    p { color: #cbd5e1; }
+    span { color: #6ee7a0; }
+    strong { color: #ffffff; }
+  }
+
+  .course-card--sin-avance::before { background: linear-gradient(to bottom, rgba(239,68,68,0.45) 0%, transparent 70%); }
+  .course-card--bajo::before       { background: linear-gradient(to bottom, rgba(249,115,22,0.45) 0%, transparent 70%); }
+  .course-card--medio::before      { background: linear-gradient(to bottom, rgba(234,179,8,0.45) 0%, transparent 70%); }
+  .course-card--completo::before   { background: linear-gradient(to bottom, rgba(34,197,94,0.45) 0%, transparent 70%); }
+  .course-card--sin-indicadores::before { background: linear-gradient(to bottom, rgba(148,163,184,0.45) 0%, transparent 70%); }
 }

@@ -7,95 +7,34 @@
   padding: 24px 28px 28px;
 }
 
-/* HEADER */
-
-.dashboard__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  gap: 16px;
-}
-
-.dashboard__title {
-  font-size: 22px;
-  margin-bottom: 4px;
-}
-
-.dashboard__subtitle {
-  font-size: 14px;
-  color: #64748b;
-}
+.dashboard__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 16px; }
+.dashboard__title { font-size: 22px; margin-bottom: 4px; }
+.dashboard__subtitle { font-size: 14px; color: #64748b; }
 
 .dashboard__tag {
   padding: 6px 12px;
   border-radius: 999px;
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background-color: #dcfce7;
+  color: #166534;
   font-size: 12px;
 }
 
-/* FILTERS */
+.dashboard__filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.dashboard__filter { padding: 8px 10px; border-radius: 999px; border: 1px solid #cbd5e1; font-size: 13px; min-width: 160px; }
+.dashboard__filter--search { flex: 1; }
 
-.dashboard__filters {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
+.dashboard__legend { display: flex; justify-content: flex-end; gap: 16px; font-size: 12px; color: #64748b; margin-bottom: 16px; }
 
-.dashboard__filter {
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid #cbd5e1;
-  font-size: 13px;
-  min-width: 160px;
-}
-
-.dashboard__filter--search {
-  flex: 1;
-}
-
-/* LEGEND */
-
-.dashboard__legend {
-  display: flex;
-  justify-content: flex-end;
-  gap: 16px;
-  font-size: 12px;
-  color: #64748b;
-  margin-bottom: 16px;
-}
-
-.legend-dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  margin-right: 4px;
-}
-
-.legend-dot--initial {
-  background-color: #bfdbfe;
-}
-
-.legend-dot--medium {
-  background-color: #bae6fd;
-}
-
-.legend-dot--advanced {
-  background-color: #fecaca;
-}
-
-/* GRID DE CARDS */
+.legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 999px; margin-right: 4px; }
+.legend-dot--initial  { background-color: #bfdbfe; }
+.legend-dot--medium   { background-color: #bae6fd; }
+.legend-dot--advanced { background-color: #fecaca; }
 
 .dashboard__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 16px 18px;
 }
-
-/* CARD DE MATERIA */
 
 .course-card {
   background-color: #ffffff;
@@ -105,280 +44,151 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 80px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  & > * { position: relative; z-index: 1; }
+
+ &--sin-avance    { background-color: #ed0000; }
+&--bajo          { background-color: #ffcc99; }
+&--medio         { background-color: #ffeb99; }
+&--completo      { background-color: #99e6b3; }
+&--sin-indicadores { background-color: #c8cfd6; }
 }
 
-.course-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
-}
-
-.course-card__name {
-  font-size: 15px;
-  font-weight: 600;
-}
+.course-card__header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.course-card__name { font-size: 15px; font-weight: 600; }
 
 .course-card__code {
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background-color: #e0f2fe;
-  color: #0369a1;
-  font-family: monospace;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-  flex-shrink: 0;
+  font-size: 11px; padding: 3px 8px; border-radius: 6px;
+  background-color: #dcfce7; color: #166534;
+  font-family: monospace; letter-spacing: 0.03em;
+  white-space: nowrap; flex-shrink: 0;
+
+  &--nivel-I { background-color: #dbeafe; color: #1e40af; }
+  &--nivel-M { background-color: #fef3c7; color: #92400e; }
+  &--nivel-A { background-color: #fee2e2; color: #991b1b; }
 }
 
-.course-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.course-card__meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-}
-
-.course-card__meta-label {
-  display: block;
-  color: #64748b;
-}
-
-.course-card__meta-value {
-  display: block;
-  font-weight: 600;
-}
+.course-card__body { display: flex; flex-direction: column; gap: 10px; }
+.course-card__meta { display: flex; justify-content: space-between; font-size: 12px; }
+.course-card__meta-label { display: block; color: #64748b; }
+.course-card__meta-value { display: block; font-weight: 600; }
 
 .course-card__button {
-  margin-top: 8px;
-  width: 100%;
-  border: none;
-  border-radius: 999px;
-  background-color: v.$color-accent;
-  color: #ffffff;
-  padding: 8px 0;
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
+  margin-top: 8px; width: 100%; border: none; border-radius: 999px;
+  background-color: v.$color-accent; color: #ffffff;
+  padding: 8px 0; font-size: 14px; font-weight: 700;
+  text-decoration: none; cursor: pointer;
   transition: background-color 0.15s ease, transform 0.1s ease;
-  display: inline-block;
-  text-align: center;
-}
-
-.course-card__button:hover {
-  background-color: darken(v.$color-accent, 5%);
-  transform: translateY(-1px);
+  display: inline-block; text-align: center;
+  &:hover { background-color: darken(v.$color-accent, 5%); transform: translateY(-1px); }
 }
 
 @media (max-width: 768px) {
-  .dashboard {
-    padding: 18px 14px 20px;
-  }
+  .dashboard { padding: 18px 14px 20px; }
 }
 
-/* SEPARADOR ENTRE FILTROS Y GRID */
-
-.dashboard__divider {
-  height: 1px;
-  background-color: #e2e8f0;
-  margin: 12px 0 20px;
-}
-
-/* NOMBRE DEL DOCENTE EN CARD */
+.dashboard__divider { height: 1px; background-color: #e2e8f0; margin: 12px 0 20px; }
 
 .course-card__docente {
-  font-size: 12px;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 12px; color: #64748b;
+  display: flex; align-items: center; gap: 5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
-/* ESTADO VACÍO */
 
 .dashboard__empty {
   grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 24px;
-  text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 48px 24px; text-align: center;
 }
 
 .dashboard__empty-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+  width: 64px; height: 64px; border-radius: 50%;
   background-color: #f1f5f9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  color: #94a3b8;
-  margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: #94a3b8; margin-bottom: 16px;
 }
 
-.dashboard__empty-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 6px;
-}
-
-.dashboard__empty-text {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0 0 16px;
-  max-width: 320px;
-}
-
-/* SIN RESULTADOS DE BÚSQUEDA */
+.dashboard__empty-title { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0 0 6px; }
+.dashboard__empty-text { font-size: 14px; color: #64748b; margin: 0 0 16px; max-width: 320px; }
 
 .dashboard__no-results {
-  text-align: center;
-  padding: 40px 16px;
-  color: #94a3b8;
-  font-size: 14px;
+  text-align: center; padding: 40px 16px; color: #94a3b8; font-size: 14px;
+  i { display: block; font-size: 32px; margin-bottom: 10px; color: #cbd5e1; }
 }
 
-.dashboard__no-results i {
-  display: block;
-  font-size: 32px;
-  margin-bottom: 10px;
-  color: #cbd5e1;
-}
-
-/* MODO OSCURO — nuevos elementos */
 body.dark-mode {
-  .dashboard__divider {
-    background-color: #334155;
-  }
-
-  .dashboard__empty-icon {
-    background-color: #1e293b;
-    color: #475569;
-  }
-
-  .dashboard__empty-title {
-    color: #e2e8f0;
-  }
-
-  .dashboard__empty-text {
-    color: #64748b;
-  }
-
-  .dashboard__no-results {
-    color: #475569;
-  }
-
-  .course-card__docente {
-    color: #64748b;
-  }
+  .dashboard__divider       { background-color: #334155; }
+  .dashboard__empty-icon    { background-color: #1e293b; color: #475569; }
+  .dashboard__empty-title   { color: #e2e8f0; }
+  .dashboard__empty-text    { color: #64748b; }
+  .dashboard__no-results    { color: #475569; }
+  .course-card__docente     { color: #64748b; }
 }
-
 
 /* ===================== IMPORTAR EXCEL ===================== */
 
-.import-card {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 8px;
-}
+.import-card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 24px; margin-bottom: 8px; }
 
 .import-file-input {
-  display: block;
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 6px;
-  border: 2px solid #cbd5e1;
-  font-size: 14px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: #ffffff;
-  color: #1e293b;
-  cursor: pointer;
-  box-sizing: border-box;
+  display: block; width: 100%; padding: 10px 14px;
+  border-radius: 6px; border: 2px solid #cbd5e1;
+  font-size: 14px; font-family: v.$font-main;
+  background-color: #ffffff; color: #1e293b;
+  cursor: pointer; box-sizing: border-box;
   transition: border-color 0.15s ease;
-
   &:focus {
     outline: none;
-    border-color: #00456b;
-    box-shadow: 0 0 0 3px rgba(0, 69, 107, 0.12);
+    border-color: v.$color-primary;
+    box-shadow: 0 0 0 3px rgba(26, 92, 56, 0.12);
   }
 }
 
-.import-resumen-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-  margin-bottom: 8px;
-}
+.import-resumen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 8px; }
 
 .import-resumen-card {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 4px;
-
-  &--ok  { border-color: #bbf7d0; background-color: #f0fdf4; }
+  background-color: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 12px; padding: 16px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px;
+  &--ok   { border-color: #bbf7d0; background-color: #f0fdf4; }
   &--warn { border-color: #fde68a; background-color: #fffbeb; }
   &--err  { border-color: #fecaca; background-color: #fef2f2; }
 }
 
-.import-resumen-card__valor {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1e293b;
-  line-height: 1;
-}
+.import-resumen-card__valor { font-size: 28px; font-weight: 700; color: #1e293b; line-height: 1; }
+.import-resumen-card__label { font-size: 12px; color: #64748b; }
 
-.import-resumen-card__label {
-  font-size: 12px;
-  color: #64748b;
-}
-
-/* Modo oscuro */
 body.dark-mode {
-  .import-card {
-    background-color: #0f172a;
-    border-color: #334155;
-  }
-
+  .import-card { background-color: #0f172a; border-color: #334155; }
   .import-file-input {
-    background-color: #0f172a;
-    border-color: #334155;
-    color: #e2e8f0;
-
-    &:focus {
-      border-color: #00a3ff;
-      box-shadow: 0 0 0 3px rgba(0, 163, 255, 0.2);
-    }
+    background-color: #0f172a; border-color: #334155; color: #e2e8f0;
+    &:focus { border-color: v.$color-accent; box-shadow: 0 0 0 3px rgba(45, 158, 95, 0.2); }
   }
-
   .import-resumen-card {
-    background-color: #1e293b;
-    border-color: #334155;
-
-    &--ok  { border-color: #166534; background-color: #052e16; }
+    background-color: #1e293b; border-color: #334155;
+    &--ok   { border-color: #166534; background-color: #052e16; }
     &--warn { border-color: #92400e; background-color: #1c1a09; }
     &--err  { border-color: #991b1b; background-color: #1f0a0a; }
   }
-
   .import-resumen-card__valor { color: #e2e8f0; }
   .import-resumen-card__label { color: #64748b; }
+}
+
+/* ===================== INDICADOR INFO BOX ===================== */
+
+.indicador-info-box {
+  background: #f0fdf4;
+  border-left: 3px solid v.$color-accent;
+  padding: 12px 16px;
+  border-radius: 6px;
 }

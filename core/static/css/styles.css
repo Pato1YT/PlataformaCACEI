@@ -1,4 +1,3 @@
-@charset "UTF-8";
 .toast-container {
   position: fixed;
   top: 30px;
@@ -34,7 +33,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 32px;
-  background-color: #00456b;
+  background-color: #1a5c38;
   color: #fff;
 }
 .header__title {
@@ -49,20 +48,19 @@
 body.app-body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: #e8eef6;
+  background-color: #eef4f0;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-/* HEADER SUPERIOR */
 .app-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 64px;
-  background-color: #00456b;
+  background-color: #1a5c38;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -89,7 +87,6 @@ body.app-body {
   align-items: center;
   justify-content: center;
 }
-
 .app-header__menu-btn:hover {
   background-color: rgba(255, 255, 255, 0.12);
 }
@@ -110,7 +107,6 @@ body.app-body {
   font-size: 15px;
 }
 
-/* USER INFO A LA DERECHA */
 .app-header__right {
   display: flex;
   align-items: center;
@@ -157,7 +153,24 @@ body.app-body {
   opacity: 0.7;
 }
 
-/* MAIN */
+.app-header__dark-btn {
+  border: none;
+  background: none;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+  margin-right: 8px;
+}
+.app-header__dark-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
 .app-main {
   padding-top: 80px;
   padding-bottom: 0;
@@ -170,15 +183,14 @@ body.app-body {
   padding: 0 16px;
 }
 
-/* SIDEBAR */
 .side-menu {
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
   width: 270px;
-  background-color: #003652;
-  color: #f5f7fb;
+  background-color: #0f3d24;
+  color: #f0f7f3;
   transform: translateX(-100%);
   transition: transform 0.25s ease-out;
   z-index: 1100;
@@ -205,7 +217,7 @@ body.menu-open .side-menu {
 .side-menu__close {
   border: none;
   background: none;
-  color: #f5f7fb;
+  color: #f0f7f3;
   font-size: 18px;
   cursor: pointer;
 }
@@ -221,7 +233,7 @@ body.menu-open .side-menu {
 }
 
 .side-menu__nav a {
-  color: #f5f7fb;
+  color: #f0f7f3;
   text-decoration: none;
   font-size: 14px;
   display: flex;
@@ -230,7 +242,6 @@ body.menu-open .side-menu {
   padding: 6px 6px;
   border-radius: 6px;
 }
-
 .side-menu__nav a:hover {
   background-color: rgba(255, 255, 255, 0.12);
 }
@@ -255,7 +266,6 @@ body.menu-open .side-menu {
   font-size: 14px;
 }
 
-/* BACKDROP */
 .side-menu-backdrop {
   position: fixed;
   inset: 0;
@@ -271,23 +281,21 @@ body.menu-open .side-menu-backdrop {
   pointer-events: auto;
 }
 
-/* RESPONSIVO */
 @media (max-width: 768px) {
   .app-header {
     padding: 0 12px;
   }
   .app-header__brand {
-    display: none; /* para no saturar en móvil */
+    display: none;
   }
   .app-header__user-text {
-    display: none; /* si quieres solo el avatar en móvil */
+    display: none;
   }
   .side-menu {
     width: 80%;
     max-width: 280px;
   }
 }
-/* FOOTER */
 .app-footer {
   text-align: center;
   padding: 24px 16px;
@@ -309,7 +317,6 @@ body.menu-open .side-menu-backdrop {
   margin: 2px 0 0;
 }
 
-/* ===================== MODAL INSTRUCCIONES ===================== */
 .modal-custom {
   display: none;
   position: fixed;
@@ -346,7 +353,7 @@ body.menu-open .side-menu-backdrop {
   justify-content: space-between;
   align-items: center;
   padding: 18px 20px;
-  background-color: #00456b;
+  background-color: #1a5c38;
   color: #ffffff;
 }
 
@@ -417,7 +424,7 @@ body.menu-open .side-menu-backdrop {
   padding: 12px 14px;
 }
 .modal-custom__list li i {
-  color: #00a3ff;
+  color: #2d9e5f;
   font-size: 16px;
   margin-top: 2px;
   flex-shrink: 0;
@@ -448,7 +455,7 @@ body.menu-open .side-menu-backdrop {
   padding: 9px 22px;
   border-radius: 999px;
   border: none;
-  background-color: #00456b;
+  background-color: #1a5c38;
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
@@ -456,104 +463,11 @@ body.menu-open .side-menu-backdrop {
   transition: background-color 0.15s ease, transform 0.1s ease;
 }
 .modal-custom__btn-cerrar:hover {
-  background-color: rgb(0, 52.5560747664, 81.5);
+  background-color: rgb(20.3813559322, 72.1186440678, 43.8983050847);
   transform: translateY(-1px);
 }
 .modal-custom__btn-cerrar i {
   margin-right: 6px;
-}
-
-/* BOTÓN MODO OSCURO */
-.app-header__dark-btn {
-  border: none;
-  background: none;
-  color: #ffffff;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.15s ease;
-  margin-right: 8px;
-}
-.app-header__dark-btn:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-}
-
-.course-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.course-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 1;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.course-card > * {
-  position: relative;
-  z-index: 1;
-}
-
-.course-card--sin-avance {
-  border: 1px solid rgba(220, 38, 38, 0.25);
-}
-
-.course-card--bajo {
-  border: 1px solid rgba(249, 115, 22, 0.25);
-}
-
-.course-card--medio {
-  border: 1px solid rgba(234, 179, 8, 0.35);
-}
-
-.course-card--completo {
-  border: 1px solid rgba(22, 163, 74, 0.3);
-}
-
-.course-card--sin-indicadores {
-  border: 1px solid rgba(100, 116, 139, 0.25);
-}
-
-.course-card__code--nivel-I {
-  background-color: #fee2e2 !important;
-  color: #b91c1c !important;
-}
-
-.course-card__code--nivel-M {
-  background-color: #fef3c7 !important;
-  color: #92400e !important;
-}
-
-.course-card__code--nivel-A {
-  background-color: #dcfce7 !important;
-  color: #166534 !important;
-}
-
-.course-card--sin-avance::before {
-  background: linear-gradient(to bottom, rgba(220,38,38,0.35) 0%, transparent 70%);
-}
-
-.course-card--bajo::before {
-  background: linear-gradient(to bottom, rgba(249,115,22,0.35) 0%, transparent 70%);
-}
-
-.course-card--medio::before {
-  background: linear-gradient(to bottom, rgba(234,179,8,0.35) 0%, transparent 70%);
-}
-
-.course-card--completo::before {
-  background: linear-gradient(to bottom, rgba(22,163,74,0.35) 0%, transparent 70%);
-}
-
-.course-card--sin-indicadores::before {
-  background: linear-gradient(to bottom, rgba(100,116,139,0.25) 0%, transparent 70%);
 }
 
 .table-wrapper {
@@ -569,7 +483,7 @@ body.menu-open .side-menu-backdrop {
   font-size: 14px;
 }
 .data-table thead tr {
-  background-color: #00456b;
+  background-color: #1a5c38;
   color: #ffffff;
 }
 .data-table thead th {
@@ -593,7 +507,7 @@ body.menu-open .side-menu-backdrop {
   border-bottom: none;
 }
 .data-table tbody tr:hover {
-  background-color: #f0f7ff;
+  background-color: #f0fdf4;
 }
 .data-table tbody td {
   padding: 11px 16px;
@@ -616,11 +530,11 @@ body.menu-open .side-menu-backdrop {
   transform: translateY(-1px);
 }
 .data-table__btn--edit {
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background-color: #dcfce7;
+  color: #166534;
 }
 .data-table__btn--edit:hover {
-  background-color: #bae6fd;
+  background-color: #bbf7d0;
 }
 .data-table__btn--delete {
   background-color: #fee2e2;
@@ -636,7 +550,7 @@ body.menu-open .side-menu-backdrop {
   font-size: 14px;
 }
 
-/* ===================== TOAST / NOTIFICACIONES ===================== */
+/* ===================== TOAST ===================== */
 .toast-container {
   position: fixed;
   top: 80px;
@@ -660,7 +574,7 @@ body.menu-open .side-menu-backdrop {
   max-width: 380px;
   pointer-events: auto;
   animation: toastEntrar 0.3s ease-out forwards;
-  border-left: 4px solid #00a3ff;
+  border-left: 4px solid #2d9e5f;
 }
 .toast--success {
   border-left-color: #22c55e;
@@ -672,7 +586,7 @@ body.menu-open .side-menu-backdrop {
   border-left-color: #f59e0b;
 }
 .toast--info {
-  border-left-color: #00a3ff;
+  border-left-color: #2d9e5f;
 }
 .toast.toast--saliendo {
   animation: toastSalir 0.3s ease-in forwards;
@@ -693,7 +607,7 @@ body.menu-open .side-menu-backdrop {
   color: #f59e0b;
 }
 .toast--info .toast__icon {
-  color: #00a3ff;
+  color: #2d9e5f;
 }
 
 .toast__body {
@@ -771,7 +685,7 @@ body.menu-open .side-menu-backdrop {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background-color: #00456b;
+  background-color: #1a5c38;
   color: #ffffff;
   font-size: 28px;
   font-weight: 700;
@@ -791,8 +705,8 @@ body.menu-open .side-menu-backdrop {
 
 .perfil-card__rol {
   font-size: 13px;
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background-color: #dcfce7;
+  color: #166534;
   padding: 3px 10px;
   border-radius: 999px;
   font-weight: 600;
@@ -888,8 +802,8 @@ body.menu-open .side-menu-backdrop {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .form-control:focus {
-  border-color: #00456b;
-  box-shadow: 0 0 0 3px rgba(0, 69, 107, 0.15);
+  border-color: #1a5c38;
+  box-shadow: 0 0 0 3px rgba(26, 92, 56, 0.15);
 }
 
 /* ===================== MODO OSCURO ===================== */
@@ -926,8 +840,8 @@ body.dark-mode .perfil-card__section-title {
   color: #64748b;
 }
 body.dark-mode .perfil-card__rol {
-  background-color: #0c3652;
-  color: #7dd3fc;
+  background-color: #0d3320;
+  color: #6ee7a0;
 }
 body.dark-mode .perfil-card__cancelar {
   background-color: #3b1212;
@@ -942,15 +856,15 @@ body.dark-mode .form-control {
   color: #e2e8f0;
 }
 body.dark-mode .form-control:focus {
-  border-color: #00a3ff;
-  box-shadow: 0 0 0 3px rgba(0, 163, 255, 0.2);
+  border-color: #2d9e5f;
+  box-shadow: 0 0 0 3px rgba(45, 158, 95, 0.2);
 }
 
 body.auth-body {
   min-height: 100vh;
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: #00456b;
+  background-color: #1a5c38;
   display: flex;
   flex-direction: column;
 }
@@ -1015,7 +929,7 @@ body.auth-body {
 
 .login-card__title {
   font-size: 26px;
-  color: #00456b;
+  color: #1a5c38;
   font-weight: 700;
 }
 
@@ -1035,14 +949,14 @@ body.auth-body {
 
 .login-form__label {
   font-size: 14px;
-  color: #00456b;
+  color: #1a5c38;
 }
 
 .login-form input[type=text],
 .login-form input[type=password] {
   padding: 10px 12px;
   border-radius: 6px;
-  border: 2px solid #00456b;
+  border: 2px solid #1a5c38;
   font-size: 14px;
   outline: none;
   width: 100%;
@@ -1066,7 +980,7 @@ body.auth-body {
   border-radius: 999px;
   border: none;
   cursor: pointer;
-  background-color: #00456b;
+  background-color: #1a5c38;
   color: #ffffff;
   font-size: 15px;
   font-weight: 700;
@@ -1074,7 +988,7 @@ body.auth-body {
 }
 
 .login-form__button:hover {
-  background-color: rgb(0, 52.5560747664, 81.5);
+  background-color: rgb(20.3813559322, 72.1186440678, 43.8983050847);
   transform: translateY(-1px);
 }
 
@@ -1178,7 +1092,7 @@ body.auth-body {
   padding: 10px 32px;
   border-radius: 999px;
   border: none;
-  background-color: #00456b;
+  background-color: #1a5c38;
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
@@ -1186,7 +1100,7 @@ body.auth-body {
   transition: background-color 0.15s ease, transform 0.1s ease;
 }
 .modal-card__btn:hover {
-  background-color: rgb(0, 52.5560747664, 81.5);
+  background-color: rgb(20.3813559322, 72.1186440678, 43.8983050847);
   transform: translateY(-1px);
 }
 
@@ -1207,7 +1121,6 @@ body.auth-body {
   padding: 24px 28px 28px;
 }
 
-/* HEADER */
 .dashboard__header {
   display: flex;
   justify-content: space-between;
@@ -1229,12 +1142,11 @@ body.auth-body {
 .dashboard__tag {
   padding: 6px 12px;
   border-radius: 999px;
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background-color: #dcfce7;
+  color: #166534;
   font-size: 12px;
 }
 
-/* FILTERS */
 .dashboard__filters {
   display: flex;
   gap: 12px;
@@ -1254,7 +1166,6 @@ body.auth-body {
   flex: 1;
 }
 
-/* LEGEND */
 .dashboard__legend {
   display: flex;
   justify-content: flex-end;
@@ -1284,14 +1195,12 @@ body.auth-body {
   background-color: #fecaca;
 }
 
-/* GRID DE CARDS */
 .dashboard__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 16px 18px;
 }
 
-/* CARD DE MATERIA */
 .course-card {
   background-color: #ffffff;
   border-radius: 18px;
@@ -1300,6 +1209,37 @@ body.auth-body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.course-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  pointer-events: none;
+  z-index: 0;
+}
+.course-card > * {
+  position: relative;
+  z-index: 1;
+}
+.course-card--sin-avance {
+  background-color: #ed0000;
+}
+.course-card--bajo {
+  background-color: #ffcc99;
+}
+.course-card--medio {
+  background-color: #ffeb99;
+}
+.course-card--completo {
+  background-color: #99e6b3;
+}
+.course-card--sin-indicadores {
+  background-color: #c8cfd6;
 }
 
 .course-card__header {
@@ -1318,12 +1258,24 @@ body.auth-body {
   font-size: 11px;
   padding: 3px 8px;
   border-radius: 6px;
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background-color: #dcfce7;
+  color: #166534;
   font-family: monospace;
   letter-spacing: 0.03em;
   white-space: nowrap;
   flex-shrink: 0;
+}
+.course-card__code--nivel-I {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+.course-card__code--nivel-M {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+.course-card__code--nivel-A {
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
 .course-card__body {
@@ -1353,7 +1305,7 @@ body.auth-body {
   width: 100%;
   border: none;
   border-radius: 999px;
-  background-color: #00a3ff;
+  background-color: #2d9e5f;
   color: #ffffff;
   padding: 8px 0;
   font-size: 14px;
@@ -1364,9 +1316,8 @@ body.auth-body {
   display: inline-block;
   text-align: center;
 }
-
 .course-card__button:hover {
-  background-color: rgb(0, 146.7, 229.5);
+  background-color: rgb(39.3472906404, 138.1527093596, 83.0665024631);
   transform: translateY(-1px);
 }
 
@@ -1375,14 +1326,12 @@ body.auth-body {
     padding: 18px 14px 20px;
   }
 }
-/* SEPARADOR ENTRE FILTROS Y GRID */
 .dashboard__divider {
   height: 1px;
   background-color: #e2e8f0;
   margin: 12px 0 20px;
 }
 
-/* NOMBRE DEL DOCENTE EN CARD */
 .course-card__docente {
   font-size: 12px;
   color: #64748b;
@@ -1394,7 +1343,6 @@ body.auth-body {
   text-overflow: ellipsis;
 }
 
-/* ESTADO VACÍO */
 .dashboard__empty {
   grid-column: 1/-1;
   display: flex;
@@ -1432,14 +1380,12 @@ body.auth-body {
   max-width: 320px;
 }
 
-/* SIN RESULTADOS DE BÚSQUEDA */
 .dashboard__no-results {
   text-align: center;
   padding: 40px 16px;
   color: #94a3b8;
   font-size: 14px;
 }
-
 .dashboard__no-results i {
   display: block;
   font-size: 32px;
@@ -1447,7 +1393,6 @@ body.auth-body {
   color: #cbd5e1;
 }
 
-/* MODO OSCURO — nuevos elementos */
 body.dark-mode .dashboard__divider {
   background-color: #334155;
 }
@@ -1493,8 +1438,8 @@ body.dark-mode .course-card__docente {
 }
 .import-file-input:focus {
   outline: none;
-  border-color: #00456b;
-  box-shadow: 0 0 0 3px rgba(0, 69, 107, 0.12);
+  border-color: #1a5c38;
+  box-shadow: 0 0 0 3px rgba(26, 92, 56, 0.12);
 }
 
 .import-resumen-grid {
@@ -1540,7 +1485,6 @@ body.dark-mode .course-card__docente {
   color: #64748b;
 }
 
-/* Modo oscuro */
 body.dark-mode .import-card {
   background-color: #0f172a;
   border-color: #334155;
@@ -1551,8 +1495,8 @@ body.dark-mode .import-file-input {
   color: #e2e8f0;
 }
 body.dark-mode .import-file-input:focus {
-  border-color: #00a3ff;
-  box-shadow: 0 0 0 3px rgba(0, 163, 255, 0.2);
+  border-color: #2d9e5f;
+  box-shadow: 0 0 0 3px rgba(45, 158, 95, 0.2);
 }
 body.dark-mode .import-resumen-card {
   background-color: #1e293b;
@@ -1577,6 +1521,14 @@ body.dark-mode .import-resumen-card__label {
   color: #64748b;
 }
 
+/* ===================== INDICADOR INFO BOX ===================== */
+.indicador-info-box {
+  background: #f0fdf4;
+  border-left: 3px solid #2d9e5f;
+  padding: 12px 16px;
+  border-radius: 6px;
+}
+
 .aviso-privacidad {
   background-color: #ffffff;
   border-radius: 24px;
@@ -1590,7 +1542,7 @@ body.dark-mode .import-resumen-card__label {
   text-align: center;
   font-size: 22px;
   font-weight: 700;
-  color: #00456b;
+  color: #1a5c38;
   margin-bottom: 12px;
   padding-bottom: 14px;
   border-bottom: 2px solid #e2e8f0;
@@ -1610,14 +1562,14 @@ body.dark-mode .import-resumen-card__label {
 .aviso-privacidad__subtitulo {
   font-size: 14px;
   font-weight: 700;
-  color: #00456b;
+  color: #1a5c38;
   margin-bottom: 6px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .aviso-privacidad__subtitulo i {
-  color: #00a3ff;
+  color: #2d9e5f;
   font-size: 14px;
 }
 
@@ -1648,11 +1600,11 @@ body.dark-mode {
   color: #e2e8f0;
 }
 body.dark-mode .app-header {
-  background-color: #001e30;
+  background-color: #0b2a18;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 body.dark-mode .side-menu {
-  background-color: #001624;
+  background-color: #071a0f;
 }
 body.dark-mode .app-footer {
   border-top-color: #1e293b;
@@ -1677,8 +1629,8 @@ body.dark-mode .course-card__meta-label {
   color: #94a3b8;
 }
 body.dark-mode .dashboard__tag {
-  background-color: #0c3652;
-  color: #7dd3fc;
+  background-color: #0d3320;
+  color: #6ee7a0;
 }
 body.dark-mode .dashboard__filter {
   background-color: #0f172a;
@@ -1689,7 +1641,7 @@ body.dark-mode .dashboard__legend {
   color: #64748b;
 }
 body.dark-mode .course-card {
-  background-color: #2d3f55;
+  background-color: #243044;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 body.dark-mode .course-card__name,
@@ -1699,15 +1651,15 @@ body.dark-mode .course-card__docente {
   color: #ffffff !important;
 }
 body.dark-mode .course-card__code {
-  background-color: #0c3652;
-  color: #7dd3fc;
+  background-color: #0d3320;
+  color: #6ee7a0;
 }
 body.dark-mode .table-wrapper {
   background-color: #1e293b;
   border-radius: 12px;
 }
 body.dark-mode .data-table thead tr {
-  background-color: #001e30;
+  background-color: #0b2a18;
 }
 body.dark-mode .data-table tbody tr {
   border-bottom-color: #2d3f55;
@@ -1720,11 +1672,11 @@ body.dark-mode .data-table tbody td {
   color: #e2e8f0;
 }
 body.dark-mode .data-table__btn--edit {
-  background-color: #0c3652;
-  color: #7dd3fc;
+  background-color: #0d3320;
+  color: #6ee7a0;
 }
 body.dark-mode .data-table__btn--edit:hover {
-  background-color: #0e4a70;
+  background-color: #12472c;
 }
 body.dark-mode .data-table__btn--delete {
   background-color: #3b1212;
@@ -1743,7 +1695,7 @@ body.dark-mode .modal-custom__content {
   background-color: #1e293b;
 }
 body.dark-mode .modal-custom__header {
-  background-color: #001e30;
+  background-color: #0b2a18;
 }
 body.dark-mode .modal-custom__body {
   color: #cbd5e1;
@@ -1772,11 +1724,11 @@ body.dark-mode .modal-custom__footer {
   background-color: #1e293b;
 }
 body.dark-mode .aviso-privacidad__subtitulo {
-  color: #93c5fd;
+  color: #6ee7a0;
 }
 body.dark-mode .messages__item {
-  background-color: #0c3652;
-  color: #7dd3fc;
+  background-color: #0d3320;
+  color: #6ee7a0;
 }
 body.dark-mode .form-grid p label,
 body.dark-mode label {
@@ -1796,8 +1748,8 @@ body.dark-mode input[type=email]:focus,
 body.dark-mode input[type=password]:focus,
 body.dark-mode select:focus,
 body.dark-mode textarea:focus {
-  border-color: #00a3ff;
-  box-shadow: 0 0 0 2px rgba(0, 163, 255, 0.2);
+  border-color: #2d9e5f;
+  box-shadow: 0 0 0 2px rgba(45, 158, 95, 0.2);
 }
 body.dark-mode .password-span {
   background: #1e293b !important;
@@ -1824,8 +1776,8 @@ body.dark-mode .perfil-card .perfil-card__nombre {
   color: #e2e8f0;
 }
 body.dark-mode .perfil-card .perfil-card__rol {
-  background-color: #0c3652;
-  color: #7dd3fc;
+  background-color: #0d3320;
+  color: #6ee7a0;
 }
 body.dark-mode .perfil-card .perfil-card__cancelar {
   background-color: #3b1212;
@@ -1848,53 +1800,34 @@ body.dark-mode .detalle-descripcion p {
 body.dark-mode .detalle-descripcion strong {
   color: #e2e8f0;
 }
-
 body.dark-mode .indicador-info-box {
-  background: #0c2a3f;
-  border-left-color: #0284c7;
+  background: #0d2d1a;
+  border-left-color: #2d9e5f;
   color: #cbd5e1;
 }
 body.dark-mode .indicador-info-box p {
   color: #cbd5e1;
 }
 body.dark-mode .indicador-info-box span {
-  color: #7dd3fc;
-}
-
-.indicador-info-box {
-  background: #f0f9ff;
-}
-body.dark-mode .indicador-info-box {
-  background: #0c3652;
-  color: #ffffff;
-}
-body.dark-mode .indicador-info-box p {
-  color: #ffffff;
+  color: #6ee7a0;
 }
 body.dark-mode .indicador-info-box strong {
   color: #ffffff;
 }
-body.dark-mode .indicador-info-box span {
-  color: #ffffff;
-}
-
 body.dark-mode .course-card--sin-avance::before {
-  background: linear-gradient(to bottom, rgba(239,68,68,0.45) 0%, transparent 70%);
+  background: linear-gradient(to bottom, rgba(239, 68, 68, 0.45) 0%, transparent 70%);
 }
-
 body.dark-mode .course-card--bajo::before {
-  background: linear-gradient(to bottom, rgba(249,115,22,0.45) 0%, transparent 70%);
+  background: linear-gradient(to bottom, rgba(249, 115, 22, 0.45) 0%, transparent 70%);
 }
-
 body.dark-mode .course-card--medio::before {
-  background: linear-gradient(to bottom, rgba(234,179,8,0.45) 0%, transparent 70%);
+  background: linear-gradient(to bottom, rgba(234, 179, 8, 0.45) 0%, transparent 70%);
 }
-
 body.dark-mode .course-card--completo::before {
-  background: linear-gradient(to bottom, rgba(34,197,94,0.45) 0%, transparent 70%);
+  background: linear-gradient(to bottom, rgba(34, 197, 94, 0.45) 0%, transparent 70%);
+}
+body.dark-mode .course-card--sin-indicadores::before {
+  background: linear-gradient(to bottom, rgba(148, 163, 184, 0.45) 0%, transparent 70%);
 }
 
-body.dark-mode .course-card--sin-indicadores::before {
-  background: linear-gradient(to bottom, rgba(148,163,184,0.45) 0%, transparent 70%);
-}
 /*# sourceMappingURL=styles.css.map */
