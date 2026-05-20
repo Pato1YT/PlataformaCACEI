@@ -184,27 +184,27 @@ body.dark-mode .course-card--sin-indicadores {
 
     <!-- RESUMEN -->
     <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin:16px 0;">
-        <div style="font-size:14px; color:#334155; font-weight:700;">
+        <div class="dashboard__resumen-label">
             Cursos acreditados:
-            <span style="color:#16a34a;">{{ cursos_acreditados }}</span>
+            <span class="dashboard__resumen-count">{{ cursos_acreditados }}</span>
             /
             <span>{{ total_cursos }}</span>
         </div>
 
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:12px;">
-            <strong style="color:#334155;">Nivel de aporte:</strong>
+            <strong class="dashboard__leyenda-titulo">Nivel de aporte:</strong>
 
             <span class="course-card__code course-card__code--nivel-I">Inicial</span>
             <span class="course-card__code course-card__code--nivel-M">Medio</span>
             <span class="course-card__code course-card__code--nivel-A">Avanzado</span>
 
-            <span style="margin-left:8px; color:#64748b;">|</span>
+            <span class="dashboard__leyenda-sep">|</span>
 
-            <span style="color:#16a34a; font-weight:700;">
+            <span class="dashboard__estado--completo">
                 <i class="fa-solid fa-circle-check"></i> Completo
             </span>
 
-            <span style="color:#dc2626; font-weight:700;">
+            <span class="dashboard__estado--incompleto">
                 <i class="fa-solid fa-triangle-exclamation"></i> Incompleto
             </span>
         </div>
@@ -251,7 +251,7 @@ body.dark-mode .course-card--sin-indicadores {
                                 {{ rel.atributo_egreso.codigo }} - {{ rel.get_nivel_aporte_display }}
                             </span>
                         {% empty %}
-                            <span style="font-size:12px; color:#64748b; font-weight:700;">
+                            <span class="course-card__texto-vacio">
                                 Sin atributos
                             </span>
                         {% endfor %}
@@ -260,7 +260,7 @@ body.dark-mode .course-card--sin-indicadores {
                     <!-- ESTADO DE EVIDENCIAS -->
                     <div style="margin-top:10px; font-size:12px;">
                         {% if curso.total_evidencias_requeridas == 0 %}
-                            <span style="color:#64748b; font-weight:700;">
+                            <span class="course-card__texto-vacio">
                                 Sin indicadores asignados
                             </span>
 

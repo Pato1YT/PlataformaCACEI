@@ -1226,20 +1226,35 @@ body.auth-body {
   position: relative;
   z-index: 1;
 }
-.course-card--sin-avance {
-  background-color: #ed0000;
+.course-card--sin-avance2 {
+  background-color: #ba2121;
+}
+.course-card--sin-avance2::before {
+  background: none;
 }
 .course-card--bajo {
-  background-color: #ffcc99;
+  background-color: #ffaa55;
+}
+.course-card--bajo::before {
+  background: none;
 }
 .course-card--medio {
-  background-color: #ffeb99;
+  background-color: #ffe066;
+}
+.course-card--medio::before {
+  background: none;
 }
 .course-card--completo {
-  background-color: #99e6b3;
+  background-color: #5cd68a;
+}
+.course-card--completo::before {
+  background: none;
 }
 .course-card--sin-indicadores {
-  background-color: #c8cfd6;
+  background-color: #aab4be;
+}
+.course-card--sin-indicadores::before {
+  background: none;
 }
 
 .course-card__header {
@@ -1266,16 +1281,16 @@ body.auth-body {
   flex-shrink: 0;
 }
 .course-card__code--nivel-I {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: #fce7f3;
+  color: #9d174d;
 }
 .course-card__code--nivel-M {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: #ede9fe;
+  color: #5b21b6;
 }
 .course-card__code--nivel-A {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: #dbeafe;
+  color: #1e40af;
 }
 
 .course-card__body {
@@ -1412,6 +1427,36 @@ body.dark-mode .dashboard__no-results {
 body.dark-mode .course-card__docente {
   color: #64748b;
 }
+body.dark-mode .course-card--sin-avance {
+  background-color: #5c1f1f;
+}
+body.dark-mode .course-card--sin-avance::before {
+  background: none;
+}
+body.dark-mode .course-card--bajo {
+  background-color: #5c3810;
+}
+body.dark-mode .course-card--bajo::before {
+  background: none;
+}
+body.dark-mode .course-card--medio {
+  background-color: #4a3f08;
+}
+body.dark-mode .course-card--medio::before {
+  background: none;
+}
+body.dark-mode .course-card--completo {
+  background-color: #143d22;
+}
+body.dark-mode .course-card--completo::before {
+  background: none;
+}
+body.dark-mode .course-card--sin-indicadores {
+  background-color: #2a3240;
+}
+body.dark-mode .course-card--sin-indicadores::before {
+  background: none;
+}
 
 /* ===================== IMPORTAR EXCEL ===================== */
 .import-card {
@@ -1527,6 +1572,64 @@ body.dark-mode .import-resumen-card__label {
   border-left: 3px solid #2d9e5f;
   padding: 12px 16px;
   border-radius: 6px;
+}
+
+/* ===================== RESUMEN Y LEYENDA (dark-mode safe) ===================== */
+.dashboard__resumen-label {
+  font-size: 14px;
+  color: #334155;
+  font-weight: 700;
+}
+
+.dashboard__resumen-count {
+  color: #16a34a;
+}
+
+.dashboard__leyenda-titulo {
+  color: #334155;
+}
+
+.dashboard__leyenda-sep {
+  margin-left: 8px;
+  color: #64748b;
+}
+
+.dashboard__estado--completo {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.dashboard__estado--incompleto {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.course-card__texto-vacio {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+body.dark-mode .dashboard__resumen-label {
+  color: #ffffff;
+}
+body.dark-mode .dashboard__resumen-count {
+  color: #ffffff;
+}
+body.dark-mode .dashboard__leyenda-titulo {
+  color: #ffffff;
+}
+body.dark-mode .dashboard__leyenda-sep {
+  color: #94a3b8;
+}
+body.dark-mode .dashboard__estado--completo {
+  color: #ffffff;
+}
+body.dark-mode .dashboard__estado--incompleto {
+  color: #ffffff;
+}
+body.dark-mode .course-card__texto-vacio {
+  color: #ffffff;
 }
 
 .aviso-privacidad {
@@ -1647,7 +1750,8 @@ body.dark-mode .course-card {
 body.dark-mode .course-card__name,
 body.dark-mode .course-card__meta-value,
 body.dark-mode .course-card__meta-label,
-body.dark-mode .course-card__docente {
+body.dark-mode .course-card__docente,
+body.dark-mode .course-card__texto-vacio {
   color: #ffffff !important;
 }
 body.dark-mode .course-card__code {

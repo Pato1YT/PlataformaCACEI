@@ -42,10 +42,11 @@ body.dark-mode {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   }
 
-  .course-card__name,
-  .course-card__meta-value,
-  .course-card__meta-label,
-  .course-card__docente { color: #ffffff !important; }
+ .course-card__name,
+.course-card__meta-value,
+.course-card__meta-label,
+.course-card__docente,
+.course-card__texto-vacio { color: #ffffff !important; }
 
   .course-card__code { background-color: #0d3320; color: #6ee7a0; }
 
