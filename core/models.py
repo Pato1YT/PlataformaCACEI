@@ -293,18 +293,47 @@ class EvidenciaIndicador(models.Model):
         ('REPORTE', 'Reporte de nivel de logro'),
     ]
 
+    ESTADO_REVISION = [
+        ('EN_REVISION', 'En revisión'),
+        ('APROBADO', 'Aprobado'),
+        ('RECHAZADO', 'Rechazado'),
+    ]
+
     curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='evidencias_indicadores')
     indicador = models.ForeignKey(Indicador, on_delete=models.PROTECT, related_name='evidencias')
 
     tipo_archivo = models.CharField(max_length=30, choices=TIPO_ARCHIVO)
     archivo = models.FileField(upload_to='evidencias/indicadores/')
     titulo = models.CharField(max_length=255, blank=True)
+
     comentario = models.TextField(blank=True)
 
+    estado_revision = models.CharField(
+        max_length=20,
+        choices=ESTADO_REVISION,
+        default='EN_REVISION'
+    )
+
+    comentario_revision = models.TextField(blank=True)
+
+    revisado_por = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='evidencias_revisadas'
+    )
+
+    fecha_revision = models.DateTimeField(null=True, blank=True)
+
     fecha_subida = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('curso', 'indicador', 'tipo_archivo')
+
+    def __str__(self):
+        return f"{self.get_tipo_archivo_display()} - {self.curso}"
         
 
 # =========================

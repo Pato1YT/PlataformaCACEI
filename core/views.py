@@ -16,6 +16,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models.deletion import ProtectedError
+from django.utils import timezone
 
 # Modelos
 from .models import AtributoEgreso, Curso, Materia, Periodo, Usuario, CriterioDesempeno, Indicador, MateriaAtributoEgreso, MateriaIndicador, ResultadoIndicador, EvidenciaIndicador, PlantillaReporteNivelLogro
@@ -96,6 +97,7 @@ def dashboard(request):
     periodos = Periodo.objects.all().order_by('-fecha_inicio')
 
     periodo_id = request.GET.get('periodo_id')
+    periodo_activo = None
 
     if periodo_id:
         periodo_activo = Periodo.objects.filter(pk=periodo_id).first()
@@ -103,6 +105,7 @@ def dashboard(request):
             request.session['periodo_seleccionado_id'] = periodo_activo.id
     else:
         periodo_id_sesion = request.session.get('periodo_seleccionado_id')
+
         if periodo_id_sesion:
             periodo_activo = Periodo.objects.filter(pk=periodo_id_sesion).first()
         else:
@@ -131,18 +134,37 @@ def dashboard(request):
     cursos = list(cursos)
 
     for curso in cursos:
+        # Atributos actualmente asignados a la materia
         atributos = MateriaAtributoEgreso.objects.filter(
             materia=curso.materia
-        ).select_related('atributo_egreso').order_by('atributo_egreso__codigo')
+        ).select_related(
+            'atributo_egreso'
+        ).order_by(
+            'atributo_egreso__codigo'
+        )
 
+        atributos_ids = list(
+            atributos.values_list('atributo_egreso_id', flat=True)
+        )
+
+        # Indicadores válidos:
+        # Solo indicadores cuyo atributo todavía esté asignado a la materia
         indicadores = MateriaIndicador.objects.filter(
-            materia=curso.materia
-        ).select_related('indicador')
+            materia=curso.materia,
+            indicador__criterio__atributo_egreso_id__in=atributos_ids
+        ).select_related(
+            'indicador',
+            'indicador__criterio',
+            'indicador__criterio__atributo_egreso'
+        )
 
-        indicadores_ids = [rel.indicador_id for rel in indicadores]
+        indicadores_ids = list(
+            indicadores.values_list('indicador_id', flat=True)
+        )
 
         total_requeridos = len(indicadores_ids) * 3
 
+        # Evidencias cargadas, aunque todavía no estén aprobadas
         evidencias_cargadas = EvidenciaIndicador.objects.filter(
             curso=curso,
             indicador_id__in=indicadores_ids,
@@ -152,16 +174,34 @@ def dashboard(request):
             archivo=''
         ).count()
 
+        # Evidencias aprobadas por jefe de carrera
+        evidencias_aprobadas = EvidenciaIndicador.objects.filter(
+            curso=curso,
+            indicador_id__in=indicadores_ids,
+            tipo_archivo__in=['INSTRUMENTO', 'EVIDENCIA', 'REPORTE'],
+            estado_revision='APROBADO',
+            archivo__isnull=False,
+        ).exclude(
+            archivo=''
+        ).count()
+
         curso.atributos_card = atributos
         curso.total_evidencias_requeridas = total_requeridos
         curso.total_evidencias_cargadas = evidencias_cargadas
-        curso.evidencias_completas = total_requeridos > 0 and evidencias_cargadas == total_requeridos
+        curso.total_evidencias_aprobadas = evidencias_aprobadas
+
+        # Para acreditar, ahora usamos aprobadas, no solo cargadas
+        curso.evidencias_completas = (
+            total_requeridos > 0 and evidencias_aprobadas == total_requeridos
+        )
 
         if total_requeridos == 0:
             curso.porcentaje_evidencias = None
             curso.estado_card = 'sin-indicadores'
         else:
-            curso.porcentaje_evidencias = round((evidencias_cargadas / total_requeridos) * 100)
+            curso.porcentaje_evidencias = round(
+                (evidencias_aprobadas / total_requeridos) * 100
+            )
 
             if curso.porcentaje_evidencias == 100:
                 curso.estado_card = 'completo'
@@ -173,8 +213,10 @@ def dashboard(request):
                 curso.estado_card = 'sin-avance'
 
     total_cursos = len(cursos)
-    cursos_acreditados = sum(1 for curso in cursos if curso.evidencias_completas)
-    
+    cursos_acreditados = sum(
+        1 for curso in cursos if curso.evidencias_completas
+    )
+
     return render(request, 'core/dashboard.html', {
         'cursos': cursos,
         'periodo_activo': periodo_activo,
@@ -602,21 +644,58 @@ def eliminar_indicador(request, pk):
     criterio = indicador.criterio
     atributo = criterio.atributo_egreso
 
+    materias_relacionadas = MateriaIndicador.objects.filter(
+        indicador=indicador
+    ).count()
+
+    resultados_relacionados = ResultadoIndicador.objects.filter(
+        indicador=indicador
+    ).count()
+
+    evidencias_relacionadas = EvidenciaIndicador.objects.filter(
+        indicador=indicador
+    ).count()
+
     if request.method == 'POST':
+
+        # Si ya tiene resultados o evidencias, no conviene eliminarlo.
+        if resultados_relacionados > 0 or evidencias_relacionadas > 0:
+            messages.error(
+                request,
+                f'No se puede eliminar este indicador porque ya tiene información académica relacionada: '
+                f'{resultados_relacionados} resultado(s) y '
+                f'{evidencias_relacionadas} evidencia(s).'
+            )
+            return redirect('core:ver_tabla_atributo', pk=atributo.pk)
+
         try:
+            # Si solo está asignado a materias, quitamos esas asignaciones primero.
+            MateriaIndicador.objects.filter(
+                indicador=indicador
+            ).delete()
+
             indicador.delete()
-            messages.success(request, 'Indicador eliminado correctamente.')
+
+            messages.success(
+                request,
+                'Indicador eliminado correctamente. También se quitaron sus asignaciones a materias.'
+            )
+
         except ProtectedError:
             messages.error(
                 request,
                 'No se puede eliminar este indicador porque tiene información relacionada.'
             )
+
         return redirect('core:ver_tabla_atributo', pk=atributo.pk)
 
     return render(request, 'atributos/confirmar_eliminar_indicador.html', {
         'indicador': indicador,
         'criterio': criterio,
         'atributo': atributo,
+        'materias_relacionadas': materias_relacionadas,
+        'resultados_relacionados': resultados_relacionados,
+        'evidencias_relacionadas': evidencias_relacionadas,
     })
 
 # =============================================================================
@@ -1512,13 +1591,18 @@ def detalle_curso(request, pk):
         materia=curso.materia
     ).select_related('atributo_egreso')
 
+    atributos_ids = list(
+        relaciones_atributos.values_list('atributo_egreso_id', flat=True)
+    )
+
     niveles_por_atributo = {
         rel.atributo_egreso_id: rel.get_nivel_aporte_display()
         for rel in relaciones_atributos
     }
 
     indicadores_materia = MateriaIndicador.objects.filter(
-        materia=curso.materia
+        materia=curso.materia,
+        indicador__criterio__atributo_egreso_id__in=atributos_ids
     ).select_related(
         'indicador',
         'indicador__criterio',
@@ -1553,6 +1637,7 @@ def detalle_curso(request, pk):
         atributo = criterio.atributo_egreso
 
         archivos = []
+
         for tipo, nombre in tipos_archivo:
             archivos.append({
                 'tipo': tipo,
@@ -1654,10 +1739,23 @@ def editar_atributo_materia(request, pk):
 def eliminar_atributo_materia(request, pk):
     relacion = get_object_or_404(MateriaAtributoEgreso, pk=pk)
     materia = relacion.materia
+    atributo_egreso = relacion.atributo_egreso
 
     if request.method == 'POST':
+        # Primero eliminamos los indicadores de esa materia que pertenecen
+        # al atributo que se está quitando.
+        MateriaIndicador.objects.filter(
+            materia=materia,
+            indicador__criterio__atributo_egreso=atributo_egreso
+        ).delete()
+
+        # Después eliminamos la relación materia-atributo.
         relacion.delete()
-        messages.success(request, 'Relación materia-atributo eliminada correctamente.')
+
+        messages.success(
+            request,
+            'Relación materia-atributo eliminada correctamente. También se eliminaron sus indicadores asociados.'
+        )
         return redirect('core:gestionar_atributos_materia', materia_pk=materia.pk)
 
     return render(request, 'materias/confirmar_eliminar_atributo_materia.html', {
@@ -1696,7 +1794,8 @@ def gestionar_indicadores_materia(request, materia_pk):
         )
 
     indicadores_asignados = MateriaIndicador.objects.filter(
-        materia=materia
+        materia=materia,
+        indicador__criterio__atributo_egreso_id__in=atributos_materia
     ).select_related(
         'indicador',
         'indicador__criterio',
@@ -1806,15 +1905,22 @@ def evaluacion_indicador(request, curso_pk, indicador_pk):
 
         if accion == 'guardar_resultado':
             resultado_form = ResultadoIndicadorForm(request.POST, instance=resultado)
+
             if resultado_form.is_valid():
                 resultado = resultado_form.save(commit=False)
                 resultado.usuario = request.user
                 resultado.save()
+
                 messages.success(request, 'Resultado del indicador guardado correctamente.')
-                return redirect('core:evaluacion_indicador', curso_pk=curso.pk, indicador_pk=indicador.pk)
+                return redirect(
+                    'core:evaluacion_indicador',
+                    curso_pk=curso.pk,
+                    indicador_pk=indicador.pk
+                )
 
         elif accion == 'subir_evidencia':
             evidencia_form = EvidenciaIndicadorForm(request.POST, request.FILES)
+
             if evidencia_form.is_valid():
                 tipo_archivo = evidencia_form.cleaned_data['tipo_archivo']
 
@@ -1827,16 +1933,42 @@ def evaluacion_indicador(request, curso_pk, indicador_pk):
                 if evidencia_existente:
                     evidencia_existente.titulo = evidencia_form.cleaned_data.get('titulo') or ''
                     evidencia_existente.archivo = evidencia_form.cleaned_data['archivo']
+
+                    # Cada reemplazo vuelve a revisión
+                    evidencia_existente.estado_revision = 'EN_REVISION'
+                    evidencia_existente.comentario_revision = ''
+                    evidencia_existente.revisado_por = None
+                    evidencia_existente.fecha_revision = None
+
                     evidencia_existente.save()
-                    messages.success(request, 'Evidencia reemplazada correctamente.')
+
+                    messages.success(
+                        request,
+                        'Evidencia reemplazada correctamente. Quedó en revisión.'
+                    )
                 else:
                     evidencia = evidencia_form.save(commit=False)
                     evidencia.curso = curso
                     evidencia.indicador = indicador
-                    evidencia.save()
-                    messages.success(request, 'Evidencia subida correctamente.')
 
-                return redirect('core:evaluacion_indicador', curso_pk=curso.pk, indicador_pk=indicador.pk)
+                    # Archivo nuevo queda en revisión
+                    evidencia.estado_revision = 'EN_REVISION'
+                    evidencia.comentario_revision = ''
+                    evidencia.revisado_por = None
+                    evidencia.fecha_revision = None
+
+                    evidencia.save()
+
+                    messages.success(
+                        request,
+                        'Evidencia subida correctamente. Quedó en revisión.'
+                    )
+
+                return redirect(
+                    'core:evaluacion_indicador',
+                    curso_pk=curso.pk,
+                    indicador_pk=indicador.pk
+                )
 
     evidencias = EvidenciaIndicador.objects.filter(
         curso=curso,
@@ -1852,9 +1984,14 @@ def evaluacion_indicador(request, curso_pk, indicador_pk):
         'evidencias': evidencias,
     })
 
+
 @login_required
 def subir_evidencia_indicador(request, curso_pk, indicador_pk, tipo_archivo):
-    curso = get_object_or_404(Curso, pk=curso_pk)
+    curso = get_object_or_404(
+        Curso.objects.select_related('materia', 'docente'),
+        pk=curso_pk
+    )
+
     indicador = get_object_or_404(Indicador, pk=indicador_pk)
 
     tipos_permitidos = ['INSTRUMENTO', 'EVIDENCIA']
@@ -1869,6 +2006,14 @@ def subir_evidencia_indicador(request, curso_pk, indicador_pk, tipo_archivo):
     ).exists():
         messages.error(request, 'Este indicador no está asignado a la materia del curso.')
         return redirect('core:detalle_curso', pk=curso.pk)
+
+    # Opcional, pero recomendado:
+    # solo el admin o el docente dueño del curso pueden subir/reemplazar.
+    es_admin = request.user.rol == Usuario.ADMINISTRADOR
+    es_docente_del_curso = curso.docente == request.user
+
+    if not es_admin and not es_docente_del_curso:
+        raise PermissionDenied
 
     evidencia = EvidenciaIndicador.objects.filter(
         curso=curso,
@@ -1888,9 +2033,19 @@ def subir_evidencia_indicador(request, curso_pk, indicador_pk, tipo_archivo):
             evidencia.curso = curso
             evidencia.indicador = indicador
             evidencia.tipo_archivo = tipo_archivo
+
+            # Cada subida o reemplazo vuelve a revisión
+            evidencia.estado_revision = 'EN_REVISION'
+            evidencia.comentario_revision = ''
+            evidencia.revisado_por = None
+            evidencia.fecha_revision = None
+
             evidencia.save()
 
-            messages.success(request, 'Archivo guardado correctamente.')
+            messages.success(
+                request,
+                'Archivo guardado correctamente. Quedó en revisión.'
+            )
             return redirect('core:detalle_curso', pk=curso.pk)
 
         for field, errors in form.errors.items():
@@ -1907,7 +2062,7 @@ def subir_evidencia_indicador(request, curso_pk, indicador_pk, tipo_archivo):
         'tipo_archivo': tipo_archivo,
         'evidencia': evidencia,
     })
-    
+
 
 @login_required
 def subir_reporte_nivel_logro(request, curso_pk, indicador_pk):
@@ -1931,6 +2086,14 @@ def subir_reporte_nivel_logro(request, curso_pk, indicador_pk):
         messages.error(request, 'Este indicador no está asignado a la materia del curso.')
         return redirect('core:detalle_curso', pk=curso.pk)
 
+    # Opcional, pero recomendado:
+    # solo el admin o el docente dueño del curso pueden generar/reemplazar reporte.
+    es_admin = request.user.rol == Usuario.ADMINISTRADOR
+    es_docente_del_curso = curso.docente == request.user
+
+    if not es_admin and not es_docente_del_curso:
+        raise PermissionDenied
+
     resultado, _ = ResultadoIndicador.objects.get_or_create(
         curso=curso,
         indicador=indicador,
@@ -1947,6 +2110,7 @@ def subir_reporte_nivel_logro(request, curso_pk, indicador_pk):
 
     if request.method == 'POST':
         form = ResultadoIndicadorForm(request.POST, instance=resultado)
+
         if form.is_valid():
             resultado = form.save(commit=False)
             resultado.usuario = request.user
@@ -1959,6 +2123,7 @@ def subir_reporte_nivel_logro(request, curso_pk, indicador_pk):
                 messages.error(request, str(e))
 
         return redirect('core:detalle_curso', pk=curso.pk)
+
     else:
         form = ResultadoIndicadorForm(instance=resultado)
 
@@ -1968,6 +2133,85 @@ def subir_reporte_nivel_logro(request, curso_pk, indicador_pk):
         'indicador': indicador,
         'resultado': resultado,
     })
+
+
+@login_required
+def eliminar_evidencia_indicador(request, evidencia_pk):
+    evidencia = get_object_or_404(
+        EvidenciaIndicador.objects.select_related('curso', 'curso__docente'),
+        pk=evidencia_pk
+    )
+
+    curso_pk = evidencia.curso.pk
+
+    if request.method != 'POST':
+        messages.error(request, 'Acción no permitida.')
+        return redirect('core:detalle_curso', pk=curso_pk)
+
+    # Puede eliminar:
+    # - Administrador / jefe de carrera
+    # - Docente dueño del curso
+    es_admin = request.user.rol == Usuario.ADMINISTRADOR
+    es_docente_del_curso = evidencia.curso.docente == request.user
+
+    if not es_admin and not es_docente_del_curso:
+        raise PermissionDenied
+
+    if evidencia.archivo:
+        evidencia.archivo.delete(save=False)
+
+    evidencia.delete()
+
+    messages.success(request, 'Archivo eliminado correctamente.')
+    return redirect('core:detalle_curso', pk=curso_pk)
+
+
+@solo_admin
+def aprobar_evidencia_indicador(request, evidencia_pk):
+    evidencia = get_object_or_404(
+        EvidenciaIndicador.objects.select_related('curso'),
+        pk=evidencia_pk
+    )
+
+    curso_pk = evidencia.curso.pk
+
+    if request.method != 'POST':
+        messages.error(request, 'Acción no permitida.')
+        return redirect('core:detalle_curso', pk=curso_pk)
+
+    evidencia.estado_revision = 'APROBADO'
+    evidencia.comentario_revision = ''
+    evidencia.revisado_por = request.user
+    evidencia.fecha_revision = timezone.now()
+    evidencia.save()
+
+    messages.success(request, 'Archivo aprobado correctamente.')
+    return redirect('core:detalle_curso', pk=curso_pk)
+
+
+@solo_admin
+def rechazar_evidencia_indicador(request, evidencia_pk):
+    evidencia = get_object_or_404(
+        EvidenciaIndicador.objects.select_related('curso'),
+        pk=evidencia_pk
+    )
+
+    curso_pk = evidencia.curso.pk
+
+    if request.method != 'POST':
+        messages.error(request, 'Acción no permitida.')
+        return redirect('core:detalle_curso', pk=curso_pk)
+
+    comentario_revision = request.POST.get('comentario_revision', '').strip()
+
+    evidencia.estado_revision = 'RECHAZADO'
+    evidencia.comentario_revision = comentario_revision
+    evidencia.revisado_por = request.user
+    evidencia.fecha_revision = timezone.now()
+    evidencia.save()
+
+    messages.warning(request, 'Archivo rechazado correctamente.')
+    return redirect('core:detalle_curso', pk=curso_pk)
     
     
 # =============================================================================
