@@ -167,8 +167,10 @@ body.dark-mode .course-card--sin-indicadores {
 
     <!-- FILTROS -->
     <div class="dashboard__filters">
+
         <select class="dashboard__filter" id="filtro-semestre">
             <option value="">Todos los semestres</option>
+
             {% for curso in cursos %}
                 <option value="{{ curso.materia.semestre }}">
                     Semestre {{ curso.materia.semestre }}
@@ -176,10 +178,19 @@ body.dark-mode .course-card--sin-indicadores {
             {% endfor %}
         </select>
 
+        <select class="dashboard__filter" id="filtro-nivel">
+            <option value="">Todos los niveles</option>
+            <option value="I">Inicial</option>
+            <option value="M">Medio</option>
+            <option value="A">Avanzado</option>
+            <option value="SIN_ATRIBUTOS">Sin atributos</option>
+        </select>
+
         <input type="text"
-               class="dashboard__filter dashboard__filter--search"
-               id="filtro-busqueda"
-               placeholder="Buscar materia, clave o docente...">
+            class="dashboard__filter dashboard__filter--search"
+            id="filtro-busqueda"
+            placeholder="Buscar materia, clave o docente...">
+
     </div>
 
     <!-- RESUMEN -->
@@ -217,8 +228,9 @@ body.dark-mode .course-card--sin-indicadores {
     <div class="dashboard__grid" id="courses-grid">
         {% for curso in cursos %}
             <article class="course-card course-card--{{ curso.estado_card }}"
-                     data-semestre="{{ curso.materia.semestre }}"
-                     data-search="{{ curso.materia.nombre|lower }} {{ curso.materia.clave|lower }} {{ curso.docente.get_full_name|lower }} {{ curso.docente.username|lower }}">
+                    data-semestre="{{ curso.materia.semestre }}"
+                    data-niveles="{% for rel in curso.atributos_card %}{{ rel.nivel_aporte }} {% empty %}SIN_ATRIBUTOS{% endfor %}"
+                    data-search="{{ curso.materia.nombre|lower }} {{ curso.materia.clave|lower }} {{ curso.docente.get_full_name|lower }} {{ curso.docente.username|lower }}">
 
                 <header class="course-card__header">
                     <h3 class="course-card__name">{{ curso.materia.nombre }}</h3>
@@ -346,64 +358,117 @@ body.dark-mode .course-card--sin-indicadores {
 <script>
     (function () {
         const filtroSemestre = document.getElementById('filtro-semestre');
+        const filtroNivel = document.getElementById('filtro-nivel');
         const filtroBusqueda = document.getElementById('filtro-busqueda');
         const grid = document.getElementById('courses-grid');
         const noResults = document.getElementById('no-results');
 
-        // Eliminar opciones duplicadas del select de semestre y ordenar
+        // Eliminar semestres duplicados y ordenarlos.
         if (filtroSemestre) {
             const seen = new Set();
 
-            Array.from(filtroSemestre.options).forEach(opt => {
-                if (opt.value && seen.has(opt.value)) {
-                    opt.remove();
+            Array.from(filtroSemestre.options).forEach(option => {
+                if (option.value && seen.has(option.value)) {
+                    option.remove();
                 } else {
-                    seen.add(opt.value);
+                    seen.add(option.value);
                 }
             });
 
-            const opts = Array.from(filtroSemestre.options).slice(1);
+            const opciones = Array.from(
+                filtroSemestre.options
+            ).slice(1);
 
-            opts.sort((a, b) => parseInt(a.value) - parseInt(b.value));
+            opciones.sort(
+                (a, b) => parseInt(a.value) - parseInt(b.value)
+            );
 
             while (filtroSemestre.options.length > 1) {
                 filtroSemestre.remove(1);
             }
 
-            opts.forEach(o => filtroSemestre.add(o));
+            opciones.forEach(option => {
+                filtroSemestre.add(option);
+            });
         }
 
         function filtrar() {
-            if (!grid) return;
+            if (!grid) {
+                return;
+            }
 
-            const semestre = filtroSemestre ? filtroSemestre.value : '';
-            const texto = filtroBusqueda ? filtroBusqueda.value.toLowerCase().trim() : '';
+            const semestre = filtroSemestre
+                ? filtroSemestre.value
+                : '';
+
+            const nivel = filtroNivel
+                ? filtroNivel.value
+                : '';
+
+            const texto = filtroBusqueda
+                ? filtroBusqueda.value.toLowerCase().trim()
+                : '';
+
             const cards = grid.querySelectorAll('.course-card');
 
             let visibles = 0;
 
             cards.forEach(card => {
-                const matchSem = !semestre || card.dataset.semestre === semestre;
-                const matchTxt = !texto || (card.dataset.search || '').includes(texto);
+                const semestreCard = card.dataset.semestre || '';
+                const nivelesCard = (
+                    card.dataset.niveles || ''
+                ).trim().split(/\s+/);
 
-                card.style.display = (matchSem && matchTxt) ? '' : 'none';
+                const textoCard = card.dataset.search || '';
 
-                if (matchSem && matchTxt) {
+                const matchSemestre =
+                    !semestre || semestreCard === semestre;
+
+                const matchNivel =
+                    !nivel || nivelesCard.includes(nivel);
+
+                const matchTexto =
+                    !texto || textoCard.includes(texto);
+
+                const mostrar =
+                    matchSemestre &&
+                    matchNivel &&
+                    matchTexto;
+
+                card.style.display = mostrar ? '' : 'none';
+
+                if (mostrar) {
                     visibles++;
                 }
             });
 
             if (noResults) {
-                noResults.style.display = (cards.length > 0 && visibles === 0) ? 'block' : 'none';
+                noResults.style.display =
+                    cards.length > 0 && visibles === 0
+                        ? 'block'
+                        : 'none';
             }
         }
 
         if (filtroSemestre) {
-            filtroSemestre.addEventListener('change', filtrar);
+            filtroSemestre.addEventListener(
+                'change',
+                filtrar
+            );
+        }
+
+        if (filtroNivel) {
+            filtroNivel.addEventListener(
+                'change',
+                filtrar
+            );
         }
 
         if (filtroBusqueda) {
-            filtroBusqueda.addEventListener('input', filtrar);
+            filtroBusqueda.addEventListener(
+                'input',
+                filtrar
+            );
         }
     })();
 </script>

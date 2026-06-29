@@ -12,6 +12,20 @@
 
         {% if request.user.rol == 'ADMINISTRADOR' %}
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <a href="{% url 'core:importar_indicadores_materias' %}"
+                class="course-card__button"
+                style="width:200px;
+                text-align:center;
+                text-decoration:none;
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                gap:6px;
+                font-weight:700;
+                background-color:#7c3aed;">
+                <i class="fa-solid fa-list-check"></i>
+                Importar indicadores
+            </a>
             <a href="{% url 'core:importar_materias' %}"
                class="course-card__button"
                style="width: 170px; text-align:center; text-decoration:none; display:inline-block; font-weight:700; background-color: #16a34a;">
@@ -21,7 +35,7 @@
                class="course-card__button"
                style="width:200px; text-align:center; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:700; background-color:#2563eb;">
                 <i class="fa-solid fa-file-word"></i>
-                Importar aportaciones
+                Importar nivel de aporte
             </a>
             <a href="{% url 'core:crear_materia' %}"
                class="course-card__button"
