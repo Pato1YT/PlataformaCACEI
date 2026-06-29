@@ -1,0 +1,467 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Importar aportaciones - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+    <!-- Encabezado -->
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">Importar mapa de aportaciones</h2>
+
+            <p class="dashboard__subtitle">
+                Importa desde Word las relaciones entre materias,
+                atributos de egreso y niveles de aporte.
+            </p>
+        </div>
+
+        <a href="{% url 'core:lista_materias' %}"
+           class="course-card__button"
+           style="width:140px; text-align:center; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:700; background-color:#64748b;">
+            <i class="fa-solid fa-arrow-left"></i>
+            Regresar
+        </a>
+    </div>
+
+    <!-- Periodo -->
+    <div class="table-wrapper"
+         style="padding:18px 22px; margin-bottom:24px; border-left:4px solid #2563eb;">
+
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div style="width:42px; height:42px; border-radius:12px; background:#dbeafe; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                <i class="fa-solid fa-calendar-days"></i>
+            </div>
+
+            <div>
+                <p style="margin:0 0 3px 0; font-size:12px; color:#64748b; font-weight:700; text-transform:uppercase;">
+                    Periodo seleccionado
+                </p>
+
+                <p style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">
+                    {{ periodo_seleccionado.nombre }}
+                </p>
+
+                <p style="margin:3px 0 0 0; font-size:12px; color:#64748b;">
+                    Código: {{ periodo_seleccionado.codigo }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if not archivo_temporal %}
+
+        <!-- Paso 1 -->
+        <div class="table-wrapper" style="padding:28px;">
+            <div style="max-width:700px; margin:0 auto;">
+
+                <div style="text-align:center; margin-bottom:26px;">
+                    <div style="width:72px; height:72px; margin:0 auto 14px auto; border-radius:18px; background:#dbeafe; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:34px;">
+                        <i class="fa-solid fa-file-word"></i>
+                    </div>
+
+                    <h3 style="margin:0 0 8px 0; font-size:20px; color:#0f172a;">
+                        Selecciona el mapa de aportaciones
+                    </h3>
+
+                    <p style="margin:0; font-size:14px; color:#64748b; line-height:1.5;">
+                        Selecciona el Word institucional y el nivel
+                        de aporte que deseas importar.
+                    </p>
+                </div>
+
+                <form method="post"
+                      enctype="multipart/form-data"
+                      action="{% url 'core:importar_aportaciones_materias' %}">
+
+                    {% csrf_token %}
+
+                    <input type="hidden"
+                           name="accion"
+                           value="subir_archivo">
+
+                    <!-- Nivel -->
+                    <div style="margin-bottom:20px;">
+                        <label for="nivel_filtro"
+                               style="display:block; margin-bottom:8px; font-size:13px; font-weight:700; color:#334155;">
+                            Nivel de aporte a importar
+                        </label>
+
+                        <select id="nivel_filtro"
+                                name="nivel_filtro"
+                                required
+                                style="width:100%; box-sizing:border-box; padding:12px; border:1px solid #cbd5e1; border-radius:10px; background:#f8fafc; font-size:14px; color:#334155;">
+
+                            <option value="TODOS"
+                                {% if nivel_filtro == 'TODOS' %}selected{% endif %}>
+                                Todos los niveles
+                            </option>
+
+                            <option value="I"
+                                {% if nivel_filtro == 'I' %}selected{% endif %}>
+                                Inicial
+                            </option>
+
+                            <option value="M"
+                                {% if nivel_filtro == 'M' %}selected{% endif %}>
+                                Medio
+                            </option>
+
+                            <option value="A"
+                                {% if nivel_filtro == 'A' %}selected{% endif %}>
+                                Avanzado
+                            </option>
+                        </select>
+
+                        <p style="margin:6px 0 0 0; font-size:12px; color:#64748b;">
+                            Solo se mostrarán y guardarán las aportaciones
+                            del nivel seleccionado.
+                        </p>
+                    </div>
+
+                    <!-- Archivo -->
+                    <div style="margin-bottom:20px;">
+                        <label for="archivo_word"
+                               style="display:block; margin-bottom:8px; font-size:13px; font-weight:700; color:#334155;">
+                            Archivo Word
+                        </label>
+
+                        <input type="file"
+                               id="archivo_word"
+                               name="archivo_word"
+                               accept=".docx"
+                               required
+                               style="width:100%; box-sizing:border-box; padding:12px; border:1px solid #cbd5e1; border-radius:10px; background:#f8fafc; font-size:14px; color:#334155;">
+                    </div>
+
+                    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:14px 16px; margin-bottom:22px;">
+                        <p style="margin:0 0 6px 0; font-size:13px; color:#1e40af; font-weight:700;">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Consideraciones
+                        </p>
+
+                        <ul style="margin:0; padding-left:20px; color:#475569; font-size:13px; line-height:1.6;">
+                            <li>Solo se permiten archivos `.docx`.</li>
+                            <li>Las materias se buscan por clave.</li>
+                            <li>Los niveles válidos son I, M y A.</li>
+                            <li>Las relaciones existentes se actualizarán.</li>
+                        </ul>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
+                        <a href="{% url 'core:lista_materias' %}"
+                           style="background:#e2e8f0; color:#334155; padding:10px 18px; border-radius:999px; font-size:13px; font-weight:700; text-decoration:none;">
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                                class="course-card__button"
+                                style="width:190px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:7px; background-color:#2563eb;">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            Analizar Word
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    {% else %}
+
+        <!-- Resumen -->
+        <div class="table-wrapper"
+             style="padding:20px 24px; margin-bottom:24px;">
+
+            <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px;">
+
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:16px;">
+                    <p style="margin:0 0 5px 0; font-size:12px; color:#64748b; font-weight:700; text-transform:uppercase;">
+                        Aportaciones
+                    </p>
+
+                    <p style="margin:0; font-size:24px; color:#2563eb; font-weight:800;">
+                        {{ preview_data|length }}
+                    </p>
+                </div>
+
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px;">
+                    <p style="margin:0 0 5px 0; font-size:12px; color:#64748b; font-weight:700; text-transform:uppercase;">
+                        Atributos
+                    </p>
+
+                    <p style="margin:0; font-size:24px; color:#16a34a; font-weight:800;">
+                        {{ atributos_preview|length }}
+                    </p>
+                </div>
+
+                <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:16px;">
+                    <p style="margin:0 0 5px 0; font-size:12px; color:#64748b; font-weight:700; text-transform:uppercase;">
+                        No encontradas
+                    </p>
+
+                    <p style="margin:0; font-size:24px; color:#ea580c; font-weight:800;">
+                        {{ materias_no_encontradas|length }}
+                    </p>
+                </div>
+
+                <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:16px;">
+                    <p style="margin:0 0 7px 0; font-size:12px; color:#64748b; font-weight:700; text-transform:uppercase;">
+                        Nivel seleccionado
+                    </p>
+
+                    {% if nivel_filtro == 'I' %}
+                        <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:700;">
+                            Inicial
+                        </span>
+
+                    {% elif nivel_filtro == 'M' %}
+                        <span style="background:#fef3c7; color:#ca8a04; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:700;">
+                            Medio
+                        </span>
+
+                    {% elif nivel_filtro == 'A' %}
+                        <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:700;">
+                            Avanzado
+                        </span>
+
+                    {% else %}
+                        <span style="background:#dbeafe; color:#2563eb; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:700;">
+                            Todos
+                        </span>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Atributos detectados -->
+        {% if atributos_preview %}
+            <div class="table-wrapper"
+                 style="padding:20px 24px; margin-bottom:24px;">
+
+                <p class="perfil-card__section-title"
+                   style="margin-bottom:16px;">
+                    Atributos de egreso detectados
+                </p>
+
+                <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px;">
+                    {% for atributo in atributos_preview %}
+                        <div style="border:1px solid #dbeafe; border-radius:10px; padding:14px; background:#f8fafc;">
+                            <div style="display:flex; align-items:flex-start; gap:10px;">
+                                <span class="course-card__code"
+                                      style="background:#dbeafe; color:#1d4ed8; flex-shrink:0;">
+                                    {{ atributo.codigo }}
+                                </span>
+
+                                <p style="margin:0; font-size:13px; color:#334155; line-height:1.5;">
+                                    {{ atributo.descripcion }}
+                                </p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Materias no encontradas -->
+        {% if materias_no_encontradas %}
+            <div style="background:#fff7ed; border:1px solid #fed7aa; border-left:4px solid #f97316; border-radius:10px; padding:16px 18px; margin-bottom:24px;">
+                <p style="margin:0 0 8px 0; font-size:14px; color:#9a3412; font-weight:800;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Materias no encontradas en el periodo
+                </p>
+
+                <p style="margin:0 0 10px 0; font-size:13px; color:#7c2d12;">
+                    Estas materias serán omitidas:
+                </p>
+
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    {% for clave in materias_no_encontradas %}
+                        <span class="course-card__code"
+                              style="background:#ffedd5; color:#c2410c;">
+                            {{ clave }}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Vista previa -->
+        <div class="table-wrapper"
+             style="margin-bottom:24px;">
+
+            <div style="padding:18px 20px 8px 20px;">
+                <p class="perfil-card__section-title"
+                   style="margin-bottom:4px;">
+                    Vista previa de aportaciones
+                </p>
+
+                <p style="margin:0; font-size:12px; color:#64748b;">
+                    Solo se muestran las aportaciones correspondientes
+                    al nivel seleccionado.
+                </p>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Clave</th>
+                            <th>Materia</th>
+                            <th>Atributo</th>
+                            <th>Nivel</th>
+                            <th>Validación</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for fila in preview_data %}
+                            <tr>
+                                <td style="color:#64748b;">
+                                    {{ forloop.counter }}
+                                </td>
+
+                                <td>
+                                    <span class="course-card__code">
+                                        {{ fila.clave }}
+                                    </span>
+                                </td>
+
+                                <td>{{ fila.nombre }}</td>
+
+                                <td>
+                                    <span class="course-card__code"
+                                          style="background:#dbeafe; color:#1d4ed8;">
+                                        {{ fila.atributo_codigo }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {% if fila.nivel_aporte == 'A' %}
+                                        <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700;">
+                                            Avanzado
+                                        </span>
+
+                                    {% elif fila.nivel_aporte == 'M' %}
+                                        <span style="background:#fef3c7; color:#ca8a04; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700;">
+                                            Medio
+                                        </span>
+
+                                    {% else %}
+                                        <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:4px 10px; font-size:11px; font-weight:700;">
+                                            Inicial
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if fila.materia_encontrada and fila.atributo_encontrado %}
+                                        <span style="color:#16a34a; font-size:12px; font-weight:700;">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            Correcto
+                                        </span>
+
+                                    {% elif not fila.materia_encontrada %}
+                                        <span style="color:#dc2626; font-size:12px; font-weight:700;">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            No registrada
+                                        </span>
+
+                                    {% elif not fila.atributo_encontrado %}
+                                        <span style="color:#d97706; font-size:12px; font-weight:700;">
+                                            <i class="fa-solid fa-triangle-exclamation"></i>
+                                            Atributo por crear
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                        {% empty %}
+                            <tr>
+                                <td colspan="6"
+                                    class="data-table__empty">
+                                    No se encontraron aportaciones para
+                                    el nivel seleccionado.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Confirmación -->
+        <div class="table-wrapper"
+             style="padding:20px 24px;">
+
+            <form method="post"
+                  action="{% url 'core:importar_aportaciones_materias' %}">
+
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="accion"
+                       value="guardar_aportaciones">
+
+                <input type="hidden"
+                       name="archivo_temporal"
+                       value="{{ archivo_temporal }}">
+
+                <input type="hidden"
+                       name="nivel_filtro"
+                       value="{{ nivel_filtro|default:'TODOS' }}">
+
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+
+                    <div>
+                        <p style="margin:0 0 4px 0; font-size:14px; font-weight:800; color:#0f172a;">
+                            ¿Deseas guardar estas aportaciones?
+                        </p>
+
+                        <p style="margin:0; font-size:12px; color:#64748b;">
+                            Se guardarán únicamente las aportaciones
+                            visibles en esta vista previa.
+                        </p>
+                    </div>
+
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <a href="{% url 'core:importar_aportaciones_materias' %}"
+                           style="background:#e2e8f0; color:#334155; padding:10px 18px; border-radius:999px; font-size:13px; font-weight:700; text-decoration:none;">
+                            Cargar otro archivo
+                        </a>
+
+                        <button type="submit"
+                                class="course-card__button"
+                                {% if not preview_data %}disabled{% endif %}
+                                style="width:210px; border:none; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:7px; background-color:#16a34a; {% if not preview_data %}opacity:.5; cursor:not-allowed;{% endif %}">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            Confirmar importación
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+    {% endif %}
+
+</div>
+
+<style>
+@media (max-width: 1000px) {
+    .dashboard .table-wrapper > div[style*="grid-template-columns:repeat(4"] {
+        grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .dashboard .table-wrapper > div[style*="grid-template-columns:repeat(2"] {
+        grid-template-columns:1fr !important;
+    }
+}
+
+@media (max-width: 650px) {
+    .dashboard .table-wrapper > div[style*="grid-template-columns:repeat(4"] {
+        grid-template-columns:1fr !important;
+    }
+}
+</style>
+{% endblock %}

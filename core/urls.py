@@ -80,6 +80,8 @@ urlpatterns = [
     path('materias/',                       views.lista_materias,    name='lista_materias'),
     path('materias/nueva/',                 views.crear_materia,     name='crear_materia'),
     path('materias/importar/',              views.importar_materias, name='importar_materias'),  # antes de <pk>
+    path('materias/importar-aportaciones/', views.importar_aportaciones_materias, name='importar_aportaciones_materias'),
+    path('materias/importar-indicadores/',  views.importar_indicadores_materias, name='importar_indicadores_materias'),
     path('materias/<int:pk>/editar/',       views.editar_materia,    name='editar_materia'),
     path('materias/<int:pk>/eliminar/',     views.eliminar_materia,  name='eliminar_materia'),
 
