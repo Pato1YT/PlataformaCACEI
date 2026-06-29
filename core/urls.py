@@ -82,6 +82,7 @@ urlpatterns = [
     path('materias/importar/',              views.importar_materias, name='importar_materias'),  # antes de <pk>
     path('materias/<int:pk>/editar/',       views.editar_materia,    name='editar_materia'),
     path('materias/<int:pk>/eliminar/',     views.eliminar_materia,  name='eliminar_materia'),
+    path('materias/importar-aportaciones/', views.importar_aportaciones_materias, name='importar_aportaciones_materias'),
 
     # -------------------------------------------------------------------------
     # Usuarios / Docentes

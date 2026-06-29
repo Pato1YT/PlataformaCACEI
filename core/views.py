@@ -72,6 +72,12 @@ from .utils.generador_reporte_nivel_logro import (
     GeneradorReporteNivelLogroError,
 )
 
+from .utils.importador_aportaciones_word import (
+    analizar_mapa_aportacion_word,
+    ImportadorAportacionesWordError,
+    normalizar_clave,
+)
+
 
 # =============================================================================
 # DECORADORES
@@ -953,6 +959,516 @@ def importar_materias(request):
     return render(request, 'materias/importar_materias.html', {
         'periodo_seleccionado': periodo_seleccionado,
     })
+    
+    
+# =============================================================================
+# IMPORTAR MAPA DE APORTACIONES DESDE WORD
+# =============================================================================
+
+@login_required
+@solo_admin
+def importar_aportaciones_materias(request):
+    archivo_temporal = None
+    preview_data = []
+    atributos_preview = []
+    materias_no_encontradas = []
+    nivel_filtro = 'TODOS'
+
+    niveles_permitidos = {'TODOS', 'I', 'M', 'A'}
+
+    nombres_niveles = {
+        'TODOS': 'Todos',
+        'I': 'Inicial',
+        'M': 'Medio',
+        'A': 'Avanzado',
+    }
+
+    periodo_id = request.session.get('periodo_seleccionado_id')
+
+    periodo_seleccionado = Periodo.objects.filter(
+        pk=periodo_id
+    ).first()
+
+    if not periodo_seleccionado:
+        periodo_seleccionado = Periodo.objects.filter(
+            es_activo=True
+        ).first()
+
+    if not periodo_seleccionado:
+        messages.error(
+            request,
+            'Debes seleccionar o activar un periodo antes de importar las aportaciones.'
+        )
+        return redirect('core:lista_materias')
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        # ==============================================================
+        # PASO 1: SUBIR Y ANALIZAR EL WORD
+        # ==============================================================
+        if accion == 'subir_archivo':
+            nivel_filtro = request.POST.get(
+                'nivel_filtro',
+                'TODOS'
+            ).strip().upper()
+
+            if nivel_filtro not in niveles_permitidos:
+                nivel_filtro = 'TODOS'
+
+            archivo = request.FILES.get('archivo_word')
+
+            if not archivo:
+                messages.error(
+                    request,
+                    'Debes seleccionar un archivo Word.'
+                )
+
+                return render(
+                    request,
+                    'materias/importar_aportaciones.html',
+                    {
+                        'periodo_seleccionado': periodo_seleccionado,
+                        'nivel_filtro': nivel_filtro,
+                    }
+                )
+
+            if not archivo.name.lower().endswith('.docx'):
+                messages.error(
+                    request,
+                    'El archivo debe tener formato Word .docx.'
+                )
+
+                return render(
+                    request,
+                    'materias/importar_aportaciones.html',
+                    {
+                        'periodo_seleccionado': periodo_seleccionado,
+                        'nivel_filtro': nivel_filtro,
+                    }
+                )
+
+            carpeta_temp = os.path.join(
+                settings.MEDIA_ROOT,
+                'temp_imports'
+            )
+
+            os.makedirs(
+                carpeta_temp,
+                exist_ok=True
+            )
+
+            fs = FileSystemStorage(
+                location=carpeta_temp
+            )
+
+            nombre_archivo = fs.save(
+                archivo.name,
+                archivo
+            )
+
+            archivo_temporal = nombre_archivo
+            ruta_archivo = fs.path(nombre_archivo)
+
+            try:
+                resultado = analizar_mapa_aportacion_word(
+                    ruta_archivo
+                )
+
+                todas_las_aportaciones = resultado['aportaciones']
+                atributos_preview = resultado['atributos']
+
+                # Aplicar filtro de nivel a la vista previa.
+                if nivel_filtro == 'TODOS':
+                    preview_data = todas_las_aportaciones
+                else:
+                    preview_data = [
+                        fila
+                        for fila in todas_las_aportaciones
+                        if fila.get('nivel_aporte') == nivel_filtro
+                    ]
+
+                # Materias del periodo indexadas por clave normalizada.
+                materias_por_clave = {
+                    normalizar_clave(materia.clave): materia
+                    for materia in Materia.objects.filter(
+                        periodo=periodo_seleccionado
+                    )
+                }
+
+                # Atributos existentes del periodo.
+                atributos_por_codigo = {
+                    atributo.codigo.strip().upper(): atributo
+                    for atributo in AtributoEgreso.objects.filter(
+                        periodo=periodo_seleccionado
+                    )
+                }
+
+                materias_no_encontradas_claves = set()
+
+                for fila in preview_data:
+                    clave_original = fila.get('clave', '')
+                    clave_normalizada = normalizar_clave(
+                        clave_original
+                    )
+
+                    codigo_atributo = (
+                        fila.get('atributo_codigo', '')
+                        .strip()
+                        .upper()
+                    )
+
+                    materia = materias_por_clave.get(
+                        clave_normalizada
+                    )
+
+                    atributo = atributos_por_codigo.get(
+                        codigo_atributo
+                    )
+
+                    fila['clave_original'] = clave_original
+                    fila['clave'] = clave_normalizada
+                    fila['materia_encontrada'] = materia is not None
+                    fila['atributo_encontrado'] = atributo is not None
+
+                    if not materia:
+                        materias_no_encontradas_claves.add(
+                            clave_normalizada
+                        )
+
+                materias_no_encontradas = sorted(
+                    materias_no_encontradas_claves
+                )
+
+                messages.success(
+                    request,
+                    (
+                        f'Archivo analizado correctamente. '
+                        f'Materias detectadas en el Word: '
+                        f'{resultado["total_materias"]}. '
+                        f'Aportaciones mostradas: {len(preview_data)}. '
+                        f'Nivel seleccionado: '
+                        f'{nombres_niveles[nivel_filtro]}.'
+                    )
+                )
+
+            except ImportadorAportacionesWordError as error:
+                if fs.exists(nombre_archivo):
+                    fs.delete(nombre_archivo)
+
+                archivo_temporal = None
+
+                messages.error(
+                    request,
+                    str(error)
+                )
+
+            except Exception as error:
+                if fs.exists(nombre_archivo):
+                    fs.delete(nombre_archivo)
+
+                archivo_temporal = None
+
+                messages.error(
+                    request,
+                    f'Ocurrió un error al analizar el documento: {error}'
+                )
+
+            return render(
+                request,
+                'materias/importar_aportaciones.html',
+                {
+                    'periodo_seleccionado': periodo_seleccionado,
+                    'archivo_temporal': archivo_temporal,
+                    'preview_data': preview_data,
+                    'atributos_preview': atributos_preview,
+                    'materias_no_encontradas': materias_no_encontradas,
+                    'nivel_filtro': nivel_filtro,
+                    'nivel_filtro_nombre': nombres_niveles[nivel_filtro],
+                }
+            )
+
+        # ==============================================================
+        # PASO 2: GUARDAR APORTACIONES
+        # ==============================================================
+        elif accion == 'guardar_aportaciones':
+            archivo_temporal = request.POST.get(
+                'archivo_temporal'
+            )
+
+            nivel_filtro = request.POST.get(
+                'nivel_filtro',
+                'TODOS'
+            ).strip().upper()
+
+            if nivel_filtro not in niveles_permitidos:
+                nivel_filtro = 'TODOS'
+
+            if not archivo_temporal:
+                messages.error(
+                    request,
+                    'No se pudo recuperar el archivo temporal.'
+                )
+                return redirect(
+                    'core:importar_aportaciones_materias'
+                )
+
+            ruta_archivo = os.path.join(
+                settings.MEDIA_ROOT,
+                'temp_imports',
+                archivo_temporal
+            )
+
+            if not os.path.exists(ruta_archivo):
+                messages.error(
+                    request,
+                    'El archivo temporal ya no existe. Vuelve a cargar el Word.'
+                )
+                return redirect(
+                    'core:importar_aportaciones_materias'
+                )
+
+            try:
+                resultado = analizar_mapa_aportacion_word(
+                    ruta_archivo
+                )
+
+                atributos_data = resultado['atributos']
+                todas_las_aportaciones = resultado['aportaciones']
+
+                # Aplicar el mismo filtro utilizado en la vista previa.
+                if nivel_filtro == 'TODOS':
+                    aportaciones_data = todas_las_aportaciones
+                else:
+                    aportaciones_data = [
+                        fila
+                        for fila in todas_las_aportaciones
+                        if fila.get('nivel_aporte') == nivel_filtro
+                    ]
+
+            except ImportadorAportacionesWordError as error:
+                messages.error(
+                    request,
+                    str(error)
+                )
+                return redirect(
+                    'core:importar_aportaciones_materias'
+                )
+
+            atributos_creados = 0
+            atributos_actualizados = 0
+            relaciones_creadas = 0
+            relaciones_actualizadas = 0
+            materias_omitidas = set()
+            errores = []
+
+            # Materias disponibles en el periodo.
+            materias_por_clave = {
+                normalizar_clave(materia.clave): materia
+                for materia in Materia.objects.filter(
+                    periodo=periodo_seleccionado
+                )
+            }
+
+            atributos_por_codigo = {}
+
+            # ----------------------------------------------------------
+            # CREAR O ACTUALIZAR LOS ATRIBUTOS
+            # ----------------------------------------------------------
+            for atributo_data in atributos_data:
+                codigo = (
+                    atributo_data.get('codigo', '')
+                    .strip()
+                    .upper()
+                )
+
+                descripcion = (
+                    atributo_data.get('descripcion', '')
+                    .strip()
+                )
+
+                if not codigo:
+                    errores.append(
+                        'Se detectó un atributo sin código.'
+                    )
+                    continue
+
+                try:
+                    atributo = AtributoEgreso.objects.filter(
+                        periodo=periodo_seleccionado,
+                        codigo__iexact=codigo
+                    ).first()
+
+                    if atributo:
+                        atributo.descripcion = descripcion
+
+                        if not atributo.nombre:
+                            atributo.nombre = (
+                                f'Atributo de Egreso {codigo}'
+                            )
+
+                        atributo.full_clean()
+                        atributo.save()
+
+                        atributos_actualizados += 1
+
+                    else:
+                        atributo = AtributoEgreso(
+                            periodo=periodo_seleccionado,
+                            codigo=codigo,
+                            nombre=f'Atributo de Egreso {codigo}',
+                            descripcion=descripcion,
+                        )
+
+                        atributo.full_clean()
+                        atributo.save()
+
+                        atributos_creados += 1
+
+                    atributos_por_codigo[codigo] = atributo
+
+                except Exception as error:
+                    errores.append(
+                        (
+                            f'{codigo}: no se pudo guardar '
+                            f'el atributo. {error}'
+                        )
+                    )
+
+            # ----------------------------------------------------------
+            # CREAR O ACTUALIZAR LAS APORTACIONES FILTRADAS
+            # ----------------------------------------------------------
+            for fila in aportaciones_data:
+                clave = normalizar_clave(
+                    fila.get('clave', '')
+                )
+
+                codigo_atributo = (
+                    fila.get('atributo_codigo', '')
+                    .strip()
+                    .upper()
+                )
+
+                nivel_aporte = (
+                    fila.get('nivel_aporte', '')
+                    .strip()
+                    .upper()
+                )
+
+                if nivel_aporte not in {'I', 'M', 'A'}:
+                    errores.append(
+                        (
+                            f'{clave} - {codigo_atributo}: '
+                            f'nivel de aporte inválido.'
+                        )
+                    )
+                    continue
+
+                try:
+                    materia = materias_por_clave.get(
+                        clave
+                    )
+
+                    if not materia:
+                        materias_omitidas.add(clave)
+                        continue
+
+                    atributo = atributos_por_codigo.get(
+                        codigo_atributo
+                    )
+
+                    if not atributo:
+                        atributo = AtributoEgreso.objects.filter(
+                            periodo=periodo_seleccionado,
+                            codigo__iexact=codigo_atributo
+                        ).first()
+
+                    if not atributo:
+                        errores.append(
+                            (
+                                f'{clave}: no se encontró '
+                                f'el atributo {codigo_atributo}.'
+                            )
+                        )
+                        continue
+
+                    relacion, creada = (
+                        MateriaAtributoEgreso.objects.update_or_create(
+                            materia=materia,
+                            atributo_egreso=atributo,
+                            defaults={
+                                'nivel_aporte': nivel_aporte
+                            }
+                        )
+                    )
+
+                    if creada:
+                        relaciones_creadas += 1
+                    else:
+                        relaciones_actualizadas += 1
+
+                except Exception as error:
+                    errores.append(
+                        (
+                            f'{clave} - {codigo_atributo}: '
+                            f'no se pudo guardar la aportación. '
+                            f'{error}'
+                        )
+                    )
+
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+
+            if errores or materias_omitidas:
+                messages.warning(
+                    request,
+                    (
+                        f'Importación parcial del nivel '
+                        f'{nombres_niveles[nivel_filtro]}. '
+                        f'Atributos creados: {atributos_creados}. '
+                        f'Atributos actualizados: '
+                        f'{atributos_actualizados}. '
+                        f'Aportaciones creadas: '
+                        f'{relaciones_creadas}. '
+                        f'Aportaciones actualizadas: '
+                        f'{relaciones_actualizadas}. '
+                        f'Materias no encontradas: '
+                        f'{len(materias_omitidas)}. '
+                        f'Errores: {len(errores)}.'
+                    )
+                )
+            else:
+                messages.success(
+                    request,
+                    (
+                        f'Importación completada correctamente. '
+                        f'Nivel importado: '
+                        f'{nombres_niveles[nivel_filtro]}. '
+                        f'Aportaciones creadas: '
+                        f'{relaciones_creadas}. '
+                        f'Aportaciones actualizadas: '
+                        f'{relaciones_actualizadas}.'
+                    )
+                )
+
+            return redirect('core:lista_materias')
+
+        messages.error(
+            request,
+            'La acción solicitada no es válida.'
+        )
+        return redirect(
+            'core:importar_aportaciones_materias'
+        )
+
+    return render(
+        request,
+        'materias/importar_aportaciones.html',
+        {
+            'periodo_seleccionado': periodo_seleccionado,
+            'nivel_filtro': nivel_filtro,
+        }
+    )
 
 
 # =============================================================================
