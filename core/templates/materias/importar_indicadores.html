@@ -1,0 +1,715 @@
+{% extends 'layouts/base_app.html' %}
+
+{% block title %}Importar indicadores - Se'si Eskani{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+    <!-- ================================================================
+         ENCABEZADO
+         ================================================================ -->
+    <div class="dashboard__header">
+        <div>
+            <h2 class="dashboard__title">
+                Importar indicadores de materias
+            </h2>
+
+            <p class="dashboard__subtitle">
+                Asigna automáticamente criterios e indicadores a las materias
+                desde la Cédula 4.2.1b.
+            </p>
+        </div>
+
+        <a href="{% url 'core:lista_materias' %}"
+           class="course-card__button"
+           style="width:140px;
+                  text-align:center;
+                  text-decoration:none;
+                  display:inline-flex;
+                  align-items:center;
+                  justify-content:center;
+                  gap:6px;
+                  font-weight:700;
+                  background-color:#64748b;">
+            <i class="fa-solid fa-arrow-left"></i>
+            Regresar
+        </a>
+    </div>
+
+    <!-- ================================================================
+         PERIODO SELECCIONADO
+         ================================================================ -->
+    <div class="table-wrapper"
+         style="padding:18px 22px;
+                margin-bottom:24px;
+                border-left:4px solid #16a34a;">
+
+        <div style="display:flex;
+                    align-items:center;
+                    gap:12px;
+                    flex-wrap:wrap;">
+
+            <div style="width:42px;
+                        height:42px;
+                        border-radius:12px;
+                        background:#dcfce7;
+                        color:#16a34a;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:20px;">
+                <i class="fa-solid fa-calendar-days"></i>
+            </div>
+
+            <div>
+                <p style="margin:0 0 3px 0;
+                          font-size:12px;
+                          color:#64748b;
+                          font-weight:700;
+                          text-transform:uppercase;">
+                    Periodo seleccionado
+                </p>
+
+                <p style="margin:0;
+                          font-size:16px;
+                          font-weight:700;
+                          color:#0f172a;">
+                    {{ periodo_seleccionado.nombre }}
+                </p>
+
+                <p style="margin:3px 0 0 0;
+                          font-size:12px;
+                          color:#64748b;">
+                    Código: {{ periodo_seleccionado.codigo }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if not archivo_temporal %}
+
+        <!-- ============================================================
+             PASO 1: CARGAR WORD
+             ============================================================ -->
+        <div class="table-wrapper" style="padding:28px;">
+
+            <div style="max-width:720px; margin:0 auto;">
+
+                <div style="text-align:center; margin-bottom:26px;">
+
+                    <div style="width:72px;
+                                height:72px;
+                                margin:0 auto 14px auto;
+                                border-radius:18px;
+                                background:#dcfce7;
+                                color:#16a34a;
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                font-size:34px;">
+                        <i class="fa-solid fa-file-word"></i>
+                    </div>
+
+                    <h3 style="margin:0 0 8px 0;
+                               font-size:20px;
+                               color:#0f172a;">
+                        Selecciona la Cédula
+                    </h3>
+
+                    <p style="margin:0;
+                              font-size:14px;
+                              color:#64748b;
+                              line-height:1.5;">
+                        El sistema identificará el atributo, los criterios,
+                        indicadores y las materias relacionadas.
+                    </p>
+                </div>
+
+                <form method="post"
+                      enctype="multipart/form-data"
+                      action="{% url 'core:importar_indicadores_materias' %}">
+
+                    {% csrf_token %}
+
+                    <input type="hidden"
+                           name="accion"
+                           value="subir_archivo">
+
+                    <div style="margin-bottom:20px;">
+                        <label for="archivo_word"
+                               style="display:block;
+                                      margin-bottom:8px;
+                                      font-size:13px;
+                                      font-weight:700;
+                                      color:#334155;">
+                            Archivo Word
+                        </label>
+
+                        <input type="file"
+                               id="archivo_word"
+                               name="archivo_word"
+                               accept=".docx"
+                               required
+                               style="width:100%;
+                                      box-sizing:border-box;
+                                      padding:12px;
+                                      border:1px solid #cbd5e1;
+                                      border-radius:10px;
+                                      background:#f8fafc;
+                                      font-size:14px;
+                                      color:#334155;">
+                    </div>
+
+                    <div style="background:#f0fdf4;
+                                border:1px solid #bbf7d0;
+                                border-radius:10px;
+                                padding:14px 16px;
+                                margin-bottom:22px;">
+
+                        <p style="margin:0 0 6px 0;
+                                  font-size:13px;
+                                  color:#166534;
+                                  font-weight:700;">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Validaciones realizadas
+                        </p>
+
+                        <ul style="margin:0;
+                                   padding-left:20px;
+                                   color:#475569;
+                                   font-size:13px;
+                                   line-height:1.7;">
+                            <li>El atributo debe existir en el periodo seleccionado.</li>
+                            <li>La materia debe existir por la clave indicada.</li>
+                            <li>Debe existir un curso para la materia y el grupo del Word.</li>
+                            <li>El criterio e indicador deben estar registrados.</li>
+                            <li>Las asignaciones existentes no se duplicarán.</li>
+                        </ul>
+                    </div>
+
+                    <div style="display:flex;
+                                justify-content:flex-end;
+                                gap:10px;
+                                flex-wrap:wrap;">
+
+                        <a href="{% url 'core:lista_materias' %}"
+                           style="background:#e2e8f0;
+                                  color:#334155;
+                                  padding:10px 18px;
+                                  border-radius:999px;
+                                  font-size:13px;
+                                  font-weight:700;
+                                  text-decoration:none;">
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                                class="course-card__button"
+                                style="width:190px;
+                                       border:none;
+                                       cursor:pointer;
+                                       display:inline-flex;
+                                       align-items:center;
+                                       justify-content:center;
+                                       gap:7px;
+                                       background-color:#16a34a;">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            Analizar Word
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    {% else %}
+
+        <!-- ============================================================
+             RESUMEN DEL ANÁLISIS
+             ============================================================ -->
+        <div class="table-wrapper"
+             style="padding:20px 24px;
+                    margin-bottom:24px;">
+
+            <div style="display:grid;
+                        grid-template-columns:repeat(4, minmax(0, 1fr));
+                        gap:14px;">
+
+                <div style="background:#eff6ff;
+                            border:1px solid #bfdbfe;
+                            border-radius:12px;
+                            padding:16px;">
+
+                    <p style="margin:0 0 5px 0;
+                              font-size:12px;
+                              color:#64748b;
+                              font-weight:700;
+                              text-transform:uppercase;">
+                        Atributo detectado
+                    </p>
+
+                    <p style="margin:0;
+                              font-size:24px;
+                              color:#2563eb;
+                              font-weight:800;">
+                        {{ atributo_codigo|default:"—" }}
+                    </p>
+                </div>
+
+                <div style="background:#f0fdf4;
+                            border:1px solid #bbf7d0;
+                            border-radius:12px;
+                            padding:16px;">
+
+                    <p style="margin:0 0 5px 0;
+                              font-size:12px;
+                              color:#64748b;
+                              font-weight:700;
+                              text-transform:uppercase;">
+                        Listos para asignar
+                    </p>
+
+                    <p style="margin:0;
+                              font-size:24px;
+                              color:#16a34a;
+                              font-weight:800;">
+                        {{ total_listos }}
+                    </p>
+                </div>
+
+                <div style="background:#f8fafc;
+                            border:1px solid #cbd5e1;
+                            border-radius:12px;
+                            padding:16px;">
+
+                    <p style="margin:0 0 5px 0;
+                              font-size:12px;
+                              color:#64748b;
+                              font-weight:700;
+                              text-transform:uppercase;">
+                        Ya asignados
+                    </p>
+
+                    <p style="margin:0;
+                              font-size:24px;
+                              color:#475569;
+                              font-weight:800;">
+                        {{ total_existentes }}
+                    </p>
+                </div>
+
+                <div style="background:#fff7ed;
+                            border:1px solid #fed7aa;
+                            border-radius:12px;
+                            padding:16px;">
+
+                    <p style="margin:0 0 5px 0;
+                              font-size:12px;
+                              color:#64748b;
+                              font-weight:700;
+                              text-transform:uppercase;">
+                        Con observaciones
+                    </p>
+
+                    <p style="margin:0;
+                              font-size:24px;
+                              color:#ea580c;
+                              font-weight:800;">
+                        {{ total_errores }}
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ============================================================
+             MENSAJE SOBRE FILAS OMITIDAS DEL WORD
+             ============================================================ -->
+        {% if filas_omitidas %}
+            <div style="background:#fff7ed;
+                        border:1px solid #fed7aa;
+                        border-left:4px solid #f97316;
+                        border-radius:10px;
+                        padding:16px 18px;
+                        margin-bottom:24px;">
+
+                <p style="margin:0 0 8px 0;
+                          font-size:14px;
+                          color:#9a3412;
+                          font-weight:800;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Filas omitidas durante el análisis
+                </p>
+
+                <p style="margin:0 0 10px 0;
+                          font-size:13px;
+                          color:#7c2d12;">
+                    Se omitieron {{ filas_omitidas|length }} filas vacías
+                    o con formato no válido.
+                </p>
+
+                <details>
+                    <summary style="font-size:12px;
+                                    font-weight:700;
+                                    color:#c2410c;
+                                    cursor:pointer;">
+                        Ver detalles
+                    </summary>
+
+                    <div style="margin-top:12px;
+                                max-height:220px;
+                                overflow:auto;">
+
+                        {% for fila in filas_omitidas %}
+                            <div style="padding:8px 10px;
+                                        margin-bottom:6px;
+                                        background:#ffedd5;
+                                        border-radius:8px;
+                                        font-size:12px;
+                                        color:#7c2d12;">
+
+                                <strong>Fila {{ fila.fila }}:</strong>
+                                {{ fila.motivo }}
+
+                                {% if fila.clave %}
+                                    · Clave: {{ fila.clave }}
+                                {% endif %}
+
+                                {% if fila.criterio %}
+                                    · CD: {{ fila.criterio }}
+                                {% endif %}
+
+                                {% if fila.indicador %}
+                                    · Indicador: {{ fila.indicador }}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </details>
+            </div>
+        {% endif %}
+
+        <!-- ============================================================
+             TABLA DE VISTA PREVIA
+             ============================================================ -->
+        <div class="table-wrapper"
+             style="margin-bottom:24px;">
+
+            <div style="padding:18px 20px 8px 20px;">
+
+                <p class="perfil-card__section-title"
+                   style="margin-bottom:4px;">
+                    Vista previa de asignaciones
+                </p>
+
+                <p style="margin:0;
+                          font-size:12px;
+                          color:#64748b;">
+                    Verifica las materias, criterios e indicadores antes de
+                    confirmar la importación.
+                </p>
+            </div>
+
+            <div style="overflow-x:auto;">
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Materia</th>
+                            <th>Grupo</th>
+                            <th>Atributo</th>
+                            <th>Criterio</th>
+                            <th>Indicador</th>
+                            <th>Validación</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for fila in preview_data %}
+                            <tr>
+                                <td style="color:#64748b;">
+                                    {{ forloop.counter }}
+                                </td>
+
+                                <td>
+                                    <div style="display:flex;
+                                                flex-direction:column;
+                                                gap:4px;">
+
+                                        <span class="course-card__code"
+                                              style="width:max-content;">
+                                            {{ fila.clave_materia }}
+                                        </span>
+
+                                        <span style="font-size:12px;
+                                                     color:#334155;">
+                                            {{ fila.nombre_materia }}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div style="display:flex;
+                                                flex-direction:column;
+                                                gap:3px;">
+
+                                        <span style="font-size:12px;
+                                                     font-weight:700;
+                                                     color:#334155;">
+                                            {{ fila.grupo_documento|default:"—" }}
+                                        </span>
+
+                                        {% if fila.semestre_documento %}
+                                            <span style="font-size:11px;
+                                                         color:#64748b;">
+                                                Semestre:
+                                                {{ fila.semestre_documento }}
+                                                · Grupo:
+                                                {{ fila.grupo_normalizado }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="course-card__code"
+                                          style="background:#dbeafe;
+                                                 color:#1d4ed8;">
+                                        {{ fila.atributo_codigo }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="course-card__code"
+                                          style="background:#fef3c7;
+                                                 color:#b45309;">
+                                        {{ fila.criterio_codigo }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="course-card__code"
+                                          style="background:#ede9fe;
+                                                 color:#7c3aed;">
+                                        {{ fila.indicador_codigo }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {% if fila.estado == 'LISTO' %}
+                                        <span style="color:#16a34a;
+                                                     font-size:12px;
+                                                     font-weight:700;">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            Listo para asignar
+                                        </span>
+
+                                    {% elif fila.estado == 'YA_ASIGNADO' %}
+                                        <span style="color:#64748b;
+                                                     font-size:12px;
+                                                     font-weight:700;">
+                                            <i class="fa-solid fa-circle-info"></i>
+                                            Ya asignado
+                                        </span>
+
+                                    {% elif fila.estado == 'MATERIA_NO_ENCONTRADA' %}
+                                        <span style="color:#dc2626;
+                                                     font-size:12px;
+                                                     font-weight:700;">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            Materia no encontrada
+                                        </span>
+
+                                    {% elif fila.estado == 'CURSO_NO_ENCONTRADO' %}
+                                        <span style="color:#dc2626;
+                                                     font-size:12px;
+                                                     font-weight:700;">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            Curso o grupo no encontrado
+                                        </span>
+
+                                    {% elif fila.estado == 'SEMESTRE_NO_COINCIDE' %}
+                                        <span style="color:#d97706;
+                                                     font-size:12px;
+                                                     font-weight:700;">
+                                            <i class="fa-solid fa-triangle-exclamation"></i>
+                                            El semestre no coincide
+                                        </span>
+
+                                    {% elif fila.estado == 'ATRIBUTO_NO_ENCONTRADO' %}
+                                        <span style="color:#dc2626;
+                                                     font-size:12px;
+                                                     font-weight:700;">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            Atributo no encontrado
+                                        </span>
+
+                                    {% elif fila.estado == 'CRITERIO_NO_ENCONTRADO' %}
+                                        <span style="color:#dc2626;
+                                                     font-size:12px;
+                                                     font-weight:700;">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            Criterio no encontrado
+                                        </span>
+
+                                    {% elif fila.estado == 'INDICADOR_NO_ENCONTRADO' %}
+                                        <span style="color:#dc2626;
+                                                     font-size:12px;
+                                                     font-weight:700;">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            Indicador no encontrado
+                                        </span>
+
+                                    {% else %}
+                                        <span style="color:#dc2626;
+                                                     font-size:12px;
+                                                     font-weight:700;">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            {{ fila.estado_texto }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                        {% empty %}
+                            <tr>
+                                <td colspan="7"
+                                    class="data-table__empty">
+                                    No se encontraron asignaciones válidas
+                                    en el documento.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             LEYENDA
+             ============================================================ -->
+        <div class="table-wrapper"
+             style="padding:16px 20px;
+                    margin-bottom:24px;">
+
+            <div style="display:flex;
+                        gap:18px;
+                        align-items:center;
+                        flex-wrap:wrap;
+                        font-size:12px;">
+
+                <span style="color:#16a34a; font-weight:700;">
+                    <i class="fa-solid fa-circle-check"></i>
+                    Se creará
+                </span>
+
+                <span style="color:#64748b; font-weight:700;">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Ya existe, no se duplicará
+                </span>
+
+                <span style="color:#dc2626; font-weight:700;">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    Se omitirá
+                </span>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             CONFIRMAR IMPORTACIÓN
+             ============================================================ -->
+        <div class="table-wrapper"
+             style="padding:20px 24px;">
+
+            <form method="post"
+                  action="{% url 'core:importar_indicadores_materias' %}">
+
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="accion"
+                       value="guardar_indicadores">
+
+                <input type="hidden"
+                       name="archivo_temporal"
+                       value="{{ archivo_temporal }}">
+
+                <div style="display:flex;
+                            align-items:center;
+                            justify-content:space-between;
+                            gap:16px;
+                            flex-wrap:wrap;">
+
+                    <div>
+                        <p style="margin:0 0 4px 0;
+                                  font-size:14px;
+                                  font-weight:800;
+                                  color:#0f172a;">
+                            ¿Deseas guardar las asignaciones?
+                        </p>
+
+                        <p style="margin:0;
+                                  font-size:12px;
+                                  color:#64748b;">
+                            Se crearán {{ total_listos }} asignaciones nuevas.
+                            Las existentes y las filas con errores serán omitidas.
+                        </p>
+                    </div>
+
+                    <div style="display:flex;
+                                gap:10px;
+                                flex-wrap:wrap;">
+
+                        <a href="{% url 'core:importar_indicadores_materias' %}"
+                           style="background:#e2e8f0;
+                                  color:#334155;
+                                  padding:10px 18px;
+                                  border-radius:999px;
+                                  font-size:13px;
+                                  font-weight:700;
+                                  text-decoration:none;">
+                            Cargar otro archivo
+                        </a>
+
+                        <button type="submit"
+                                class="course-card__button"
+                                {% if total_listos == 0 %}disabled{% endif %}
+                                style="width:220px;
+                                       border:none;
+                                       display:inline-flex;
+                                       align-items:center;
+                                       justify-content:center;
+                                       gap:7px;
+                                       background-color:#16a34a;
+                                       {% if total_listos == 0 %}
+                                           opacity:.5;
+                                           cursor:not-allowed;
+                                       {% else %}
+                                           cursor:pointer;
+                                       {% endif %}">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            Confirmar asignaciones
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    {% endif %}
+
+</div>
+
+<style>
+@media (max-width: 1000px) {
+    .dashboard .table-wrapper > div[style*="grid-template-columns:repeat(4"] {
+        grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 650px) {
+    .dashboard .table-wrapper > div[style*="grid-template-columns:repeat(4"] {
+        grid-template-columns:1fr !important;
+    }
+}
+</style>
+{% endblock %}
